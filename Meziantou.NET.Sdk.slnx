@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/Meziantou.Sdk.Tests/Meziantou.Sdk.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/ConfigFilesGenerator/ConfigFilesGenerator.csproj" />
+  </Folder>
+</Solution>

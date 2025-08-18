@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)\Common.targets" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
+</Project>

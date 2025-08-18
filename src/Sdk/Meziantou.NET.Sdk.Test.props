@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <MeziantouSdkName>Meziantou.NET.Sdk.Test</MeziantouSdkName>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)\Common.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+</Project>

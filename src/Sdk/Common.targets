@@ -1,0 +1,40 @@
+<Project>
+
+  <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" />
+
+  <ItemGroup>
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" Condition="$(PackageId) != 'Meziantou.Analyzer'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.txt" Condition="$(IncludeDefaultBannedSymbols) == 'true'" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
+    <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+  
+  <Target Name="IncludeBannedSymbolsAndEditorConfigToBinLog" AfterTargets="CoreCompile">
+    <ItemGroup>
+      <EmbedInBinlog Include="@(AdditionalFiles)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', '^BannedSymbols(\..+)?\.txt$'))" />
+      <EmbedInBinlog Include="@(EditorConfigFiles)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Disable packages -->
+  <Target Name="Disable_SponsorLink" BeforeTargets="CoreCompile" Condition="$(Disable_SponsorLink) != 'false'">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'DevLooped.SponsorLink' " />
+      <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Moq.CodeAnalysis' " />
+    </ItemGroup>
+  </Target>
+</Project>

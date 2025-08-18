@@ -1,0 +1,84 @@
+<Project>
+  <!-- TODO If xUnit and GitHub => Add logger package and command line -->
+  <!-- TODO move more stuff to .targets ? -->
+
+  <Import Project="$(MSBuildThisFileDirectory)\ContinuousIntegrationBuild.props" />
+  
+  <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <_IsMeziantouProject>$(MSBuildProjectName.StartsWith('Meziantou', StringComparison.OrdinalIgnoreCase))</_IsMeziantouProject>
+  </PropertyGroup>
+
+  <PropertyGroup>    
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Embed symbols containing Source Link in the main file (exe/dll) -->
+    <DebugType>embedded</DebugType>
+    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OptimizeVsTestRun>true</OptimizeVsTestRun>
+    
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
+    
+    <ReportAnalyzer>true</ReportAnalyzer>
+    <Features>strict</Features>
+    <Deterministic>true</Deterministic>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CA1014</NoWarn>
+    <MSBuildTreatWarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</MSBuildTreatWarningsAsErrors>
+    <TreatWarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Label="NuGet Audit">
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <WarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">$(WarningsAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+
+  <!-- NuGet Package -->
+  <PropertyGroup>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
+    <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
+    <_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
+
+    <Authors Condition="'$(_IsMeziantouProject)' == 'true'">meziantou</Authors>
+    <Company Condition="'$(_IsMeziantouProject)' == 'true'">meziantou</Company>
+
+    <_UseDefaultPackageIcon Condition="'$(_IsMeziantouProject)' == 'true'">true</_UseDefaultPackageIcon>
+    <_DefaultPackageIcon>$(MSBuildThisFileDirectory)\..\icon.png</_DefaultPackageIcon>
+    <PackageIcon Condition="'$(_IsMeziantouProject)' == 'true'">icon.png</PackageIcon>
+
+    <PackageLicenseExpression Condition="'$(_IsMeziantouProject)' == 'true'">MIT</PackageLicenseExpression>
+    <PackageReadmeFile Condition="$(_PackageReadmeFilePath) != ''">README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(_DefaultPackageIcon)" Pack="true" PackagePath="" Visible="false" Condition="'$(_UseDefaultPackageIcon)' == 'true'" />
+    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
+    <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
+    <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <IncludeDefaultBannedSymbols>true</IncludeDefaultBannedSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Add all editorconfig files -->
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig" />
+  </ItemGroup>
+
+</Project>
