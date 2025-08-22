@@ -20,18 +20,19 @@
     <VSTestCollect>Code Coverage</VSTestCollect>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <VSTestLogger>$(VSTestLogger);trx;console%3bverbosity=detailed</VSTestLogger>
+  </PropertyGroup>
+  
+  <!-- Add custom logger on GitHub -->
   <Choose>
     <When Condition="'$(IsTestProject)' == 'True' AND '$(_IsGitHubActions)' == 'True'">
       <PropertyGroup>
-        <VSTestLogger>
-          trx;
-          console%3bverbosity=detailed;
-          GitHubActions
-        </VSTestLogger>
+        <VSTestLogger>$(VSTestLogger);GitHubActions</VSTestLogger>
       </PropertyGroup>
 
       <ItemGroup>
-        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1">
+        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" IsImplicitlyDefined="true">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>

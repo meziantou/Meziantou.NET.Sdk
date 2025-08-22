@@ -5,15 +5,41 @@ using NuGet.Packaging;
 using Task = System.Threading.Tasks.Task;
 using static Meziantou.Sdk.Tests.Helpers.PackageFixture;
 using Meziantou.Sdk.Tests.Helpers;
+using Meziantou.Framework;
 
 namespace Meziantou.Sdk.Tests;
 
-// TODO use artifact folder
-
-// TODO test with Central Package Management (Set IsImplicitlyDefined=true if needed)
 // TODO test with xunit v3
+// TODO test with xunit v3 + MTP
+// TODO fail if no tests?
 public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper) : IClassFixture<PackageFixture>
 {
+    private static readonly (string, string)[] XUnit2References = [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
+    private static readonly (string, string)[] XUnit3References = [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
+
+    [Fact]
+    public void PackageReferenceAreValid()
+    {
+        var root = PathHelpers.GetRootDirectory() / "src";
+        var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories).Select(FullPath.FromPath);
+        foreach (var file in files)
+        {
+            if (file.Extension is ".props" or ".targets")
+            {
+                var doc = XDocument.Load(file);
+                var nodes = doc.Descendants("PackageReference");
+                foreach (var node in nodes)
+                {
+                    var attr = node.Attribute("IsImplicitlyDefined");
+                    if (attr is null || attr.Value != "true")
+                    {
+                        Assert.Fail("Missing IsImplicitlyDefined=\"true\" on " + node.ToString());
+                    }
+                }
+            }
+        }
+    }
+
     [Theory]
     [InlineData(SdkName)]
     [InlineData(SdkWebName)]
@@ -22,7 +48,10 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     {
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(sdk: sdk);
-        project.AddFile("sample.cs", """_ = new StringBuilder();""");
+        project.AddFile("sample.cs", """
+            _ = new StringBuilder();
+            _ = CultureInfo.InvariantCulture;
+            """);
         var data = await project.BuildAndGetOutput();
         Assert.False(data.HasError());
     }
@@ -60,7 +89,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile();
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
-        var data = await project.BuildAndGetOutput(["/p:GITHUB_ACTIONS=true"]);
+        var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
         Assert.True(data.HasError("RS0030"));
     }
 
@@ -174,7 +203,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(nuGetPackages: [("System.Net.Http", "4.3.3")]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
-        var data = await project.BuildAndGetOutput(["/p:GITHUB_ACTIONS=true"]);
+        var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
         Assert.True(data.OutputContains("error NU1903", StringComparison.Ordinal));
         Assert.Equal(1, data.ExitCode);
     }
@@ -290,7 +319,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(
             properties: [("IsTestProject", "true")],
-            nuGetPackages: [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.1")]
+            nuGetPackages: [.. XUnit2References]
         );
         project.AddFile("sample.cs", """
             public class Sample
@@ -312,7 +341,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(
             properties: [("IsTestProject", "true"), ("OptimizeVsTestRun", "false")],
-            nuGetPackages: [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.1")]
+            nuGetPackages: [.. XUnit2References]
         );
         project.AddFile("sample.cs", """
             public class Sample
@@ -329,7 +358,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     }
 
     [Fact]
-    public async Task NonMeziantouCsproj()
+    public async Task NonMeziantouCsproj_DoesNotIncludePackageProperties()
     {
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(filename: "sample.csproj");
@@ -347,7 +376,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     }
 
     [Fact]
-    public async Task MeziantouCsproj()
+    public async Task MeziantouCsproj_DoesIncludePackageProperties()
     {
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile();
@@ -375,9 +404,70 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         Assert.Equal(0, data.ExitCode);
     }
 
-    // TODO fail if no tests?
-    [Fact] // TODO same test without GitHubActions
-    public async Task RunningTestsOnGitHubActionsShouldAddCustomLogger()
+    [Fact]
+    public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit2()
+    {
+        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        project.AddCsprojFile(
+            sdk: SdkTestName,
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. XUnit2References]
+            );
+
+        project.AddFile("Program.cs", """
+            using Xunit;
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                    Assert.Fail("failure message");
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal));
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit3()
+    {
+        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        project.AddCsprojFile(
+            sdk: SdkTestName,
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. XUnit3References]
+            );
+
+        project.AddFile("Program.cs", """
+            using Xunit;
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                    Assert.Fail("failure message");
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal));
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public async Task VSTests_OnUnknownContextShouldNotAddCustomLogger()
     {
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
         project.AddCsprojFile(
@@ -398,12 +488,40 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             }
             """);
 
-        var summary = project.AddFile("gh_summary.txt", "");
-        var data = await project.TestAndGetOutput(environmentVariables: [("GITHUB_ACTIONS", "true"), ("GITHUB_STEP_SUMMARY", summary)]);
+        var data = await project.TestAndGetOutput();
 
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
-        Assert.NotEmpty(File.ReadAllText(summary));
+        Assert.Empty(project.GetGitHubStepSummaryContent());
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public async Task CentralPackageManagement()
+    {
+        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        project.AddCsprojFile(
+            sdk: SdkTestName,
+            filename: "Sample.Tests.csproj"
+            );
+
+        project.AddFile("Program.cs", """
+            Console.WriteLine();
+            """);
+
+        project.AddFile("Directory.Packages.props", """
+            <Project>
+              <PropertyGroup>
+                <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+                <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+              </PropertyGroup>
+              <ItemGroup>
+              </ItemGroup>
+            </Project>
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
     }
 
     private static async Task AssertPdbIsEmbedded(string[] outputFiles)

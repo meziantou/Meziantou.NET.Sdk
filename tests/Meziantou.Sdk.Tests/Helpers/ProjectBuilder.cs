@@ -1,3 +1,4 @@
+#nullable enable
 using System.Diagnostics;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -11,6 +12,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     private readonly TemporaryDirectory _directory;
     private readonly ITestOutputHelper _testOutputHelper;
+    private readonly FullPath _githubStepSummaryFile;
 
     public FullPath RootFolder => _directory.FullPath;
 
@@ -38,6 +40,27 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                   </packageSourceMapping>
                 </configuration>
                 """);
+
+        _githubStepSummaryFile = _directory.CreateEmptyFile("GITHUB_STEP_SUMMARY");
+    }
+
+    public IEnumerable<(string Name, string Value)> GitHubEnvironmentVariables
+    {
+        get
+        {
+            yield return ("GITHUB_ACTIONS", "true");
+            yield return ("GITHUB_STEP_SUMMARY", _githubStepSummaryFile);
+        }
+    }
+
+    public string? GetGitHubStepSummaryContent()
+    {
+        if (File.Exists(_githubStepSummaryFile))
+        {
+            return File.ReadAllText(_githubStepSummaryFile);
+        }
+
+        return null;
     }
 
     public FullPath AddFile(string relativePath, string content)
@@ -47,7 +70,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return path;
     }
 
-    public ProjectBuilder AddCsprojFile((string Name, string Value)[] properties = null, (string Name, string Version)[] nuGetPackages = null, XElement[] additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj")
+    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj")
     {
         var propertiesElement = new XElement("PropertyGroup");
         if (properties != null)
@@ -70,7 +93,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         var content = $"""
                 <Project Sdk="{sdk}/999.9.9">
                   <PropertyGroup>
-                    <ComputeNETCoreBuildOutputFiles>false</ComputeNETCoreBuildOutputFiles>
                     <OutputType>exe</OutputType>
                     <TargetFramework>net$(NETCoreAppMaximumVersion)</TargetFramework>
                     <ImplicitUsings>enable</ImplicitUsings>
@@ -87,22 +109,22 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return this;
     }
 
-    public Task<BuildResult> BuildAndGetOutput(string[] buildArguments = null, (string Name, string Value)[] environmentVariables = null)
+    public Task<BuildResult> BuildAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return this.ExecuteDotnetCommandAndGetOutput("build", buildArguments, environmentVariables);
     }
 
-    public Task<BuildResult> PackAndGetOutput(string[] buildArguments = null, (string Name, string Value)[] environmentVariables = null)
+    public Task<BuildResult> PackAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return this.ExecuteDotnetCommandAndGetOutput("pack", buildArguments, environmentVariables);
     }
 
-    public Task<BuildResult> TestAndGetOutput(string[] buildArguments = null, (string Name, string Value)[] environmentVariables = null)
+    public Task<BuildResult> TestAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return this.ExecuteDotnetCommandAndGetOutput("test", buildArguments, environmentVariables);
     }
 
-    private async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[] buildArguments, (string Name, string Value)[] environmentVariables)
+    private async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments, (string Name, string Value)[]? environmentVariables)
     {
         var globaljsonPsi = new ProcessStartInfo("dotnet", "new global.json")
         {
@@ -151,12 +173,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         _testOutputHelper.WriteLine(result.Output.ToString());
 
         FullPath sarifPath = _directory.FullPath / SarifFileName;
-        SarifFile sarif = null;
+        SarifFile? sarif = null;
         if (File.Exists(sarifPath))
         {
             var bytes = File.ReadAllBytes(sarifPath);
             sarif = JsonSerializer.Deserialize<SarifFile>(bytes);
-            _testOutputHelper.WriteLine("Sarif result:\n" + string.Join("\n", sarif.AllResults().Select(r => r.ToString())));
+            _testOutputHelper.WriteLine("Sarif result:\n" + string.Join("\n", sarif!.AllResults().Select(r => r.ToString())));
         }
         else
         {

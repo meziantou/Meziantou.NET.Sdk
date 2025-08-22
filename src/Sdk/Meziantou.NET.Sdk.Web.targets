@@ -1,4 +1,9 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)\Common.targets" />
+
+  <ItemGroup Condition="'$(IncludeDefaultWebReferences)' != 'False'">
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.8" IsImplicitlyDefined="true" />
+  </ItemGroup>
+
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
 </Project>

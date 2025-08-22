@@ -3,12 +3,12 @@
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" />
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" Condition="$(PackageId) != 'Meziantou.Analyzer'">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0">
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
@@ -20,6 +20,7 @@
 
   <ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
     <Using Include="System.Diagnostics.CodeAnalysis" />
+    <Using Include="System.Globalization" />
     <Using Include="System.Text" />
   </ItemGroup>
   
