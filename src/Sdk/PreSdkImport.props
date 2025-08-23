@@ -1,7 +1,4 @@
 <Project>
-  <!-- TODO If xUnit and GitHub => Add logger package and command line -->
-  <!-- TODO move more stuff to .targets ? -->
-
   <Import Project="$(MSBuildThisFileDirectory)\ContinuousIntegrationBuild.props" />
   
   <PropertyGroup>
@@ -11,41 +8,41 @@
 
   <PropertyGroup>    
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PublishRepositoryUrl Condition="'$(PublishRepositoryUrl)' == ''">true</PublishRepositoryUrl>
 
     <!-- Embed symbols containing Source Link in the main file (exe/dll) -->
-    <DebugType>embedded</DebugType>
+    <DebugType Condition="'$(DebugType)' == ''">embedded</DebugType>
     <!-- Embed source files that are not tracked by the source control manager in the PDB -->
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <OptimizeVsTestRun>true</OptimizeVsTestRun>
+    <EmbedUntrackedSources Condition="'$(EmbedUntrackedSources)' == ''">true</EmbedUntrackedSources>
+    <ImplicitUsings Condition="'$(ImplicitUsings)' == ''">enable</ImplicitUsings>
+    <Nullable Condition="'$(Nullable)' == ''">enable</Nullable>
+    <OptimizeVsTestRun Condition="'$(OptimizeVsTestRun)' == ''">true</OptimizeVsTestRun>
     
-    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
-    <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
-    
-    <ReportAnalyzer>true</ReportAnalyzer>
-    <Features>strict</Features>
-    <Deterministic>true</Deterministic>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>latest-all</AnalysisLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <NoWarn>$(NoWarn);CA1014</NoWarn>
-    <MSBuildTreatWarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</MSBuildTreatWarningsAsErrors>
-    <TreatWarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
+    <RestoreUseStaticGraphEvaluation Condition="'$(RestoreUseStaticGraphEvaluation)' == ''">true</RestoreUseStaticGraphEvaluation>
+    <RestoreSerializeGlobalProperties Condition="'$(RestoreSerializeGlobalProperties)' == ''">true</RestoreSerializeGlobalProperties>
+
+    <ReportAnalyzer Condition="'$(ReportAnalyzer)' == ''">true</ReportAnalyzer>
+    <Features Condition="'$(Features)' == ''">strict</Features>
+    <Deterministic Condition="'$(Deterministic)' == ''">true</Deterministic>
+    <EnableNETAnalyzers Condition="'$(EnableNETAnalyzers)' == ''">true</EnableNETAnalyzers>
+    <AnalysisLevel Condition="'$(AnalysisLevel)' == ''">latest-all</AnalysisLevel>
+    <AllowUnsafeBlocks Condition="'$(AllowUnsafeBlocks)' == ''">true</AllowUnsafeBlocks>
+    <LangVersion Condition="'$(LangVersion)' == ''">latest</LangVersion>
+    <NoWarn Condition="'$(NoWarn)' == ''">$(NoWarn);CA1014</NoWarn>
+    <MSBuildTreatWarningsAsErrors Condition="'$(MSBuildTreatWarningsAsErrors)' == '' AND ($(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release')">true</MSBuildTreatWarningsAsErrors>
+    <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)' == '' AND ($(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release')">true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)' == '' AND ($(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release')">true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet Audit">
-    <NuGetAudit>true</NuGetAudit>
-    <NuGetAuditMode>all</NuGetAuditMode>
-    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <NuGetAudit Condition="'$(NuGetAudit)' == ''">true</NuGetAudit>
+    <NuGetAuditMode Condition="'$(NuGetAuditMode)' == ''">all</NuGetAuditMode>
+    <NuGetAuditLevel Condition="'$(NuGetAuditLevel)' == ''">low</NuGetAuditLevel>
     <WarningsAsErrors Condition="$(ContinuousIntegrationBuild) == 'true' OR '$(Configuration)' == 'Release'">$(WarningsAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
-    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    <AccelerateBuildsInVisualStudio Condition="'$(AccelerateBuildsInVisualStudio)' == ''">true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
 
   <!-- NuGet Package -->
@@ -73,7 +70,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <IncludeDefaultBannedSymbols>true</IncludeDefaultBannedSymbols>
+    <IncludeDefaultBannedSymbols Condition="'$(IncludeDefaultBannedSymbols)' == ''">true</IncludeDefaultBannedSymbols>
   </PropertyGroup>
 
   <ItemGroup>

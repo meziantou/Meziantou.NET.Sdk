@@ -3,6 +3,13 @@
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" />
 
   <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
+      <_Parameter2>$(MeziantouSdkName)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

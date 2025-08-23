@@ -1,0 +1,125 @@
+name: publish
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "*"
+
+concurrency:
+  group: ci-site-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{ github.workspace}}/nuget
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  lint_config:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+      - run: dotnet run --project=tools/ConfigFilesGenerator/ConfigFilesGenerator.csproj
+
+  compute_version:
+    runs-on: ubuntu-latest
+    outputs:
+      package_version: ${{ steps.compute-version.outputs.package_version }}
+    steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-dotnet@v4
+        - id: compute-version
+          run: |
+            try
+            {
+                $(Invoke-WebRequest "https://www.nuget.org/api/v2/package/Meziantou.NET.Sdk/").BaseResponse.RequestMessage.RequestUri -match "meziantou\.net\.sdk\.1\.0\.([0-9]+).nupkg"
+                $NewVersion = "1.0.$([int]$Matches.1 + 1)"
+            }
+            catch
+            {
+                $NewVersion = "1.0.0"
+            }
+            
+            Write-Host "New version: $NewVersion"
+            "package_version=$NewVersion" >> $env:GITHUB_OUTPUT
+
+  create_nuget:
+    needs: [compute_version]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+      - run: nuget pack Meziantou.NET.Sdk.nuspec -ForceEnglishOutput -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
+      - run: nuget pack Meziantou.NET.Sdk.Web.nuspec -ForceEnglishOutput -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
+      - run: nuget pack Meziantou.NET.Sdk.Test.nuspec -ForceEnglishOutput -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget
+          if-no-files-found: error
+          retention-days: 3
+          path: "**/*.nupkg"
+          
+  test:
+    runs-on: ubuntu-latest
+    needs: [create_nuget, compute_version]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v5
+        with:
+          name: nuget
+          path: ${{ env.NuGetDirectory }}
+      - uses: actions/setup-dotnet@v4
+      - run: dotnet --info
+      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx;LogFileName=test_results.trx" --results-directory test_results
+        env:
+            PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test_results
+          path: test_results
+
+  deploy:
+    runs-on: "ubuntu-latest"
+    needs: [create_nuget, lint_config, test]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v5
+        with:
+          name: nuget
+          path: ${{ env.NuGetDirectory }}
+      - uses: actions/setup-dotnet@v4
+      - name: Publish NuGet packages
+        env:
+          NuGetApiKey: ${{ secrets.NuGetApiKey }}
+          FeedzApiKey: ${{ secrets.FEEDZ_APIKEY }}
+        run: |
+          Write-Host "Current ref: $env:GITHUB_REF"
+          Write-Host "Searching nupkg in folder: ${{ env.NuGetDirectory }}"
+          $files = Get-ChildItem "${{ env.NuGetDirectory }}/*" -Recurse -Include *.nupkg
+          foreach($file in $files) {
+              Write-Host "Pushing NuGet package: $($file.FullName)"
+              & dotnet nuget push "$($file.FullName)" --api-key "$env:FeedzApiKey" --source https://f.feedz.io/meziantou/meziantou-dotnet-codingstandard/nuget/index.json --force-english-output --skip-duplicate
+              if ($env:GITHUB_REF -eq 'refs/heads/main')
+              {
+                # Only push to nuget.org if we are on the main branch and a relevant file was found (nuspec or change under src/)
+                $Changes = git diff --name-only HEAD^1 HEAD -- '*.nuspec' 'src/**/*'
+                if ($Changes) {
+                  Write-Host "Changes: $Changes"
+                  Write-Host "Pushing to nuget.org"
+                  & dotnet nuget push "$($file.FullName)" --api-key "$env:NuGetApiKey" --source https://api.nuget.org/v3/index.json --force-english-output
+                } else {
+                  Write-Host "No relevant changes detected, skipping push to nuget.org"
+                }
+              }
+          }
+        

@@ -6,25 +6,49 @@
       <RunAnalyzers>false</RunAnalyzers>
     </PropertyGroup>
   </Target>
+  <Choose>
+    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'True'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="1.8.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="1.8.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="1.8.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="1.8.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.2" IsImplicitlyDefined="true" />
+      </ItemGroup>
 
-  <PropertyGroup Condition="'$(EnableDefaultVSTestSettings)' != 'false'">
-    <VSTestBlame>True</VSTestBlame>
+      <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
+        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
+        <TreatNoTestsAsError>true</TreatNoTestsAsError>
 
-    <VSTestBlameCrash>True</VSTestBlameCrash>
-    <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
+        <VSTestBlame>True</VSTestBlame>
 
-    <VSTestBlameHang>True</VSTestBlameHang>
-    <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
-    <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
+        <VSTestBlameCrash>True</VSTestBlameCrash>
+        <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
 
-    <VSTestCollect>Code Coverage</VSTestCollect>
-  </PropertyGroup>
+        <VSTestBlameHang>True</VSTestBlameHang>
+        <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
+        <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-  <PropertyGroup>
-    <VSTestLogger>$(VSTestLogger);trx;console%3bverbosity=detailed</VSTestLogger>
-  </PropertyGroup>
+        <VSTestCollect>Code Coverage</VSTestCollect>
+      </PropertyGroup>
+
+      <PropertyGroup>
+        <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
+        <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=detailed</VSTestLogger>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
   
-  <!-- Add custom logger on GitHub -->
+  <!-- VSTest on GitHub -->
   <Choose>
     <When Condition="'$(IsTestProject)' == 'True' AND '$(_IsGitHubActions)' == 'True'">
       <PropertyGroup>

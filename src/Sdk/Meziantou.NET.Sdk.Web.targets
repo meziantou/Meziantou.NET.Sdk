@@ -1,9 +1,10 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)\Common.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)\PreSdkImport.targets" />
 
   <ItemGroup Condition="'$(IncludeDefaultWebReferences)' != 'False'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.8" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Web" />
+  <Import Project="$(MSBuildThisFileDirectory)\PostSdkImport.targets" />
 </Project>

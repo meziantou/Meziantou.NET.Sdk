@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Runtime.Loader;
-using System.Xml.Linq;
 using Meziantou.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +14,7 @@ using NuGet.Versioning;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Meziantou.Framework.DependencyScanning;
 
 var rootFolder = GetRootFolderPath();
 
@@ -26,6 +26,7 @@ await Parallel.ForEachAsync(packages, async (item, cancellationToken) =>
 
     Console.WriteLine(packageId + "@" + packageVersion);
     var configurationFilePath = rootFolder / "src" / "configuration" / ("Analyzer." + packageId + ".editorconfig");
+
 
     var rules = new HashSet<AnalyzerRule>();
     foreach (var assembly in await GetAnalyzerReferences(packageId, packageVersion))
@@ -129,7 +130,7 @@ async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
     var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
     var resource = await repository.GetResourceAsync<PackageMetadataResource>();
 
-    foreach (var package in GetReferencedNuGetPackages())
+    await foreach (var package in GetReferencedNuGetPackages())
     {
         // Find the latest version if no version is specified
         var version = package.Version is null ? null : NuGetVersion.Parse(package.Version);
@@ -187,16 +188,17 @@ async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
     }
 }
 
-IEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages()
+async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages()
 {
-    var nuspecPath = rootFolder / "Meziantou.DotNet.CodingStandard.nuspec";
-    var document = XDocument.Load(nuspecPath);
-    var ns = document.Root!.Name.Namespace;
-    foreach (var value in document.Descendants(ns + "dependency").Select(node => (node.Attribute("id")!.Value, node.Attribute("version")!.Value)))
+    var result = await DependencyScanner.ScanDirectoryAsync(rootFolder / "src", options: null);
+    foreach (var item in result)
     {
-        yield return value;
+        if (item.Type is DependencyType.NuGet && item.Name is not null)
+        {
+            yield return (item.Name, item.Version);
+        }
     }
-    
+
     // Add analyzers from the .NET SDK
     foreach (var package in new[] { "Microsoft.CodeAnalysis.NetAnalyzers", /* "Microsoft.CodeAnalysis.CSharp.CodeStyle" */ })
     {
@@ -221,7 +223,7 @@ static FullPath GetRootFolderPath()
     return path;
 }
 
-static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersion  version)
+static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersion version)
 {
     ILogger logger = NullLogger.Instance;
     CancellationToken cancellationToken = CancellationToken.None;

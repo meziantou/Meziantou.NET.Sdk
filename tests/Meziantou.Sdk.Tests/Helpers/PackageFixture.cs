@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using Meziantou.Framework;
 
 namespace Meziantou.Sdk.Tests.Helpers;
@@ -13,6 +12,8 @@ public sealed class PackageFixture : IAsyncLifetime
     private readonly TemporaryDirectory _packageDirectory = TemporaryDirectory.Create();
 
     public FullPath PackageDirectory => _packageDirectory.FullPath;
+
+    public string Version { get; } = Environment.GetEnvironmentVariable("PACKAGE_VERSION") ?? "999.9.9";
 
     public async ValueTask InitializeAsync()
     {
