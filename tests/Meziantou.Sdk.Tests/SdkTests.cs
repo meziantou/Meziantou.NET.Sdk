@@ -8,6 +8,8 @@ using Meziantou.Sdk.Tests.Helpers;
 using Meziantou.Framework;
 using System.Reflection.Metadata;
 using NuGet.Packaging.Licenses;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Meziantou.Sdk.Tests;
 
@@ -723,6 +725,56 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
 
                 Assert.Equal("Meziantou.Sdk.Name", key);
                 Assert.Equal(sdkName, value);
+                return;
+            }
+        }
+
+        Assert.Fail("Attribute not found");
+    }
+
+    [Theory]
+    [InlineData("TargetFramework", "")]
+    [InlineData("TargetFrameworks", "")]
+    [InlineData("TargetFramework", "net9.0")]
+    [InlineData("TargetFramework", "net10.0")]
+    [InlineData("TargetFrameworks", "net9.0")]
+    [InlineData("TargetFrameworks", "net10.0")]
+    public async Task SetTargetFramework(string propName, string version)
+    {
+        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [(propName, version)]);
+
+        project.AddFile("Program.cs", """
+            Console.WriteLine();
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        var dllPath = Directory.GetFiles(project.RootFolder / "bin" / "Debug", "Sample.Tests.dll", SearchOption.AllDirectories).Single();
+
+        var expectedVersion = version;
+        if (string.IsNullOrEmpty(expectedVersion))
+        {
+            expectedVersion = JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(project.RootFolder / "global.json"))["sdk"]["version"].GetValue<string>();
+        }
+
+        await using var assembly = File.OpenRead(dllPath);
+        using var reader = new PEReader(assembly);
+        var metadata = reader.GetMetadataReader();
+        foreach (var attrHandle in metadata.CustomAttributes)
+        {
+            var customAttribute = metadata.GetCustomAttribute(attrHandle);
+            var attributeType = customAttribute.Constructor;
+            var typeName = metadata.GetString(metadata.GetTypeReference((TypeReferenceHandle)metadata.GetMemberReference(((MemberReferenceHandle)attributeType)).Parent).Name);
+            if (typeName is "TargetFrameworkAttribute")
+            {
+                var blobReader = metadata.GetBlobReader(customAttribute.Value);
+                _ = blobReader.ReadSerializedString();
+                var key = blobReader.ReadSerializedString();
+
+                Assert.Contains(version.Replace("net", "v", StringComparison.Ordinal), key);
                 return;
             }
         }

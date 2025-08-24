@@ -6,7 +6,7 @@
     <_IsMeziantouProject>$(MSBuildProjectName.StartsWith('Meziantou', StringComparison.OrdinalIgnoreCase))</_IsMeziantouProject>
   </PropertyGroup>
 
-  <PropertyGroup>    
+  <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl Condition="'$(PublishRepositoryUrl)' == ''">true</PublishRepositoryUrl>
 

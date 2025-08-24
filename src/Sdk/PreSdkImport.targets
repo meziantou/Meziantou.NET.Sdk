@@ -2,6 +2,10 @@
 
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" />
 
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''" >net$(NETCoreAppMaximumVersion)</TargetFramework>
+  </PropertyGroup>
+  
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>

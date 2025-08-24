@@ -96,7 +96,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             <Project Sdk="{sdk}/{_fixture.Version}">
                 <PropertyGroup>
                 <OutputType>exe</OutputType>
-                <TargetFramework>net$(NETCoreAppMaximumVersion)</TargetFramework>
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
                 <ErrorLog>{SarifFileName},version=2.1</ErrorLog>
@@ -151,7 +150,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         var dotnetInfoResult = await dotnetInfoPsi.RunAsTaskAsync();
         _testOutputHelper.WriteLine(dotnetInfoResult.Output.ToString());
 
-        _testOutputHelper.WriteLine("-------- dotnet test");
+        _testOutputHelper.WriteLine("-------- dotnet " + command);
         var psi = new ProcessStartInfo("dotnet")
         {
             WorkingDirectory = _directory.FullPath,
