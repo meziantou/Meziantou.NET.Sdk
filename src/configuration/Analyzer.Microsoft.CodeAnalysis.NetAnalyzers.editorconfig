@@ -1006,7 +1006,7 @@ dotnet_diagnostic.CA2231.severity = warning
 # CA2234: Pass system uri objects instead of strings
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2234
 # Enabled: False, Severity: warning
-dotnet_diagnostic.CA2234.severity = warning
+dotnet_diagnostic.CA2234.severity = suggestion
 
 # CA2235: Mark all non-serializable fields
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2235
