@@ -55,7 +55,7 @@
   
   <!-- VSTest on GitHub -->
   <Choose>
-    <When Condition="'$(IsTestProject)' == 'True' AND '$(_IsGitHubActions)' == 'True'">
+    <When Condition="'$(_IsGitHubActions)' == 'True'">
       <PropertyGroup>
         <VSTestLogger>$(VSTestLogger);GitHubActions</VSTestLogger>
       </PropertyGroup>

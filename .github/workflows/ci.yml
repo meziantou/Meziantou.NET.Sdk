@@ -8,7 +8,7 @@ on:
       - "*"
 
 concurrency:
-  group: ci-site-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: false
 
 env:
