@@ -524,6 +524,40 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task MTP_DotnetTestSkipAnalyzers()
+    {
+        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        project.AddCsprojFile(
+            sdk: SdkTestName,
+            filename: "Sample.Tests.csproj",
+            properties: [("UseMicrosoftTestingPlatform", "true")],
+            nuGetPackages: [.. XUnit3References]
+            );
+
+        project.AddFile("Program.cs", """
+            using Xunit;
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                    _ = System.DateTime.Now; // This should not be reported as an error
+                }
+            }
+            """);
+
+        project.AddFile("dotnet.config", """
+            [dotnet.test.runner]
+            name = "Microsoft.Testing.Platform"
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.HasWarning("RS0030"));
+    }
+
+    [Fact]
     public async Task MTP_OnUnknownContextShouldNotAddCustomLogger()
     {
         await using var project = new ProjectBuilder(fixture, testOutputHelper);
