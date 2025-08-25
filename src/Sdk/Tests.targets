@@ -31,6 +31,10 @@
       </PropertyGroup>
     </When>
     <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" IsImplicitlyDefined="true" />
+      </ItemGroup>
+      
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
         <TreatNoTestsAsError>true</TreatNoTestsAsError>
 
@@ -52,6 +56,14 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
+  
+  <!-- Add implicit using for xunit -->
+  <Target Name="_AddXunitUsingWhenPackageIsDetected" BeforeTargets="BeforeBuild">
+    <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference->AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
+      <Using Include="Xunit" />
+    </ItemGroup>
+    <Message Importance="high" Text="Add implicit xunit using" />
+  </Target>
   
   <!-- VSTest on GitHub -->
   <Choose>

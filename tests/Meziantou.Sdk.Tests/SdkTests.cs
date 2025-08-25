@@ -418,7 +418,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -461,7 +460,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -504,7 +502,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -535,7 +532,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -569,7 +565,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -605,7 +600,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
                 [Fact]
@@ -638,7 +632,6 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
             );
 
         project.AddFile("Program.cs", """
-            using Xunit;
             public class Tests
             {
             }
