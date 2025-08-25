@@ -15,8 +15,8 @@ namespace Meziantou.Sdk.Tests;
 
 public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper) : IClassFixture<PackageFixture>
 {
-    private static readonly (string, string)[] XUnit2References = [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
-    private static readonly (string, string)[] XUnit3References = [("Microsoft.NET.Test.Sdk", "17.14.1"), ("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
+    private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
+    private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
 
     private static readonly bool IsGitHubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
 
