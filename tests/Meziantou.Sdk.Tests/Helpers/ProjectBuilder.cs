@@ -14,6 +14,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     private readonly PackageFixture _fixture;
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly FullPath _githubStepSummaryFile;
+    private NetSdkVersion _sdkVersion = NetSdkVersion.Net10_0;
 
     public FullPath RootFolder => _directory.FullPath;
 
@@ -72,6 +73,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return path;
     }
 
+    public void SetDotnetSdkVersion(NetSdkVersion dotnetSdkVersion) => _sdkVersion = dotnetSdkVersion;
+
     public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj")
     {
         var propertiesElement = new XElement("PropertyGroup");
@@ -127,31 +130,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     private async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments, (string Name, string Value)[]? environmentVariables)
     {
-        _testOutputHelper.WriteLine("-------- dotnet new global.json");
-        var globaljsonPsi = new ProcessStartInfo("dotnet", "new global.json")
-        {
-            WorkingDirectory = _directory.FullPath,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        var result = await globaljsonPsi.RunAsTaskAsync();
-        _testOutputHelper.WriteLine("Process exit code: " + result.ExitCode);
-        _testOutputHelper.WriteLine(result.Output.ToString());
-
-        _testOutputHelper.WriteLine("-------- dotnet info");
-        var dotnetInfoPsi = new ProcessStartInfo("dotnet", "--info")
-        {
-            WorkingDirectory = _directory.FullPath,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        var dotnetInfoResult = await dotnetInfoPsi.RunAsTaskAsync();
-        _testOutputHelper.WriteLine(dotnetInfoResult.Output.ToString());
-
         _testOutputHelper.WriteLine("-------- dotnet " + command);
-        var psi = new ProcessStartInfo("dotnet")
+        var psi = new ProcessStartInfo(await DotNetSdkHelpers.Get(_sdkVersion))
         {
             WorkingDirectory = _directory.FullPath,
             RedirectStandardOutput = true,
@@ -173,7 +153,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         psi.Environment.Remove("CI");
         foreach (var kvp in psi.Environment.ToArray())
         {
-            if (kvp.Key.StartsWith("GITHUB", StringComparison.Ordinal) || kvp.Key.StartsWith("GITHUB_", StringComparison.Ordinal) || kvp.Key.StartsWith("RUNNER_", StringComparison.Ordinal))
+            if (kvp.Key.StartsWith("GITHUB", StringComparison.Ordinal) || kvp.Key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || kvp.Key.StartsWith("GITHUB_", StringComparison.Ordinal) || kvp.Key.StartsWith("RUNNER_", StringComparison.Ordinal))
             {
                 psi.Environment.Remove(kvp.Key);
             }
@@ -182,6 +162,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         psi.Environment["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true";
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
         psi.Environment["VSTestDiag"] = vstestdiagPath;
+        psi.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(psi.FileName);
+        psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
 
         if (environmentVariables != null)
         {
@@ -197,7 +179,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             TestContext.Current.TestOutputHelper?.WriteLine($"  {env.Key}={env.Value}");
         }
 
-        result = await psi.RunAsTaskAsync();
+        var result = await psi.RunAsTaskAsync();
         _testOutputHelper.WriteLine("Process exit code: " + result.ExitCode);
         _testOutputHelper.WriteLine(result.Output.ToString());
 

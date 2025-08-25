@@ -13,12 +13,27 @@ using System.Text.Json.Nodes;
 
 namespace Meziantou.Sdk.Tests;
 
-public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper) : IClassFixture<PackageFixture>
+public sealed class Sdk9_0Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0)
+{ }
+
+public sealed class Sdk10_0Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0)
+{ }
+
+public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion) : IClassFixture<PackageFixture>
 {
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
     private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
 
     private static readonly bool IsGitHubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
+
+    private ProjectBuilder CreateProjectBuilder()
+    {
+        var builder = new ProjectBuilder(fixture, testOutputHelper);
+        builder.SetDotnetSdkVersion(dotnetSdkVersion);
+        return builder;
+    }
 
     [Fact]
     public void PackageReferenceAreValid()
@@ -49,7 +64,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [InlineData(SdkTestName)]
     public async Task ImplicitUsings(string sdk)
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(sdk: sdk);
         project.AddFile("sample.cs", """
             _ = new StringBuilder();
@@ -62,7 +77,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task BannedSymbolsAreReported()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
         var data = await project.BuildAndGetOutput();
@@ -75,7 +90,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task EditorConfigsAreInBinlog()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
         var localFile = project.AddFile(".editorconfig", "");
@@ -89,7 +104,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task WarningsAsErrorOnGitHubActions()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
         var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
@@ -99,7 +114,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task NamingConvention_Invalid()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", """
             _ = "";
@@ -120,7 +135,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task NamingConvention_Valid()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", """
             _ = "";
@@ -138,7 +153,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task CodingStyle_UseExpression()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             A();
@@ -156,7 +171,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task CodingStyle_ExpressionIsNeverUsed()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             var sb = new System.Text.StringBuilder();
@@ -171,7 +186,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task LocalEditorConfigCanOverrideSettings()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             _ = "";
@@ -203,7 +218,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(nuGetPackages: [("System.Net.Http", "4.3.3")]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
@@ -214,7 +229,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task NuGetAuditIsReportedAsWarning()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(nuGetPackages: [("System.Net.Http", "4.3.3")]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
@@ -226,7 +241,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MSBuildWarningsAsError()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", """
             System.Console.WriteLine();
             
@@ -242,7 +257,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MSBuildWarningsAsError_NotEnableOnDebug()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         project.AddCsprojFile(additionalProjectElements: [
             new XElement("Target", new XAttribute("Name", "Custom"), new XAttribute("BeforeTargets", "Build"),
@@ -255,7 +270,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task CA1708_NotReportedForFileLocalTypes()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Sample1.cs", """
             System.Console.WriteLine();
@@ -281,7 +296,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task PdbShouldBeEmbedded_Dotnet_Build()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             Console.WriteLine();
@@ -297,7 +312,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task PdbShouldBeEmbedded_Dotnet_Pack()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             Console.WriteLine();
@@ -319,7 +334,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task DotnetTestSkipAnalyzers()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             properties: [("IsTestProject", "true")],
             nuGetPackages: [.. XUnit2References]
@@ -341,7 +356,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task DotnetTestSkipAnalyzers_OptOut()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             properties: [("IsTestProject", "true"), ("OptimizeVsTestRun", "false")],
             nuGetPackages: [.. XUnit2References]
@@ -363,7 +378,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task NonMeziantouCsproj_DoesNotIncludePackageProperties()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(filename: "sample.csproj");
         project.AddFile("Program.cs", """Console.WriteLine();""");
         project.AddFile("LICENSE.txt", """dummy""");
@@ -381,7 +396,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MeziantouCsproj_DoesIncludePackageProperties()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", """Console.WriteLine();""");
         project.AddFile("LICENSE.txt", """dummy""");
@@ -400,7 +415,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MeziantouAnalyzerCsproj()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(filename: "Meziantou.Analyzer.csproj");
         project.AddFile("Program.cs", """Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
@@ -410,7 +425,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit2()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -436,13 +451,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal), userMessage: "Output must contain 'failure message'");
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
 
-        // I'm not sure why the logger fails with "Bad IL Range" on runners. Let's check the diagnostic file instead
-        if (IsGitHubActions)
-        {
-            // Make sure the logger was used (even if it crashes)
-            Assert.Contains("GitHubActionsTestLogger/Utils/ContentionTolerantWriteFileStream.cs", data.VSTestDiagnosticFileContent);
-        }
-        else
+        if (!IsGitHubActions)
         {
             Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
             Assert.NotEmpty(project.GetGitHubStepSummaryContent());
@@ -452,7 +461,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit3()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -478,13 +487,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
 
-        // I'm not sure why the logger fails with "Bad IL Range" on runners. Let's check the diagnostic file instead
-        if (IsGitHubActions)
-        {
-            // Make sure the logger was used (even if it crashes)
-            Assert.Contains("GitHubActionsTestLogger/Utils/ContentionTolerantWriteFileStream.cs", data.VSTestDiagnosticFileContent);
-        }
-        else
+        if (!IsGitHubActions)
         {
             Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
             Assert.NotEmpty(project.GetGitHubStepSummaryContent());
@@ -494,7 +497,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task VSTests_OnUnknownContextShouldNotAddCustomLogger()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -523,7 +526,9 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MTP_DotnetTestSkipAnalyzers()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
+
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -556,7 +561,9 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MTP_OnUnknownContextShouldNotAddCustomLogger()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
+
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -591,7 +598,9 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MTP_SuccessTests()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
+
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -623,7 +632,9 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task MTP_NoTest()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
+
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
@@ -650,7 +661,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Fact]
     public async Task CentralPackageManagement()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkTestName,
             filename: "Sample.Tests.csproj"
@@ -676,9 +687,42 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task SuppressNuGetAudit_NoSuppression_Fails()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            nuGetPackages: [("System.Net.Http", "4.3.3")],
+            properties: [("NOWARN", "$(NOWARN);NU1510")]);
+
+        project.AddFile("Program.cs", """
+            Console.WriteLine();
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Release"]);
+        Assert.Equal(1, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task SuppressNuGetAudit_Suppressed()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            nuGetPackages: [("System.Net.Http", "4.3.3")],
+            additionalProjectElements: [new XElement("ItemGroup", new XElement("NuGetAuditSuppress", new XAttribute("Include", "https://github.com/advisories/GHSA-7jgj-8wvc-jh57")))],
+            properties: [("NOWARN", "$(NOWARN);NU1510")]);
+
+        project.AddFile("Program.cs", """
+            Console.WriteLine();
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Release"]);
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
     public async Task Pack_ContainsMetadata()
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: SdkName,
             filename: "Meziantou.Sample.csproj",
@@ -721,7 +765,7 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [InlineData(SdkWebName)]
     public async Task AssemblyContainsMetadataAttributeWithSdkName(string sdkName)
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             sdk: sdkName,
             filename: "Sample.Tests.csproj"
@@ -762,13 +806,13 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
     [Theory]
     [InlineData("TargetFramework", "")]
     [InlineData("TargetFrameworks", "")]
+    [InlineData("TargetFramework", "net8.0")]
     [InlineData("TargetFramework", "net9.0")]
-    [InlineData("TargetFramework", "net10.0")]
+    [InlineData("TargetFrameworks", "net8.0")]
     [InlineData("TargetFrameworks", "net9.0")]
-    [InlineData("TargetFrameworks", "net10.0")]
     public async Task SetTargetFramework(string propName, string version)
     {
-        await using var project = new ProjectBuilder(fixture, testOutputHelper);
+        await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [(propName, version)]);
@@ -784,7 +828,12 @@ public sealed class SdkTests(PackageFixture fixture, ITestOutputHelper testOutpu
         var expectedVersion = version;
         if (string.IsNullOrEmpty(expectedVersion))
         {
-            expectedVersion = JsonSerializer.Deserialize<JsonObject>(File.ReadAllText(project.RootFolder / "global.json"))["sdk"]["version"].GetValue<string>();
+            expectedVersion = dotnetSdkVersion switch
+            {
+                NetSdkVersion.Net9_0 => "net9.0",
+                NetSdkVersion.Net10_0 => "net10.0",
+                _ => throw new NotSupportedException(),
+            };
         }
 
         await using var assembly = File.OpenRead(dllPath);
