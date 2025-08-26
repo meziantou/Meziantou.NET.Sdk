@@ -18,8 +18,8 @@
     <Nullable Condition="'$(Nullable)' == ''">enable</Nullable>
     <OptimizeVsTestRun Condition="'$(OptimizeVsTestRun)' == ''">true</OptimizeVsTestRun>
     
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Remove warning for undocumented members -->
+    <GenerateDocumentationFile Condition="'$(GenerateDocumentationFile)' == ''">True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
 
     <!--
       Disabling static graph restore due to a bug related to NuGetAuditSuppress.
