@@ -450,6 +450,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal), userMessage: "Output must contain 'failure message'");
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
         Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
         Assert.NotEmpty(project.GetGitHubStepSummaryContent());
     }
