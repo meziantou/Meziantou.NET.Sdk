@@ -64,6 +64,7 @@
 
   <PropertyGroup>
     <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md')))">$([MSBuild]::GetPathOfFileAbove('README.md'))</_PackageReadmeFilePath>
     <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
     <_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
 
@@ -71,9 +72,9 @@
     <Company Condition="'$(Company)' == '' AND '$(_IsMeziantouProject)' == 'true'">meziantou</Company>
 
     <PackageLicenseExpression Condition="'$(PackageLicenseExpression)' == '' AND '$(_IsMeziantouProject)' == 'true'">MIT</PackageLicenseExpression>
-    <PackageReadmeFile Condition="'$(PackageReadmeFile)' == '' AND $(_PackageReadmeFilePath) != ''">README.md</PackageReadmeFile>
+    <PackageReadmeFile Condition="'$(PackageReadmeFile)' == '' AND '$(_PackageReadmeFilePath)' != ''">README.md</PackageReadmeFile>
   </PropertyGroup>
-
+   
   <ItemGroup>
     <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
     <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
