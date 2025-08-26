@@ -47,7 +47,7 @@
         <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
         <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-        <VSTestCollect>Code Coverage</VSTestCollect>
+        <!--<VSTestCollect>Code Coverage</VSTestCollect>-->
       </PropertyGroup>
 
       <PropertyGroup>
@@ -62,7 +62,6 @@
     <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference->AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
       <Using Include="Xunit" />
     </ItemGroup>
-    <Message Importance="high" Text="Add implicit xunit using" />
   </Target>
   
   <!-- VSTest on GitHub -->

@@ -450,12 +450,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal), userMessage: "Output must contain 'failure message'");
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-
-        if (!IsGitHubActions)
-        {
-            Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
-            Assert.NotEmpty(project.GetGitHubStepSummaryContent());
-        }
+        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
     }
 
     [Fact]
@@ -486,12 +482,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-
-        if (!IsGitHubActions)
-        {
-            Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
-            Assert.NotEmpty(project.GetGitHubStepSummaryContent());
-        }
+        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
     }
 
     [Fact]
