@@ -47,7 +47,8 @@
         <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
         <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-        <!--<VSTestCollect>Code Coverage</VSTestCollect>-->
+        <VSTestCollect>Code Coverage</VSTestCollect>
+        <VSTestSetting>$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
       </PropertyGroup>
 
       <PropertyGroup>
