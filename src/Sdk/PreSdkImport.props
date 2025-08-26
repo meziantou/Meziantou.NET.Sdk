@@ -17,6 +17,9 @@
     <ImplicitUsings Condition="'$(ImplicitUsings)' == ''">enable</ImplicitUsings>
     <Nullable Condition="'$(Nullable)' == ''">enable</Nullable>
     <OptimizeVsTestRun Condition="'$(OptimizeVsTestRun)' == ''">true</OptimizeVsTestRun>
+    
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn> <!-- Remove warning for undocumented members -->
 
     <!--
       Disabling static graph restore due to a bug related to NuGetAuditSuppress.
@@ -48,31 +51,7 @@
   <PropertyGroup>
     <AccelerateBuildsInVisualStudio Condition="'$(AccelerateBuildsInVisualStudio)' == ''">true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
-
-  <!-- NuGet Package -->
-  <PropertyGroup>
-    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
-    <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
-    <_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
-
-    <Authors Condition="'$(_IsMeziantouProject)' == 'true'">meziantou</Authors>
-    <Company Condition="'$(_IsMeziantouProject)' == 'true'">meziantou</Company>
-
-    <_UseDefaultPackageIcon Condition="'$(_IsMeziantouProject)' == 'true'">true</_UseDefaultPackageIcon>
-    <_DefaultPackageIcon>$(MSBuildThisFileDirectory)\..\icon.png</_DefaultPackageIcon>
-    <PackageIcon Condition="'$(_IsMeziantouProject)' == 'true'">icon.png</PackageIcon>
-
-    <PackageLicenseExpression Condition="'$(_IsMeziantouProject)' == 'true'">MIT</PackageLicenseExpression>
-    <PackageReadmeFile Condition="$(_PackageReadmeFilePath) != ''">README.md</PackageReadmeFile>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="$(_DefaultPackageIcon)" Pack="true" PackagePath="" Visible="false" Condition="'$(_UseDefaultPackageIcon)' == 'true'" />
-    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
-    <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
-    <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
-  </ItemGroup>
-
+ 
   <PropertyGroup>
     <IncludeDefaultBannedSymbols Condition="'$(IncludeDefaultBannedSymbols)' == ''">true</IncludeDefaultBannedSymbols>
   </PropertyGroup>

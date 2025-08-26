@@ -49,4 +49,35 @@
       <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Moq.CodeAnalysis' " />
     </ItemGroup>
   </Target>
+  
+  <!-- NuGet Package -->
+  <Choose>
+    <When Condition="'$(PackageIcon)' == '' AND '$(_IsMeziantouProject)' == 'true'">
+      <PropertyGroup>
+        <PackageIcon>icon.png</PackageIcon>
+      </PropertyGroup>
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)\..\icon.png" Pack="true" PackagePath="" Visible="false" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
+    <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
+    <_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
+
+    <Authors Condition="'$(Authors)' == '' AND '$(_IsMeziantouProject)' == 'true'">meziantou</Authors>
+    <Company Condition="'$(Company)' == '' AND '$(_IsMeziantouProject)' == 'true'">meziantou</Company>
+
+    <PackageLicenseExpression Condition="'$(PackageLicenseExpression)' == '' AND '$(_IsMeziantouProject)' == 'true'">MIT</PackageLicenseExpression>
+    <PackageReadmeFile Condition="'$(PackageReadmeFile)' == '' AND $(_PackageReadmeFilePath) != ''">README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
+    <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
+    <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
+  </ItemGroup>
+
 </Project>
