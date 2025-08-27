@@ -90,6 +90,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile();
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
         var localFile = project.AddFile(".editorconfig", "");
+        TestContext.Current.TestOutputHelper.WriteLine("Local editorconfig path: " + localFile);
+
         var data = await project.BuildAndGetOutput();
 
         var files = data.GetBinLogFiles();
