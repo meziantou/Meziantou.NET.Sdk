@@ -7,7 +7,7 @@
   <!-- Compute additional metadata for the NpmPackageFile items -->
   <Target Name="_ComputeNpmPackageMetadata">
     <PropertyGroup>
-      <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND '$(RestoreLockedMode)' == 'true'">true</NpmRestoreLockedMode>
+      <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND ('$(RestoreLockedMode)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true')">true</NpmRestoreLockedMode>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' != 'true'">install</_NpmRestoreCommand>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' == 'true'">ci</_NpmRestoreCommand>
     </PropertyGroup>

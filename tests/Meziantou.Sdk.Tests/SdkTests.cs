@@ -952,8 +952,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(1, data.ExitCode);
     }
 
-    [Fact]
-    public async Task NpmCi_Success()
+    [Theory]
+    [InlineData("/p:RestoreLockedMode=true")]
+    [InlineData("/p:ContinuousIntegrationBuild=true")]
+    public async Task NpmCi_Success(string command)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(sdk: SdkWebName);
@@ -998,7 +1000,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             
             """);
 
-        var data = await project.BuildAndGetOutput(["/p:RestoreLockedMode=true"]);
+        var data = await project.BuildAndGetOutput([command]);
         Assert.Equal(0, data.ExitCode);
     }
 
