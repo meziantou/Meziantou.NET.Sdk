@@ -928,6 +928,36 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
         Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+
+        data = await project.CleanAndGetOutput();
+        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    }
+
+    [Fact]
+    public async Task NpmRestore()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.RestoreAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+
+        data = await project.CleanAndGetOutput();
+        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
     }
 
     [Fact]

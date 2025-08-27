@@ -32,10 +32,10 @@
   </Target>
 
   <!-- Reinstall npm packages when using dotnet build force -->
-  <Target Name="NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="_CleanNpmInstallStampFile" BeforeTargets="Restore">
+  <Target Name="NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="CleanNpmInstallStampFile" BeforeTargets="Restore">
   </Target>
 
-  <Target Name="CleanNpmInstallStampFile" BeforeTargets="Clean">
+  <Target Name="CleanNpmInstallStampFile" DependsOnTargets="ComputeNpmPackageMetadata" BeforeTargets="BeforeClean">
     <Delete Files="@(NpmPackageFile->'%(StampFile)')" />
   </Target>
 

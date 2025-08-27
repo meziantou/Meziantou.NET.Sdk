@@ -15,6 +15,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly FullPath _githubStepSummaryFile;
     private NetSdkVersion _sdkVersion = NetSdkVersion.Net10_0;
+    private int _buildCount;
 
     public FullPath RootFolder => _directory.FullPath;
 
@@ -119,6 +120,17 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         return ExecuteDotnetCommandAndGetOutput("build", buildArguments, environmentVariables);
     }
+    
+
+    public Task<BuildResult> RestoreAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("restore", buildArguments, environmentVariables);
+    }
+    
+    public Task<BuildResult> CleanAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("clean", buildArguments, environmentVariables);
+    }
 
     public Task<BuildResult> PackAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
@@ -132,6 +144,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     private async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments, (string Name, string Value)[]? environmentVariables)
     {
+        _buildCount++;
         _testOutputHelper.WriteLine("-------- dotnet " + command);
         var psi = new ProcessStartInfo(await DotNetSdkHelpers.Get(_sdkVersion))
         {
@@ -199,7 +212,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         }
 
         var binlogContent = File.ReadAllBytes(_directory.FullPath / "msbuild.binlog");
-        TestContext.Current.AddAttachment("msbuild.binlog", binlogContent);
+        TestContext.Current.AddAttachment($"msbuild{_buildCount}.binlog", binlogContent);
 
         string? vstestDiagContent = null;
         if (File.Exists(vstestdiagPath))
