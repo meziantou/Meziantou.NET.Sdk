@@ -93,8 +93,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
 
         var files = data.GetBinLogFiles();
-        Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(files, f => f == localFile);
+        Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.Ordinal));
+        Assert.Contains(localFile, files);
     }
 
     [Fact]
