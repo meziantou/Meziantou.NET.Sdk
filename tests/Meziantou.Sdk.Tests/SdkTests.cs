@@ -961,6 +961,52 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task NpmRestore_MultipleFiles()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            sdk: SdkWebName,
+            additionalProjectElements: [
+                new XElement("ItemGroup",
+                    new XElement("NpmPackageFile", new XAttribute("Include", "a/package.json")),
+                    new XElement("NpmPackageFile", new XAttribute("Include", "b/package.json")))
+                ]);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("a/package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+        project.AddFile("b/package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.RestoreAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(File.Exists(project.RootFolder / "a" / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "a" / "node_modules" / ".npm-install-stamp"));
+        Assert.True(File.Exists(project.RootFolder / "b" / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "b" / "node_modules" / ".npm-install-stamp"));
+
+        data = await project.CleanAndGetOutput();
+        Assert.False(File.Exists(project.RootFolder / "a" / "node_modules" / ".npm-install-stamp"));
+        Assert.False(File.Exists(project.RootFolder / "b" / "node_modules" / ".npm-install-stamp"));
+    }
+
+    [Fact]
     public async Task NpmCi_Fail()
     {
         await using var project = CreateProjectBuilder();

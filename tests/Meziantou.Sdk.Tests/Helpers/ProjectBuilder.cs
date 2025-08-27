@@ -70,6 +70,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     public FullPath AddFile(string relativePath, string content)
     {
         var path = _directory.FullPath / relativePath;
+        path.CreateParentDirectory();
         File.WriteAllText(path, content);
         return path;
     }
