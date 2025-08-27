@@ -64,8 +64,14 @@
 
   <PropertyGroup>
     <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
-    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md')))">$([MSBuild]::GetPathOfFileAbove('README.md'))</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\Readme.md')">$(MSBuildProjectDirectory)\Readme.md</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
+
     <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
+    
     <_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
 
     <Authors Condition="'$(Authors)' == '' AND '$(_IsMeziantouProject)' == 'true'">meziantou</Authors>

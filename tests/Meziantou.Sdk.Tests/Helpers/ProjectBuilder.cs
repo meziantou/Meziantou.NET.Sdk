@@ -109,7 +109,9 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             </Project>
             """;
 
-        File.WriteAllText(_directory.FullPath / filename, content);
+        var fullPath = _directory.FullPath / filename;
+        fullPath.CreateParentDirectory();
+        File.WriteAllText(fullPath, content);
         return this;
     }
 

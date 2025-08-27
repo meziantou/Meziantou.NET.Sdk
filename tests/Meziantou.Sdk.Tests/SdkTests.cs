@@ -8,8 +8,6 @@ using Meziantou.Sdk.Tests.Helpers;
 using Meziantou.Framework;
 using System.Reflection.Metadata;
 using NuGet.Packaging.Licenses;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Meziantou.Sdk.Tests;
 
@@ -25,8 +23,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 {
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
     private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
-
-    private static readonly bool IsGitHubActions = Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true";
 
     private ProjectBuilder CreateProjectBuilder()
     {
@@ -329,6 +325,65 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var outputFiles = Directory.GetFiles(extractedPath, "*", SearchOption.AllDirectories);
         await AssertPdbIsEmbedded(outputFiles);
+    }
+
+    [Fact]
+    public async Task Pack_ReadmeFromCurrentFolder()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("README.md", "sample");
+
+        var data = await project.PackAndGetOutput(["--configuration", "Release"]);
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "bin" / "Release");
+        Assert.Single(files); // Only the .nupkg should be generated
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        Assert.Equal("sample", File.ReadAllText(extractedPath / "README.md"));
+    }
+
+    [Fact]
+    public async Task Pack_ReadmeFromAboveCurrentFolder_SearchReadmeFileAbove_True()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            filename: "dir/Test.csproj",
+            properties: [("SearchReadmeFileAbove", "true")]);
+        project.AddFile("dir/Program.cs", "Console.WriteLine();");
+        project.AddFile("README.md", "sample");
+
+        var data = await project.PackAndGetOutput(["dir", "--configuration", "Release"]);
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "dir" / "bin" / "Release");
+        Assert.Single(files); // Only the .nupkg should be generated
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        Assert.Equal("sample", File.ReadAllText(extractedPath / "README.md"));
+    }
+
+    [Fact]
+    public async Task Pack_ReadmeFromAboveCurrentFolder_SearchReadmeFileAbove_False()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(filename: "dir/Test.csproj");
+        project.AddFile("dir/Program.cs", "Console.WriteLine();");
+        project.AddFile("README.md", "sample");
+
+        var data = await project.PackAndGetOutput(["dir", "--configuration", "Release"]);
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "dir" / "bin" / "Release");
+        Assert.Single(files); // Only the .nupkg should be generated
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        Assert.False(File.Exists(extractedPath / "README.md"));
     }
 
     [Fact]
