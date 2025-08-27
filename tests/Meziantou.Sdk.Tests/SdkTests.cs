@@ -102,7 +102,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         }
 
         Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.Ordinal));
-        Assert.Contains(localFile, files);
+        Assert.Contains(localFile, files, StringComparer.Ordinal);
     }
 
     [Fact]
