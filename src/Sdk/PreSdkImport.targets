@@ -1,6 +1,7 @@
 <Project>
 
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''" >net$(NETCoreAppMaximumVersion)</TargetFramework>

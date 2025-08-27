@@ -1,0 +1,47 @@
+<Project>
+
+  <ItemGroup>
+    <NpmPackageFile Condition="'$(EnableDefaultNpmPackageFile)' != 'true' AND Exists('$(MSBuildProjectDirectory)\package.json')" Include="$(MSBuildProjectDirectory)\package.json" />
+  </ItemGroup>
+
+  <!-- Compute additional metadata for the NpmPackageFile items -->
+  <Target Name="_ComputeNpmPackageMetadata">
+    <PropertyGroup>
+      <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND '$(RestoreLockedMode)' == 'true'">true</NpmRestoreLockedMode>
+      <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' != 'true'">install</_NpmRestoreCommand>
+      <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' == 'true'">ci</_NpmRestoreCommand>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <NpmPackageFile>
+        <StampFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules', '.npm-install-stamp'))</StampFile>
+        <WorkingDirectory>%(RootDir)%(Directory)</WorkingDirectory>
+        <_NpmInstallOptions>--no-fund --no-audit</_NpmInstallOptions>
+
+        <InstallCommand>npm install $(_NpmInstallOptions)</InstallCommand>
+        <RestoreCommand>npm $(_NpmRestoreCommand) $(_NpmInstallOptions)</RestoreCommand>
+      </NpmPackageFile>
+    </ItemGroup>
+  </Target>
+
+  <!-- Run npm install for each NpmPackageFile -->
+  <Target Name="_NpmRestore" DependsOnTargets="_ComputeNpmPackageMetadata;_NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore">
+    <Message Importance="high" Text="Installing npm packages for @(NpmPackageFile)" />
+    <Exec Command="@(NpmPackageFile->'%(RestoreCommand)')" WorkingDirectory="%(WorkingDirectory)" />
+    <Touch Files="@(NpmPackageFile->'%(StampFile)')" AlwaysCreate="true" />
+  </Target>
+
+  <!-- Reinstall npm packages when using dotnet build force -->
+  <Target Name="_NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="_CleanNpmInstallStampFile" BeforeTargets="Restore">
+  </Target>
+
+  <Target Name="_CleanNpmInstallStampFile" BeforeTargets="Clean">
+    <Delete Files="@(NpmPackageFile->'%(StampFile)')" />
+  </Target>
+
+  <!-- dotnet msbuild /t:NpmInstall -->
+  <Target Name="_NpmInstall" DependsOnTargets="_ComputeNpmPackageMetadata">
+    <Exec Command="@(NpmPackageFile->'%(InstallCommand)')" WorkingDirectory="%(WorkingDirectory)" />
+  </Target>
+
+</Project>

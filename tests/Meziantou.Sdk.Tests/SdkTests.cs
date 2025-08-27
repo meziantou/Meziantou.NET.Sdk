@@ -906,6 +906,102 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Fail("Attribute not found");
     }
 
+    [Fact]
+    public async Task NpmInstall()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    }
+
+    [Fact]
+    public async Task NpmCi_Fail()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["/p:RestoreLockedMode=true"]);
+        Assert.Equal(1, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task NpmCi_Success()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+        project.AddFile("package-lock.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "lockfileVersion": 3,
+              "requires": true,
+              "packages": {
+                "": {
+                  "name": "sample",
+                  "version": "1.0.0",
+                  "devDependencies": {
+                    "is-number": "7.0.0"
+                  }
+                },
+                "node_modules/is-number": {
+                  "version": "7.0.0",
+                  "resolved": "https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz",
+                  "integrity": "sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==",
+                  "dev": true,
+                  "license": "MIT",
+                  "engines": {
+                    "node": ">=0.12.0"
+                  }
+                }
+              }
+            }
+            
+            """);
+
+        var data = await project.BuildAndGetOutput(["/p:RestoreLockedMode=true"]);
+        Assert.Equal(0, data.ExitCode);
+    }
+
     private static async Task AssertPdbIsEmbedded(string[] outputFiles)
     {
         Assert.DoesNotContain(outputFiles, f => f.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase));
