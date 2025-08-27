@@ -1,4 +1,5 @@
 Push-Location -Path $PSScriptRoot
-nuget pack Meziantou.NET.Sdk.nuspec -OutputDirectory nupkgs
-nuget pack Meziantou.NET.Sdk.Web.nuspec -OutputDirectory nupkgs
+foreach($Nuspec in (Get-ChildItem *.nuspec)){
+    nuget pack $Nuspec -OutputDirectory nupkgs
+}
 Pop-Location

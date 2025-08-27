@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <MeziantouSdkName>Meziantou.NET.Sdk.BlazorWebAssembly</MeziantouSdkName>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)\PreSdkImport.props" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.BlazorWebAssembly" />
+  <Import Project="$(MSBuildThisFileDirectory)\PostSdkImport.props" />
+</Project>
