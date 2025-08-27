@@ -23,9 +23,12 @@ To use it, create a `global.json` file at the solution root with the following c
     "version": "9.0.304"
   },
   "msbuild-sdks": {
-    "Meziantou.NET.Sdk": "1.0.4",
-    "Meziantou.NET.Sdk.Test": "1.0.4",
-    "Meziantou.NET.Sdk.Web": "1.0.4"
+    "Meziantou.NET.Sdk": "1.0.14",
+    "Meziantou.NET.Sdk.BlazorWebAssembly": "1.0.14",
+    "Meziantou.NET.Sdk.Razor": "1.0.14",
+    "Meziantou.NET.Sdk.Test": "1.0.14",
+    "Meziantou.NET.Sdk.Web": "1.0.14",
+    "Meziantou.NET.Sdk.WindowsDesktop": "1.0.14"
   }
 }
 ````
@@ -40,6 +43,6 @@ And reference the SDK in your project file:
 Or you can the SDK by specifying the version inside the `csproj` file:
 
 ````xml
-<Project Sdk="Meziantou.NET.Sdk/1.0.4">
+<Project Sdk="Meziantou.NET.Sdk/1.0.14">
 </Project>
 ````
