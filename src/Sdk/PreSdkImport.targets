@@ -72,9 +72,11 @@
     <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
     <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
     <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\Readme.md')">$(MSBuildProjectDirectory)\Readme.md</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="Exists('$(MSBuildProjectDirectory)\ReadMe.md')">$(MSBuildProjectDirectory)\ReadMe.md</_PackageReadmeFilePath>
     <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
     <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
     <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
+    <_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('ReadMe.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('ReadMe.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 
     <_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
     
@@ -88,7 +90,7 @@
   </PropertyGroup>
    
   <ItemGroup>
-    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="" Condition="$(_PackageReadmeFilePath) != ''" />
+    <None Include="$(_PackageReadmeFilePath)" Pack="true" PackagePath="README.md" Condition="$(_PackageReadmeFilePath) != ''" />
     <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
     <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
   </ItemGroup>

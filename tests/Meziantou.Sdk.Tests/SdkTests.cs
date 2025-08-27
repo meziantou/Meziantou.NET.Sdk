@@ -327,13 +327,17 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await AssertPdbIsEmbedded(outputFiles);
     }
 
-    [Fact]
-    public async Task Pack_ReadmeFromCurrentFolder()
+    [Theory]
+    [InlineData("readme.md")]
+    [InlineData("Readme.md")]
+    [InlineData("ReadMe.md")]
+    [InlineData("README.md")]
+    public async Task Pack_ReadmeFromCurrentFolder(string readmeFileName)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("Program.cs", "Console.WriteLine();");
-        project.AddFile("README.md", "sample");
+        project.AddFile(readmeFileName, "sample");
 
         var data = await project.PackAndGetOutput(["--configuration", "Release"]);
 
@@ -342,7 +346,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Single(files); // Only the .nupkg should be generated
         var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
         ZipFile.ExtractToDirectory(nupkg, extractedPath);
-
+        var allFiles = Directory.GetFiles(extractedPath);
+        Assert.Contains("README.md", allFiles.Select(Path.GetFileName));
         Assert.Equal("sample", File.ReadAllText(extractedPath / "README.md"));
     }
 

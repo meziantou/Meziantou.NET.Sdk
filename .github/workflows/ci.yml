@@ -70,7 +70,11 @@ jobs:
           path: "**/*.nupkg"
           
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.runs-on }}
     needs: [create_nuget, compute_version]
     steps:
       - uses: actions/checkout@v4
@@ -86,7 +90,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test_results
+          name: test_results_${{ matrix.runs-on }}
           path: test_results
 
   deploy:
