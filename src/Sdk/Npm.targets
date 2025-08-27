@@ -5,7 +5,7 @@
   </ItemGroup>
 
   <!-- Compute additional metadata for the NpmPackageFile items -->
-  <Target Name="_ComputeNpmPackageMetadata">
+  <Target Name="ComputeNpmPackageMetadata">
     <PropertyGroup>
       <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND ('$(RestoreLockedMode)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true')">true</NpmRestoreLockedMode>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' != 'true'">install</_NpmRestoreCommand>
@@ -25,22 +25,22 @@
   </Target>
 
   <!-- Run npm install for each NpmPackageFile -->
-  <Target Name="_NpmRestore" DependsOnTargets="_ComputeNpmPackageMetadata;_NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore">
+  <Target Name="NpmRestore" DependsOnTargets="ComputeNpmPackageMetadata;NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore">
     <Message Importance="high" Text="Installing npm packages for @(NpmPackageFile)" />
     <Exec Command="@(NpmPackageFile->'%(RestoreCommand)')" WorkingDirectory="%(WorkingDirectory)" />
     <Touch Files="@(NpmPackageFile->'%(StampFile)')" AlwaysCreate="true" />
   </Target>
 
   <!-- Reinstall npm packages when using dotnet build force -->
-  <Target Name="_NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="_CleanNpmInstallStampFile" BeforeTargets="Restore">
+  <Target Name="NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="_CleanNpmInstallStampFile" BeforeTargets="Restore">
   </Target>
 
-  <Target Name="_CleanNpmInstallStampFile" BeforeTargets="Clean">
+  <Target Name="CleanNpmInstallStampFile" BeforeTargets="Clean">
     <Delete Files="@(NpmPackageFile->'%(StampFile)')" />
   </Target>
 
   <!-- dotnet msbuild /t:NpmInstall -->
-  <Target Name="_NpmInstall" DependsOnTargets="_ComputeNpmPackageMetadata">
+  <Target Name="NpmInstall" DependsOnTargets="ComputeNpmPackageMetadata">
     <Exec Command="@(NpmPackageFile->'%(InstallCommand)')" WorkingDirectory="%(WorkingDirectory)" />
   </Target>
 
