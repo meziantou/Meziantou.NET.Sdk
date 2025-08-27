@@ -27,20 +27,20 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         _directory.CreateTextFile("NuGet.config", $"""
             <configuration>
                 <config>
-                <add key="globalPackagesFolder" value="{_fixture.PackageDirectory}/packages" />
+                    <add key="globalPackagesFolder" value="{_fixture.PackageDirectory}/packages" />
                 </config>
                 <packageSources>
-                <clear />    
-                <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-                <add key="TestSource" value="{_fixture.PackageDirectory}" />
+                    <clear />    
+                    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+                    <add key="TestSource" value="{_fixture.PackageDirectory}" />
                 </packageSources>
                 <packageSourceMapping>
-                <packageSource key="nuget.org">
-                    <package pattern="*" />
-                </packageSource>
-                <packageSource key="TestSource">
-                    <package pattern="Meziantou.NET.Sdk*" />
-                </packageSource>
+                    <packageSource key="nuget.org">
+                        <package pattern="*" />
+                    </packageSource>
+                    <packageSource key="TestSource">
+                        <package pattern="Meziantou.NET.Sdk*" />
+                    </packageSource>
                 </packageSourceMapping>
             </configuration>
             """);
