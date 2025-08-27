@@ -101,7 +101,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         }
 
         Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.Ordinal));
-        Assert.Contains(files, f => f == localFile || f == "/private/" + localFile); // macos may prefix it with /private
+        Assert.Contains(files, f => f == localFile || f == "/private" + localFile); // macos may prefix it with /private
     }
 
     [Fact]
