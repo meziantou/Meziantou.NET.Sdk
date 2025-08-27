@@ -36,9 +36,14 @@
     <Using Include="System.Text" />
   </ItemGroup>
   
-  <Target Name="IncludeBannedSymbolsAndEditorConfigToBinLog" AfterTargets="CoreCompile">
+  <Target Name="EmbedBannedSymbolsInBinLog" AfterTargets="CoreCompile">
     <ItemGroup>
       <EmbedInBinlog Include="@(AdditionalFiles)" Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('%(Filename)%(Extension)', '^BannedSymbols(\..+)?\.txt$'))" />
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="EmbedEditorConfigInBinLog" AfterTargets="CoreCompile">
+    <ItemGroup>
       <EmbedInBinlog Include="@(EditorConfigFiles)" />
     </ItemGroup>
   </Target>

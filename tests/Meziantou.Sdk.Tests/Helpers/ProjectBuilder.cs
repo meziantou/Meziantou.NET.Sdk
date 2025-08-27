@@ -121,13 +121,13 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         return ExecuteDotnetCommandAndGetOutput("build", buildArguments, environmentVariables);
     }
-    
+
 
     public Task<BuildResult> RestoreAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return ExecuteDotnetCommandAndGetOutput("restore", buildArguments, environmentVariables);
     }
-    
+
     public Task<BuildResult> CleanAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return ExecuteDotnetCommandAndGetOutput("clean", buildArguments, environmentVariables);
@@ -143,7 +143,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return ExecuteDotnetCommandAndGetOutput("test", buildArguments, environmentVariables);
     }
 
-    private async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments, (string Name, string Value)[]? environmentVariables)
+    public async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         _buildCount++;
         _testOutputHelper.WriteLine("-------- dotnet " + command);

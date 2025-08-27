@@ -15,6 +15,7 @@
     <ItemGroup>
       <NpmPackageFile>
         <StampFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules', '.npm-install-stamp'))</StampFile>
+        <LockFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'package-lock.json'))</LockFile>
         <WorkingDirectory>%(RootDir)%(Directory)</WorkingDirectory>
         <_NpmInstallOptions>--no-fund --no-audit</_NpmInstallOptions>
 
@@ -25,23 +26,29 @@
   </Target>
 
   <!-- Run npm install for each NpmPackageFile -->
-  <Target Name="NpmRestore" DependsOnTargets="ComputeNpmPackageMetadata;NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore">
+  <Target Name="NpmRestore" DependsOnTargets="ComputeNpmPackageMetadata;NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore;CollectPackageReferences">
     <Message Importance="high" Text="Installing npm packages for @(NpmPackageFile)" />
     <Exec Command="@(NpmPackageFile->'%(RestoreCommand)')" WorkingDirectory="%(WorkingDirectory)" />
     <Touch Files="@(NpmPackageFile->'%(StampFile)')" AlwaysCreate="true" />
   </Target>
 
   <!-- Reinstall npm packages when using dotnet build force -->
-  <Target Name="NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="CleanNpmInstallStampFile" BeforeTargets="Restore">
+  <Target Name="NpmRestoreForce" Condition="$(RestoreForce) == 'true'" DependsOnTargets="CleanNpmInstallStampFile">
   </Target>
 
-  <Target Name="CleanNpmInstallStampFile" DependsOnTargets="ComputeNpmPackageMetadata" BeforeTargets="BeforeClean">
+  <Target Name="CleanNpmInstallStampFile" DependsOnTargets="ComputeNpmPackageMetadata">
     <Delete Files="@(NpmPackageFile->'%(StampFile)')" />
   </Target>
 
   <!-- dotnet msbuild /t:NpmInstall -->
   <Target Name="NpmInstall" DependsOnTargets="ComputeNpmPackageMetadata">
     <Exec Command="@(NpmPackageFile->'%(InstallCommand)')" WorkingDirectory="%(WorkingDirectory)" />
+  </Target>
+
+  <Target Name="EmbedNpmLockFileInBinLog" DependsOnTargets="ComputeNpmPackageMetadata" AfterTargets="CoreCompile">
+    <ItemGroup>
+      <EmbedInBinlog Include="@(NpmPackageFile->'%(LockFile)')" />
+    </ItemGroup>
   </Target>
 
 </Project>

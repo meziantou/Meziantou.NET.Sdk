@@ -928,9 +928,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
         Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
-
-        data = await project.CleanAndGetOutput();
-        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        var files = data.GetBinLogFiles();
+        Assert.Contains(files, f => f.EndsWith("package-lock.json", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -955,9 +954,67 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
         Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    }
 
-        data = await project.CleanAndGetOutput();
-        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    [Fact]
+    public async Task Npm_Dotnet_Build_sln()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName, filename: "sample.csproj");
+
+        var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
+        var slnFile = project.AddFile("sample.slnx", """
+            <Solution>             
+                <Project Path="sample.csproj" />
+            </Solution>            
+            """);
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput([slnFile]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    }
+
+    [Theory]
+    [InlineData("build")]
+    [InlineData("publish")]
+    public async Task Npm_Dotnet_sln(string command)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(sdk: SdkWebName, filename: "sample.csproj");
+
+        var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
+        var slnFile = project.AddFile("sample.slnx", """
+            <Solution>             
+                <Project Path="sample.csproj" />
+            </Solution>            
+            """);
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.ExecuteDotnetCommandAndGetOutput(command, [slnFile]);
+        Assert.Equal(0, data.ExitCode);
+
+        Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
     }
 
     [Fact]
@@ -1000,14 +1057,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(File.Exists(project.RootFolder / "a" / "node_modules" / ".npm-install-stamp"));
         Assert.True(File.Exists(project.RootFolder / "b" / "package-lock.json"));
         Assert.True(File.Exists(project.RootFolder / "b" / "node_modules" / ".npm-install-stamp"));
-
-        data = await project.CleanAndGetOutput();
-        Assert.False(File.Exists(project.RootFolder / "a" / "node_modules" / ".npm-install-stamp"));
-        Assert.False(File.Exists(project.RootFolder / "b" / "node_modules" / ".npm-install-stamp"));
     }
 
     [Fact]
-    public async Task NpmCi_Fail()
+    public async Task Npm_Dotnet_Build_RestoreLockedMode_Fail()
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(sdk: SdkWebName);
@@ -1031,7 +1084,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData("/p:RestoreLockedMode=true")]
     [InlineData("/p:ContinuousIntegrationBuild=true")]
-    public async Task NpmCi_Success(string command)
+    public async Task Npm_Dotnet_Build_Ci_Success(string command)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(sdk: SdkWebName);
