@@ -95,14 +95,13 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
 
         var files = data.GetBinLogFiles();
-
         foreach (var file in files)
         {
             TestContext.Current.TestOutputHelper.WriteLine("Binlog file: " + file);
         }
 
         Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.Ordinal));
-        Assert.Contains(localFile, files, StringComparer.Ordinal);
+        Assert.Contains(files, f => f == localFile || f == "/private/" + localFile); // macos may prefix it with /private
     }
 
     [Fact]
