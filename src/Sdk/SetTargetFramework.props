@@ -1,0 +1,7 @@
+<Project>
+    
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''" >net$(NETCoreAppMaximumVersion)</TargetFramework>
+  </PropertyGroup>
+  
+</Project>

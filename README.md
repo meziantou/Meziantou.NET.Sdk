@@ -13,6 +13,10 @@ MSBuild SDK that provides:
   - Disable Roslyn analyzers to speed up build
 - Relevant NuGet packages based on the project type
 
+# Usage
+
+## Method 1
+
 To use it, create a `global.json` file at the solution root with the following content:
 
 ````json
@@ -38,10 +42,19 @@ And reference the SDK in your project file:
 </Project>
 ````
 
-Or you can the SDK by specifying the version inside the `csproj` file:
+## Method 2
+
+You can the SDK by specifying the version inside the `csproj` file:
 
 ````xml
 <Project Sdk="Meziantou.NET.Sdk/1.0.14">
 </Project>
 ````
 
+## Method 3
+
+````xml
+<Project Sdk="Microsoft.NET.SDK">
+    <Sdk Name="Meziantou.NET.Sdk" Version="1.0.14" />
+</Project>
+````

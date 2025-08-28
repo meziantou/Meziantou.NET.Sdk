@@ -45,17 +45,17 @@ public sealed class PackageFixture : IAsyncLifetime
             }
         }
 
-        // Build NuGet package
-        await Parallel.ForEachAsync([SdkName, SdkWebName, SdkTestName], async (sdkName, _) =>
+        // Build NuGet packages
+        var nuspecFiles = Directory.GetFiles(PathHelpers.GetRootDirectory(), "*.nuspec");
+        Assert.NotEmpty(nuspecFiles);
+        await Parallel.ForEachAsync(nuspecFiles, async (nuspecPath, _) =>
         {
-            var nuspecPath = PathHelpers.GetRootDirectory() / $"{sdkName}.nuspec";
-
             var psi = new ProcessStartInfo(nugetPath);
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-Version", "999.9.9", "-OutputDirectory", _packageDirectory.FullPath]);
+            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-Version", Version, "-OutputDirectory", _packageDirectory.FullPath]);
             var result = await psi.RunAsTaskAsync();
             if (result.ExitCode != 0)
             {
