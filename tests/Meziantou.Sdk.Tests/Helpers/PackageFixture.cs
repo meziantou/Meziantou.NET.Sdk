@@ -21,7 +21,8 @@ public sealed class PackageFixture : IAsyncLifetime
         {
             if (Environment.GetEnvironmentVariable("NuGetDirectory") is { } path)
             {
-                var files = Directory.GetFiles(path, "*.nupkg");
+                Console.WriteLine("NuGetDirectory: " + path);
+                var files = Directory.GetFiles(path);
                 if (files.Length > 0)
                 {
                     foreach (var file in files)
