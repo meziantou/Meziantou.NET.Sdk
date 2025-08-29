@@ -857,7 +857,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task Web_HasServiceDefaults()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName);
+        project.AddCsprojFile(sdk: SdkWebName, rootSdk: "Microsoft.NET.Sdk.Web");
 
         project.AddFile("Program.cs", """
             using Meziantou.AspNetCore.ServiceDefaults;

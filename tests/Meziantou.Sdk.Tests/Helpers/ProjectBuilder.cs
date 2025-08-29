@@ -86,7 +86,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public void SetDotnetSdkVersion(NetSdkVersion dotnetSdkVersion) => _sdkVersion = dotnetSdkVersion;
 
-    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
+    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string? rootSdk = null, string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
     {
         var propertiesElement = new XElement("PropertyGroup");
         if (properties != null)
@@ -107,7 +107,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         }
 
         importStyle = importStyle == SdkImportStyle.Default ? _defaultSdkImportStyle : importStyle;
-        var rootSdkName = importStyle == SdkImportStyle.Root ? $"{sdk}/{_fixture.Version}": "Microsoft.NET.Sdk";
+        var rootSdkName = importStyle == SdkImportStyle.Root ? $"{sdk}/{_fixture.Version}" : (rootSdk ?? "Microsoft.NET.Sdk");
         var innerSdkXmlElement = importStyle == SdkImportStyle.Inner ? $"""<Sdk Name="{sdk}" Version="{_fixture.Version}" />""" : string.Empty;
 
         var content = $"""
