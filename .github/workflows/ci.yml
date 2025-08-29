@@ -14,7 +14,7 @@ concurrency:
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
-  NuGetDirectory: ${{ github.workspace}}/artifacts
+  NUGET_DIRECTORY: ${{ github.workspace}}/artifacts
 
 defaults:
   run:
@@ -62,7 +62,7 @@ jobs:
           name: nuget
           if-no-files-found: error
           retention-days: 3
-          path: "**/*.nupkg"
+          path: "${{ env.NUGET_DIRECTORY }}/*.nupkg"
 
   test:
     strategy:
@@ -76,12 +76,13 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: nuget
-          path: ${{ env.NuGetDirectory }}
+          path: ${{ env.NUGET_DIRECTORY }}
       - uses: actions/setup-dotnet@v4
-      - run: Get-ChildItem "${{ env.NuGetDirectory }}/*" -Recurse
+      - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx;LogFileName=test_results.trx" --results-directory test_results
+      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results
         env:
+            NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
       - uses: actions/upload-artifact@v4
         if: always()
@@ -99,7 +100,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: nuget
-          path: ${{ env.NuGetDirectory }}
+          path: ${{ env.NUGET_DIRECTORY }}
       - uses: actions/setup-dotnet@v4
       - name: Publish NuGet packages
         env:
@@ -107,8 +108,8 @@ jobs:
           FeedzApiKey: ${{ secrets.FEEDZ_APIKEY }}
         run: |
           Write-Host "Current ref: $env:GITHUB_REF"
-          Write-Host "Searching nupkg in folder: ${{ env.NuGetDirectory }}"
-          $files = Get-ChildItem "${{ env.NuGetDirectory }}/*" -Recurse -Include *.nupkg
+          Write-Host "Searching nupkg in folder: ${{ env.NUGET_DIRECTORY }}"
+          $files = Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse -Include *.nupkg
           foreach($file in $files) {
               Write-Host "Pushing NuGet package: $($file.FullName)"
               & dotnet nuget push "$($file.FullName)" --api-key "$env:FeedzApiKey" --source https://f.feedz.io/meziantou/meziantou-dotnet-codingstandard/nuget/index.json --force-english-output --skip-duplicate
