@@ -9,7 +9,7 @@
 
 
   <ItemGroup Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Web'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.8" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.8" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <ItemGroup>
