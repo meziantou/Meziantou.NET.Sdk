@@ -77,7 +77,8 @@ jobs:
         with:
           name: nuget
           path: ${{ env.NuGetDirectory }}
-      - uses: actions/setup-dotnet@v4            
+      - uses: Get-ChildItem "${{ env.NuGetDirectory }}/*" -Recurse
+      - uses: actions/setup-dotnet@v4
       - run: dotnet --info
       - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx;LogFileName=test_results.trx" --results-directory test_results
         env:
