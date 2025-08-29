@@ -33,11 +33,11 @@ foreach (var (sdkName, baseSdkName) in sdks)
                      So, we use the extension point. Also, if there was already a target registered, we want to make sure to execute it.
                 -->
                 <_MeziantouBeforeMicrosoftNETSdkTargets>$(BeforeMicrosoftNETSdkTargets)</_MeziantouBeforeMicrosoftNETSdkTargets>
-                <BeforeMicrosoftNETSdkTargets>$(MSBuildThisFileDirectory)/../common/common.targets</BeforeMicrosoftNETSdkTargets>
+                <BeforeMicrosoftNETSdkTargets>$(MSBuildThisFileDirectory)/../common/Common.targets</BeforeMicrosoftNETSdkTargets>
             </PropertyGroup>
 
             <Import Project="Sdk.props" Sdk="{{baseSdkName}}" Condition="'$(_MustImportMicrosoftNETSdk)' == 'true'" />
-            <Import Project="$(MSBuildThisFileDirectory)/../common/common.props" />
+            <Import Project="$(MSBuildThisFileDirectory)/../common/Common.props" />
         </Project>
         """);
 
