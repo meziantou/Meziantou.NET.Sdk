@@ -21,7 +21,6 @@ public sealed class PackageFixture : IAsyncLifetime
         {
             if (Environment.GetEnvironmentVariable("NuGetDirectory") is { } path)
             {
-                Console.WriteLine("NuGetDirectory: " + path);
                 var files = Directory.GetFiles(path);
                 if (files.Length > 0)
                 {
@@ -33,7 +32,7 @@ public sealed class PackageFixture : IAsyncLifetime
                     return;
                 }
 
-                Assert.Fail("nupkg files not found");
+                Assert.Fail("nupkg files not found in " + path);
             }
 
             Assert.Fail("NuGetDirectory environment variable not set");
