@@ -17,18 +17,25 @@ public sealed class PackageFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        if (Environment.GetEnvironmentVariable("CI") != null && Environment.GetEnvironmentVariable("NuGetDirectory") is { } path)
+        if (Environment.GetEnvironmentVariable("CI") != null)
         {
-            var files = Directory.GetFiles(path, "*.nupkg");
-            if (files.Length > 0)
+            if (Environment.GetEnvironmentVariable("NuGetDirectory") is { } path)
             {
-                foreach (var file in files)
+                var files = Directory.GetFiles(path, "*.nupkg");
+                if (files.Length > 0)
                 {
-                    File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
+                    foreach (var file in files)
+                    {
+                        File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
+                    }
+
+                    return;
                 }
 
-                return;
+                Assert.Fail("nupkg files not found");
             }
+
+            Assert.Fail("NuGetDirectory environment variable not set");
         }
 
         var nugetPath = FullPath.GetTempPath() / $"meziantou.sdk.tests-nuget.exe";
