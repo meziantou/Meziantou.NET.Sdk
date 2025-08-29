@@ -6,6 +6,13 @@ using Meziantou.Framework;
 
 namespace Meziantou.Sdk.Tests.Helpers;
 
+public enum SdkImportStyle
+{
+    Default,
+    Root,
+    Inner,
+}
+
 internal sealed class ProjectBuilder : IAsyncDisposable
 {
     private const string SarifFileName = "BuildOutput.sarif";
@@ -13,16 +20,18 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     private readonly TemporaryDirectory _directory;
     private readonly PackageFixture _fixture;
     private readonly ITestOutputHelper _testOutputHelper;
+    private readonly SdkImportStyle _defaultSdkImportStyle;
     private readonly FullPath _githubStepSummaryFile;
     private NetSdkVersion _sdkVersion = NetSdkVersion.Net10_0;
     private int _buildCount;
 
     public FullPath RootFolder => _directory.FullPath;
 
-    public ProjectBuilder(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    public ProjectBuilder(PackageFixture fixture, ITestOutputHelper testOutputHelper, SdkImportStyle defaultSdkImportStyle)
     {
         _fixture = fixture;
         _testOutputHelper = testOutputHelper;
+        _defaultSdkImportStyle = defaultSdkImportStyle;
         _directory = TemporaryDirectory.Create();
         _directory.CreateTextFile("NuGet.config", $"""
             <configuration>
@@ -77,7 +86,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public void SetDotnetSdkVersion(NetSdkVersion dotnetSdkVersion) => _sdkVersion = dotnetSdkVersion;
 
-    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj")
+    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
     {
         var propertiesElement = new XElement("PropertyGroup");
         if (properties != null)
@@ -97,13 +106,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             }
         }
 
+        importStyle = importStyle == SdkImportStyle.Default ? _defaultSdkImportStyle : importStyle;
+        var rootSdkName = importStyle == SdkImportStyle.Root ? $"{sdk}/{_fixture.Version}": "Microsoft.NET.Sdk";
+        var innerSdkXmlElement = importStyle == SdkImportStyle.Inner ? $"""<Sdk Name="{sdk}" Version="{_fixture.Version}" />""" : string.Empty;
+
         var content = $"""
-            <Project Sdk="{sdk}/{_fixture.Version}">
+            <Project Sdk="{rootSdkName}">
+                {innerSdkXmlElement}
                 <PropertyGroup>
-                <OutputType>exe</OutputType>
-                <ImplicitUsings>enable</ImplicitUsings>
-                <Nullable>enable</Nullable>
-                <ErrorLog>{SarifFileName},version=2.1</ErrorLog>
+                    <OutputType>exe</OutputType>
+                    <ErrorLog>{SarifFileName},version=2.1</ErrorLog>
                 </PropertyGroup>
                 {propertiesElement}
                 {packagesElement}

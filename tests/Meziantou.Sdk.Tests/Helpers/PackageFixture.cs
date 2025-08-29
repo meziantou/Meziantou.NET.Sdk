@@ -17,18 +17,25 @@ public sealed class PackageFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        if (Environment.GetEnvironmentVariable("CI") != null && Environment.GetEnvironmentVariable("NuGetDirectory") is { } path)
+        if (Environment.GetEnvironmentVariable("CI") != null)
         {
-            var files = Directory.GetFiles(path, "*.nupkg");
-            if (files.Length > 0)
+            if (Environment.GetEnvironmentVariable("NUGET_DIRECTORY") is { } path)
             {
-                foreach (var file in files)
+                var files = Directory.GetFiles(path, "*.nupkg", SearchOption.AllDirectories);
+                if (files.Length > 0)
                 {
-                    File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
+                    foreach (var file in files)
+                    {
+                        File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
+                    }
+
+                    return;
                 }
 
-                return;
+                Assert.Fail("No file found in " + path);
             }
+
+            Assert.Fail("NuGetDirectory environment variable not set");
         }
 
         var nugetPath = FullPath.GetTempPath() / $"meziantou.sdk.tests-nuget.exe";
@@ -45,17 +52,17 @@ public sealed class PackageFixture : IAsyncLifetime
             }
         }
 
-        // Build NuGet package
-        await Parallel.ForEachAsync([SdkName, SdkWebName, SdkTestName], async (sdkName, _) =>
+        // Build NuGet packages
+        var nuspecFiles = Directory.GetFiles(PathHelpers.GetRootDirectory() / "src" / "Sdk", "*.nuspec").Select(FullPath.FromPath);
+        Assert.NotEmpty(nuspecFiles);
+        await Parallel.ForEachAsync(nuspecFiles, async (nuspecPath, _) =>
         {
-            var nuspecPath = PathHelpers.GetRootDirectory() / $"{sdkName}.nuspec";
-
             var psi = new ProcessStartInfo(nugetPath);
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-Version", "999.9.9", "-OutputDirectory", _packageDirectory.FullPath]);
+            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-BasePath", PathHelpers.GetRootDirectory() / "src", "-Version", Version, "-OutputDirectory", _packageDirectory.FullPath]);
             var result = await psi.RunAsTaskAsync();
             if (result.ExitCode != 0)
             {

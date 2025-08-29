@@ -11,22 +11,30 @@ using NuGet.Packaging.Licenses;
 
 namespace Meziantou.Sdk.Tests;
 
-public sealed class Sdk9_0Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0)
+public sealed class Sdk9_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.Root)
 { }
 
-public sealed class Sdk10_0Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0)
+public sealed class Sdk9_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.Inner)
 { }
 
-public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion) : IClassFixture<PackageFixture>
+public sealed class Sdk10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.Root)
+{ }
+
+public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.Inner)
+{ }
+
+public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle) : IClassFixture<PackageFixture>
 {
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
     private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
 
     private ProjectBuilder CreateProjectBuilder()
     {
-        var builder = new ProjectBuilder(fixture, testOutputHelper);
+        var builder = new ProjectBuilder(fixture, testOutputHelper, sdkImportStyle);
         builder.SetDotnetSdkVersion(dotnetSdkVersion);
         return builder;
     }
@@ -112,6 +120,27 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
         var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
         Assert.True(data.HasError("RS0030"));
+    }
+
+    [Fact]
+    public async Task Override_WarningsAsErrors()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("TreatWarningsAsErrors", "false")]);
+        project.AddFile("sample.cs", """
+            _ = "";
+
+            class Sample
+            {
+                private readonly int field;
+
+                public Sample(int a) => field = a;
+
+                public int A() => field;
+            }
+            """);
+        var data = await project.BuildAndGetOutput(["--configuration", "Release"]);
+        Assert.True(data.HasWarning("IDE1006"));
     }
 
     [Fact]

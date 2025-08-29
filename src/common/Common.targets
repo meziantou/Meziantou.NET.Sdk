@@ -1,5 +1,5 @@
 <Project>
-
+  <Import Project="$(_MeziantouBeforeMicrosoftNETSdkTargets)" Condition="Exists('$(_MeziantouBeforeMicrosoftNETSdkTargets)')" />
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
@@ -27,7 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.txt" Condition="$(IncludeDefaultBannedSymbols) == 'true'" Visible="false" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.txt" Condition="'$(IncludeDefaultBannedSymbols)' != 'false'" Visible="false" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">

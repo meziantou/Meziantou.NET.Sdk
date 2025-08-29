@@ -1,0 +1,64 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)\ContinuousIntegrationBuild.props" />
+  
+  <PropertyGroup>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <_IsMeziantouProject>$(MSBuildProjectName.StartsWith('Meziantou', StringComparison.OrdinalIgnoreCase))</_IsMeziantouProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsTestProject Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Test'">true</IsTestProject>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Embed symbols containing Source Link in the main file (exe/dll) -->
+    <DebugType>embedded</DebugType>
+    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OptimizeVsTestRun>true</OptimizeVsTestRun>
+    
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
+
+    <!--
+      Disabling static graph restore due to a bug related to NuGetAuditSuppress.
+      See: https://github.com/NuGet/Home/issues/14300
+    -->
+    <RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
+    <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
+
+    <ReportAnalyzer>true</ReportAnalyzer>
+    <Features>strict</Features>
+    <Deterministic>true</Deterministic>
+    <EnableNETAnalyzers >true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CA1014</NoWarn>
+    <MSBuildTreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</MSBuildTreatWarningsAsErrors>
+    <TreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Label="NuGet Audit">
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <WarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">$(WarningsAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+ 
+  <ItemGroup>
+    <!-- Add all editorconfig files -->
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig" />
+  </ItemGroup>
+
+</Project>
