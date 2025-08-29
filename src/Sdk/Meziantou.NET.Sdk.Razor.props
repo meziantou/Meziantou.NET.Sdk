@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <MeziantouSdkName>Meziantou.NET.Sdk.Razor</MeziantouSdkName>
-  </PropertyGroup>
-  <Import Project="$(MSBuildThisFileDirectory)\PreSdkImport.props" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Razor" />
-  <Import Project="$(MSBuildThisFileDirectory)\PostSdkImport.props" />
-</Project>

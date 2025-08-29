@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Meziantou.NET.Sdk.BlazorWebAssembly</id>
+    <version>1.0.0</version>
+    <authors>Meziantou</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Meziantou SDK for .NET projects</description>
+    <readme>README.md</readme>
+    <license type="expression">MIT</license>
+    <repository type="git" url="$RepositoryUrl$" commit="$RepositoryCommit$" branch="$RepositoryBranch$" />
+  </metadata>
+  <files>
+    <file src="Sdk/Meziantou.NET.Sdk.BlazorWebAssembly/Sdk.props" target="Sdk/Sdk.props" />
+    <file src="Sdk/Meziantou.NET.Sdk.BlazorWebAssembly/Sdk.targets" target="Sdk/Sdk.targets" />
+    <file src="common/**/*" target="" />
+    <file src="configuration/**/*" target="" />
+    <file src="icon.png" target="" />
+    <file src="icon.svg" target="" />
+    <file src="../LICENSE.txt" target="" />
+    <file src="../README.md" target="" />
+  </files>
+</package>

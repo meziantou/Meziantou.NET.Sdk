@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <BeforeTargetFrameworkInferenceTargets Condition="'$(BeforeTargetFrameworkInferenceTargets)' == ''">$(MSBuildThisFileDirectory)\SetTargetFramework.props</BeforeTargetFrameworkInferenceTargets>
+    <IsTestProject Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Test'">true</IsTestProject>
   </PropertyGroup>
-
+  
   <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

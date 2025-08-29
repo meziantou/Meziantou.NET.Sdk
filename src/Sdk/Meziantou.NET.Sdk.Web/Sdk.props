@@ -1,0 +1,15 @@
+<Project>
+    <PropertyGroup>
+        <MeziantouSdkName>Meziantou.NET.Sdk.Web</MeziantouSdkName>
+        <_MustImportMicrosoftNETSdk Condition="'$(UsingMicrosoftNETSdk)' != 'true'">true</_MustImportMicrosoftNETSdk>
+
+        <!-- If Microsoft SDK is already imported, we want to execute our targets before theirs.
+             So, we use the extension point. Also, if there was already a target registered, we want to make sure to execute it.
+        -->
+        <_MeziantouBeforeMicrosoftNETSdkTargets>$(BeforeMicrosoftNETSdkTargets)</_MeziantouBeforeMicrosoftNETSdkTargets>
+        <BeforeMicrosoftNETSdkTargets>$(MSBuildThisFileDirectory)/../common/common.targets</BeforeMicrosoftNETSdkTargets>
+    </PropertyGroup>
+
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk.Web" Condition="'$(_MustImportMicrosoftNETSdk)' == 'true'" />
+    <Import Project="$(MSBuildThisFileDirectory)/../common/common.props" />
+</Project>

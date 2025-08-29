@@ -1,0 +1,3 @@
+<Project>
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.Razor" Condition="'$(_MustImportMicrosoftNETSdk)' == 'true'" />
+</Project>

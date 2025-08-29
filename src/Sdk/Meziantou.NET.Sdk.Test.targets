@@ -1,5 +1,0 @@
-<Project>  
-  <Import Project="$(MSBuildThisFileDirectory)\PreSdkImport.targets" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-  <Import Project="$(MSBuildThisFileDirectory)\PostSdkImport.targets" />
-</Project>

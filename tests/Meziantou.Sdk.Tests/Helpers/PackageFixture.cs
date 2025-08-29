@@ -46,7 +46,7 @@ public sealed class PackageFixture : IAsyncLifetime
         }
 
         // Build NuGet packages
-        var nuspecFiles = Directory.GetFiles(PathHelpers.GetRootDirectory(), "*.nuspec");
+        var nuspecFiles = Directory.GetFiles(PathHelpers.GetRootDirectory() / "src" / "Sdk", "*.nuspec").Select(FullPath.FromPath);
         Assert.NotEmpty(nuspecFiles);
         await Parallel.ForEachAsync(nuspecFiles, async (nuspecPath, _) =>
         {
@@ -55,7 +55,7 @@ public sealed class PackageFixture : IAsyncLifetime
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-Version", Version, "-OutputDirectory", _packageDirectory.FullPath]);
+            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-BasePath", PathHelpers.GetRootDirectory() / "src", "-Version", Version, "-OutputDirectory", _packageDirectory.FullPath]);
             var result = await psi.RunAsTaskAsync();
             if (result.ExitCode != 0)
             {
