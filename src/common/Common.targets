@@ -1,14 +1,14 @@
-<Project>
+﻿<Project>
   <Import Project="$(_MeziantouBeforeMicrosoftNETSdkTargets)" Condition="Exists('$(_MeziantouBeforeMicrosoftNETSdkTargets)')" />
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''" >net$(NETCoreAppMaximumVersion)</TargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Web'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.8" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.9" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.215" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
