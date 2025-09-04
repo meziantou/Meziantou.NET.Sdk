@@ -698,6 +698,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
         Assert.Empty(project.GetGitHubStepSummaryContent());
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+        Assert.Empty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
     }
 
     [Fact]
@@ -768,6 +769,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
         Assert.Empty(project.GetGitHubStepSummaryContent());
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+        Assert.Empty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
     }
 
     [Fact]

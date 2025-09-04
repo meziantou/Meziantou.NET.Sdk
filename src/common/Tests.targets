@@ -3,6 +3,7 @@
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
   </PropertyGroup>
   
   <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
@@ -24,7 +25,7 @@
 
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
         <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
-        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
+        <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
         <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
         <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
         <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
@@ -45,8 +46,8 @@
         <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
         <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-         <VSTestCollect>Code Coverage</VSTestCollect> 
-        <VSTestSetting>$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
+         <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
+        <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
       </PropertyGroup>
 
       <PropertyGroup>
