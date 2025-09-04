@@ -5,7 +5,7 @@
     <IsPackable>false</IsPackable>
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
   </PropertyGroup>
-  
+
   <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
     <PropertyGroup>
       <RunAnalyzers>false</RunAnalyzers>
@@ -35,7 +35,7 @@
       <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" IsImplicitlyDefined="true" />
       </ItemGroup>
-      
+
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
         <VSTestBlame>true</VSTestBlame>
 
@@ -46,7 +46,7 @@
         <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
         <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-         <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
+        <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
         <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
       </PropertyGroup>
 
@@ -56,14 +56,14 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  
+
   <!-- Add implicit using for xunit -->
   <Target Name="_AddXunitUsingWhenPackageIsDetected" BeforeTargets="BeforeBuild">
     <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference->AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
       <Using Include="Xunit" />
     </ItemGroup>
   </Target>
-  
+
   <!-- VSTest on GitHub -->
   <Choose>
     <When Condition="'$(_IsGitHubActions)' == 'true'">
