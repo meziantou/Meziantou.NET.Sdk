@@ -1,5 +1,4 @@
-﻿<Project>
-  <Import Project="$(_MeziantouBeforeMicrosoftNETSdkTargets)" Condition="Exists('$(_MeziantouBeforeMicrosoftNETSdkTargets)')" />
+<Project>
   <Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
