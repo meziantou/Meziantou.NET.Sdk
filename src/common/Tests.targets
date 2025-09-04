@@ -1,18 +1,18 @@
-﻿<Project>
+<Project>
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   
-  <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' == 'true'">
+  <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
     <PropertyGroup>
       <RunAnalyzers>false</RunAnalyzers>
     </PropertyGroup>
   </Target>
 
   <Choose>
-    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'True'">
+    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true'">
       <ItemGroup>
         <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="1.8.4" IsImplicitlyDefined="true" />
         <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" IsImplicitlyDefined="true" />
@@ -36,12 +36,12 @@
       </ItemGroup>
       
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
-        <VSTestBlame>True</VSTestBlame>
+        <VSTestBlame>true</VSTestBlame>
 
-        <VSTestBlameCrash>True</VSTestBlameCrash>
+        <VSTestBlameCrash>true</VSTestBlameCrash>
         <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
 
-        <VSTestBlameHang>True</VSTestBlameHang>
+        <VSTestBlameHang>true</VSTestBlameHang>
         <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
         <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
@@ -65,7 +65,7 @@
   
   <!-- VSTest on GitHub -->
   <Choose>
-    <When Condition="'$(_IsGitHubActions)' == 'True'">
+    <When Condition="'$(_IsGitHubActions)' == 'true'">
       <PropertyGroup>
         <VSTestLogger>$(VSTestLogger);GitHubActions</VSTestLogger>
       </PropertyGroup>

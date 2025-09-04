@@ -20,9 +20,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OptimizeVsTestRun>true</OptimizeVsTestRun>
-    
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
 
     <!--
@@ -35,7 +34,7 @@
     <ReportAnalyzer>true</ReportAnalyzer>
     <Features>strict</Features>
     <Deterministic>true</Deterministic>
-    <EnableNETAnalyzers >true</EnableNETAnalyzers>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>

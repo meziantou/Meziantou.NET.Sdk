@@ -62,20 +62,61 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         }
     }
 
-    [Theory]
-    [InlineData(SdkName)]
-    [InlineData(SdkWebName)]
-    [InlineData(SdkTestName)]
-    public async Task ImplicitUsings(string sdk)
+    [Fact]
+    public async Task ValidateDefaultProperties()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: sdk);
-        project.AddFile("sample.cs", """
-            _ = new StringBuilder();
-            _ = CultureInfo.InvariantCulture;
-            """);
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", "");
         var data = await project.BuildAndGetOutput();
-        Assert.False(data.HasError());
+        data.AssertMSBuildPropertyValue("LangVersion", "latest");
+        data.AssertMSBuildPropertyValue("PublishRepositoryUrl", "true");
+        data.AssertMSBuildPropertyValue("DebugType", "embedded");
+        data.AssertMSBuildPropertyValue("EmbedUntrackedSources", "true");
+        data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
+        data.AssertMSBuildPropertyValue("AnalysisLevel", "latest-all");
+    }
+
+    [Fact]
+    public async Task CanOverrideLangVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("LangVersion", "preview")]);
+        project.AddFile("sample.cs", "");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("LangVersion", "preview");
+    }
+
+    [Fact]
+    public async Task AllowUnsafeBlock()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """
+            unsafe
+            {
+                int* p = null;
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task StrictModeEnabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """
+            var o = new object();
+            if (o is Math) // Error CS7023 The second operand of an 'is' or 'as' operator may not be static type 'Math'
+            {
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.True(data.HasWarning("CS7023"));
     }
 
     [Fact]
@@ -332,7 +373,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile();
         project.AddFile("Program.cs", """
             Console.WriteLine();
-
             """);
 
         var data = await project.BuildAndGetOutput(["--configuration", "Release"]);
@@ -361,6 +401,28 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var outputFiles = Directory.GetFiles(extractedPath, "*", SearchOption.AllDirectories);
         await AssertPdbIsEmbedded(outputFiles);
+        Assert.Contains(outputFiles, f => f.EndsWith(".xml", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task PackageShouldContainsXmlDocumentation()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", """
+            Console.WriteLine();
+            """);
+
+        var data = await project.PackAndGetOutput();
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "bin" / "Release");
+        Assert.Single(files); // Only the .nupkg should be generated
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        var outputFiles = Directory.GetFiles(extractedPath, "*", SearchOption.AllDirectories);
+        Assert.Contains(outputFiles, f => f.EndsWith(".xml", StringComparison.Ordinal));
     }
 
     [Theory]

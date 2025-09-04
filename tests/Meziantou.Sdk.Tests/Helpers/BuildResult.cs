@@ -20,4 +20,20 @@ internal sealed record BuildResult(int ExitCode, ProcessOutputCollection Process
         var build = Serialization.ReadBinLog(stream);
         return [.. build.SourceFiles.Select(file => file.FullPath)];
     }
+
+    public string GetMSBuildPropertyValue(string name)
+    {
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        return build.FindLastDescendant<Property>(e => e.Name == name)?.Value;
+    }
+
+    public void AssertMSBuildPropertyValue(string name, string expectedValue, bool ignoreCase = true)
+    {
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        var actual = build.FindLastDescendant<Property>(e => e.Name == name)?.Value;
+
+        Assert.Equal(expectedValue, actual, ignoreCase: ignoreCase);
+    }
 }
