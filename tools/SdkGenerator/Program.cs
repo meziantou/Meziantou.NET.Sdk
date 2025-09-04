@@ -29,15 +29,12 @@ foreach (var (sdkName, baseSdkName) in sdks)
                 <MeziantouSdkName>{{sdkName}}</MeziantouSdkName>
                 <_MustImportMicrosoftNETSdk Condition="'$(UsingMicrosoftNETSdk)' != 'true'">true</_MustImportMicrosoftNETSdk>
 
-                <!-- If Microsoft SDK is already imported, we want to execute our targets before theirs.
-                     So, we use the extension point. Also, if there was already a target registered, we want to make sure to execute it.
-                -->
-                <_MeziantouBeforeMicrosoftNETSdkTargets>$(BeforeMicrosoftNETSdkTargets)</_MeziantouBeforeMicrosoftNETSdkTargets>
-                <BeforeMicrosoftNETSdkTargets>$(MSBuildThisFileDirectory)/../common/Common.targets</BeforeMicrosoftNETSdkTargets>
+                <CustomBeforeDirectoryBuildProps>$(CustomBeforeDirectoryBuildProps);$(MSBuildThisFileDirectory)../common/Common.props</CustomBeforeDirectoryBuildProps>
+                <BeforeMicrosoftNETSdkTargets>$(BeforeMicrosoftNETSdkTargets);$(MSBuildThisFileDirectory)/../common/Common.targets</BeforeMicrosoftNETSdkTargets>
             </PropertyGroup>
 
             <Import Project="Sdk.props" Sdk="{{baseSdkName}}" Condition="'$(_MustImportMicrosoftNETSdk)' == 'true'" />
-            <Import Project="$(MSBuildThisFileDirectory)/../common/Common.props" />
+            <Import Project="$(MSBuildThisFileDirectory)../common/Common.props" Condition="'$(_MustImportMicrosoftNETSdk)' != 'true'" />
         </Project>
         """);
 

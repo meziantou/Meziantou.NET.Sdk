@@ -12,19 +12,23 @@ using NuGet.Packaging.Licenses;
 namespace Meziantou.Sdk.Tests;
 
 public sealed class Sdk9_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.Root)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.ProjectElement)
 { }
 
 public sealed class Sdk9_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.Inner)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.SdkElement)
 { }
 
 public sealed class Sdk10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.Root)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.ProjectElement)
 { }
 
 public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.Inner)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElement)
+{ }
+
+public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElementDirectoryBuildProps)
 { }
 
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle) : IClassFixture<PackageFixture>
@@ -32,9 +36,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
     private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
 
-    private ProjectBuilder CreateProjectBuilder()
+    private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
-        var builder = new ProjectBuilder(fixture, testOutputHelper, sdkImportStyle);
+        var builder = new ProjectBuilder(fixture, testOutputHelper, sdkImportStyle, defaultSdkName);
         builder.SetDotnetSdkVersion(dotnetSdkVersion);
         return builder;
     }
@@ -82,7 +86,27 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(properties: [("LangVersion", "preview")]);
-        project.AddFile("sample.cs", "");
+        project.AddFile("sample.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("LangVersion", "preview");
+    }
+
+    [Fact]
+    public async Task CanOverrideLangVersionInDirectoryBuildProps()
+    {
+        if (sdkImportStyle is SdkImportStyle.SdkElement)
+        {
+            Assert.Skip("Directory.Build.props is not supported with SdkImportStyle.SdkElement");
+        }
+
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddDirectoryBuildPropsFile("""
+            <PropertyGroup>
+                <LangVersion>preview</LangVersion>
+            </PropertyGroup>
+            """);
+        project.AddFile("sample.cs", "Console.WriteLine();");
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("LangVersion", "preview");
     }
@@ -583,9 +607,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit2()
     {
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             nuGetPackages: [.. XUnit2References]
             );
@@ -621,9 +644,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             Assert.Skip("Failing, need more investigation");
         }
 
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             nuGetPackages: [.. XUnit3References]
             );
@@ -653,9 +675,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task VSTests_OnUnknownContextShouldNotAddCustomLogger()
     {
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             nuGetPackages: [.. XUnit2References]
             );
@@ -684,9 +705,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
 
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
             nuGetPackages: [.. XUnit3References]
@@ -719,9 +739,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
 
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
             nuGetPackages: [.. XUnit3References]
@@ -756,9 +775,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
 
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
             nuGetPackages: [.. XUnit3References]
@@ -790,9 +808,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
 
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
-            sdk: SdkTestName,
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
             nuGetPackages: [.. XUnit3References]
@@ -918,8 +935,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task Web_HasServiceDefaults()
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName, rootSdk: "Microsoft.NET.Sdk.Web");
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.Web");
 
         project.AddFile("Program.cs", """
             using Meziantou.AspNetCore.ServiceDefaults;
@@ -938,11 +955,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData(SdkWebName)]
     public async Task AssemblyContainsMetadataAttributeWithSdkName(string sdkName)
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(
-            sdk: sdkName,
-            filename: "Sample.Tests.csproj"
-            );
+        await using var project = CreateProjectBuilder(sdkName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddDirectoryBuildPropsFile(postSdkContent: "", sdkName: sdkName);
 
         project.AddFile("Program.cs", """
             Console.WriteLine();
@@ -1034,8 +1050,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task NpmInstall()
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName);
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile();
 
         project.AddFile("Program.cs", "Console.WriteLine();");
         project.AddFile("package.json", """
@@ -1060,8 +1076,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task NpmRestore()
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName);
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile();
 
         project.AddFile("Program.cs", "Console.WriteLine();");
         project.AddFile("package.json", """
@@ -1084,8 +1100,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task Npm_Dotnet_Build_sln()
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName, filename: "sample.csproj");
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(filename: "sample.csproj");
 
         var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
         var slnFile = project.AddFile("sample.slnx", """
@@ -1115,8 +1131,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData("publish")]
     public async Task Npm_Dotnet_sln(string command)
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName, filename: "sample.csproj");
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(filename: "sample.csproj");
 
         var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
         var slnFile = project.AddFile("sample.slnx", """
@@ -1145,9 +1161,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task NpmRestore_MultipleFiles()
     {
-        await using var project = CreateProjectBuilder();
+        await using var project = CreateProjectBuilder(SdkWebName);
         project.AddCsprojFile(
-            sdk: SdkWebName,
             additionalProjectElements: [
                 new XElement("ItemGroup",
                     new XElement("NpmPackageFile", new XAttribute("Include", "a/package.json")),
@@ -1187,8 +1202,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task Npm_Dotnet_Build_RestoreLockedMode_Fail()
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName);
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile();
 
         project.AddFile("Program.cs", "Console.WriteLine();");
         project.AddFile("package.json", """
@@ -1211,8 +1226,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData("/p:ContinuousIntegrationBuild=true")]
     public async Task Npm_Dotnet_Build_Ci_Success(string command)
     {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(sdk: SdkWebName);
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile();
 
         project.AddFile("Program.cs", "Console.WriteLine();");
         project.AddFile("package.json", """

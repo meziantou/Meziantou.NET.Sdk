@@ -9,8 +9,9 @@ namespace Meziantou.Sdk.Tests.Helpers;
 public enum SdkImportStyle
 {
     Default,
-    Root,
-    Inner,
+    ProjectElement,
+    SdkElement,
+    SdkElementDirectoryBuildProps,
 }
 
 internal sealed class ProjectBuilder : IAsyncDisposable
@@ -21,17 +22,19 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     private readonly PackageFixture _fixture;
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly SdkImportStyle _defaultSdkImportStyle;
+    private readonly string _defaultSdkName;
     private readonly FullPath _githubStepSummaryFile;
     private NetSdkVersion _sdkVersion = NetSdkVersion.Net10_0;
     private int _buildCount;
 
     public FullPath RootFolder => _directory.FullPath;
 
-    public ProjectBuilder(PackageFixture fixture, ITestOutputHelper testOutputHelper, SdkImportStyle defaultSdkImportStyle)
+    public ProjectBuilder(PackageFixture fixture, ITestOutputHelper testOutputHelper, SdkImportStyle defaultSdkImportStyle, string defaultSdkName)
     {
         _fixture = fixture;
         _testOutputHelper = testOutputHelper;
         _defaultSdkImportStyle = defaultSdkImportStyle;
+        _defaultSdkName = defaultSdkName;
         _directory = TemporaryDirectory.Create();
         _directory.CreateTextFile("NuGet.config", $"""
             <configuration>
@@ -53,6 +56,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                 </packageSourceMapping>
             </configuration>
             """);
+
+        if (defaultSdkImportStyle is SdkImportStyle.SdkElementDirectoryBuildProps)
+        {
+            AddDirectoryBuildPropsFile(string.Empty);
+        }
 
         _githubStepSummaryFile = _directory.CreateEmptyFile("GITHUB_STEP_SUMMARY.txt");
     }
@@ -86,8 +94,30 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public void SetDotnetSdkVersion(NetSdkVersion dotnetSdkVersion) => _sdkVersion = dotnetSdkVersion;
 
-    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string sdk = "Meziantou.NET.Sdk", string? rootSdk = null, string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
+    private string GetSdkElementContent(string sdkName)
     {
+        return $"""<Sdk Name="{sdkName}" Version="{_fixture.Version}" />""";
+    }
+
+    public void AddDirectoryBuildPropsFile(string postSdkContent, string preSdkContent = "", string? sdkName = null)
+    {
+        var sdk = _defaultSdkImportStyle == SdkImportStyle.SdkElementDirectoryBuildProps ? GetSdkElementContent(sdkName ?? _defaultSdkName) : string.Empty;
+
+        var fileContent = $"""
+            <Project>
+                {preSdkContent}
+                {sdk}
+                {postSdkContent}
+            </Project>
+            """;
+        var fullPath = _directory.FullPath / "Directory.Build.props";
+        fullPath.CreateParentDirectory();
+        File.WriteAllText(fullPath, fileContent);
+    }
+
+    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string? sdk = null, string? rootSdk = null, string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
+    {
+        sdk ??= _defaultSdkName;
         var propertiesElement = new XElement("PropertyGroup");
         if (properties != null)
         {
@@ -107,8 +137,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         }
 
         importStyle = importStyle == SdkImportStyle.Default ? _defaultSdkImportStyle : importStyle;
-        var rootSdkName = importStyle == SdkImportStyle.Root ? $"{sdk}/{_fixture.Version}" : (rootSdk ?? "Microsoft.NET.Sdk");
-        var innerSdkXmlElement = importStyle == SdkImportStyle.Inner ? $"""<Sdk Name="{sdk}" Version="{_fixture.Version}" />""" : string.Empty;
+        var rootSdkName = importStyle == SdkImportStyle.ProjectElement ? $"{sdk}/{_fixture.Version}" : (rootSdk ?? "Microsoft.NET.Sdk");
+        var innerSdkXmlElement = importStyle == SdkImportStyle.SdkElement ? GetSdkElementContent(sdk) : string.Empty;
 
         var content = $"""
             <Project Sdk="{rootSdkName}">
