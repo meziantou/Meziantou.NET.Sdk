@@ -79,6 +79,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("EmbedUntrackedSources", "true");
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
         data.AssertMSBuildPropertyValue("AnalysisLevel", "latest-all");
+        data.AssertMSBuildPropertyValue("EnablePackageValidation", "true");
     }
 
     [Fact]

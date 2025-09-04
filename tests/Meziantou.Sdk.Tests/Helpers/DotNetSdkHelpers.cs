@@ -47,7 +47,7 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            var tempFolder = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / Guid.NewGuid().ToString("N");
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
             if (Path.GetExtension(file.Name) is ".zip")

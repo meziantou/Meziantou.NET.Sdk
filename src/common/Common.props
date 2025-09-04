@@ -42,6 +42,8 @@
     <MSBuildTreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</MSBuildTreatWarningsAsErrors>
     <TreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
+
+    <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">true</EnablePackageValidation>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet Audit">
