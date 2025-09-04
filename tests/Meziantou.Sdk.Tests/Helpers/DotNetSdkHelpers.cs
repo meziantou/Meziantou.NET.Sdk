@@ -94,6 +94,7 @@ public static class DotNetSdkHelpers
             }
             catch
             {
+                Directory.Delete(tempFolder, recursive: true);
             }
 
             Assert.True(File.Exists(finalDotnetPath));
