@@ -39,7 +39,7 @@ public static class DotNetSdkHelpers
 
             var runtimeIdentifier = RuntimeInformation.RuntimeIdentifier;
             var file = latestSdk!.Files.Single(file => file.Rid == runtimeIdentifier && Path.GetExtension(file.Name) is ".zip" or ".gz");
-            var finalFolderPath = FullPath.GetTempPath() / "dotnet" / latestSdk.Version.ToString();
+            var finalFolderPath = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / latestSdk.Version.ToString();
             var finalDotnetPath = finalFolderPath / (OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
             if (File.Exists(finalDotnetPath))
             {
@@ -47,7 +47,7 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            var tempFolder = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / Guid.NewGuid().ToString("N");
+            var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
             if (Path.GetExtension(file.Name) is ".zip")
