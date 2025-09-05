@@ -90,6 +90,7 @@ public static class DotNetSdkHelpers
 
             try
             {
+                finalFolderPath.CreateParentDirectory();
                 Directory.Move(tempFolder, finalFolderPath);
             }
             catch
