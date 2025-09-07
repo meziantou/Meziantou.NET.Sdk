@@ -8,6 +8,7 @@
 
   <ItemGroup Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Web'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.9" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.0" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
   <ItemGroup>

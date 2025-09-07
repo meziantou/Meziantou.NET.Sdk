@@ -180,6 +180,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return ExecuteDotnetCommandAndGetOutput("pack", buildArguments, environmentVariables);
     }
 
+    public Task<BuildResult> RunAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("run", ["--", .. buildArguments ?? []], environmentVariables);
+    }
+
     public Task<BuildResult> TestAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return ExecuteDotnetCommandAndGetOutput("test", buildArguments, environmentVariables);

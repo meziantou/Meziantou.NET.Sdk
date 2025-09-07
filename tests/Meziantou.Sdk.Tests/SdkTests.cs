@@ -952,6 +952,44 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
     }
 
+    [Fact]
+    public async Task Web_ServiceDefaultsIsRegisteredAutomatically()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.Web");
+
+        project.AddFile("Program.cs", """
+            using Meziantou.AspNetCore.ServiceDefaults;
+
+            var builder = WebApplication.CreateBuilder();
+            var app = builder.Build();
+            return app.Services.GetService<MeziantouServiceDefaultsOptions>() is not null ? 0 : 1;
+            """);
+
+        var data = await project.RunAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task Web_ServiceDefaultsIsRegisteredAutomatically_Disabled()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(
+            rootSdk: "Microsoft.NET.Sdk.Web",
+            properties: [("AutoRegisterServiceDefaults", "false")]);
+
+        project.AddFile("Program.cs", """
+            using Meziantou.AspNetCore.ServiceDefaults;
+
+            var builder = WebApplication.CreateBuilder();
+            var app = builder.Build();
+            return app.Services.GetService<MeziantouServiceDefaultsOptions>() is not null ? 0 : 1;
+            """);
+
+        var data = await project.RunAndGetOutput();
+        Assert.NotEqual(0, data.ExitCode);
+    }
+
     [Theory]
     [InlineData(SdkName)]
     [InlineData(SdkTestName)]
