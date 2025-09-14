@@ -80,6 +80,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
         data.AssertMSBuildPropertyValue("AnalysisLevel", "latest-all");
         data.AssertMSBuildPropertyValue("EnablePackageValidation", "true");
+        data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
     }
 
     [Fact]
@@ -90,6 +91,25 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddFile("sample.cs", "Console.WriteLine();");
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("LangVersion", "preview");
+    }
+
+    [Fact]
+    public async Task CanOverrideRollForward()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("RollForward", "Minor")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("RollForward", "Minor");
+    }
+
+    [Fact]
+    public async Task RollForwardIsCompatibleWithClassLibraries()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
     }
 
     [Fact]
@@ -404,6 +424,24 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var outputFiles = Directory.GetFiles(project.RootFolder / "bin", "*", SearchOption.AllDirectories);
         await AssertPdbIsEmbedded(outputFiles);
+    }
+
+    [Fact]
+    public async Task Dotnet_Pack_ClassLibrary()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        var data = await project.PackAndGetOutput(["--configuration", "Release"]);
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "bin" / "Release");
+        Assert.Single(files); // Only the .nupkg should be generated
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        var outputFiles = Directory.GetFiles(extractedPath, "*", SearchOption.AllDirectories);
+        await AssertPdbIsEmbedded(outputFiles);
+        Assert.Contains(outputFiles, f => f.EndsWith(".xml", StringComparison.Ordinal));
     }
 
     [Fact]

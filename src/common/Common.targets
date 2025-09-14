@@ -11,7 +11,12 @@
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- Ensure application can run with newer frameworks -->
+  <PropertyGroup>
+    <RollForward Condition="'$(RollForward)' == ''">LatestMajor</RollForward>
+  </PropertyGroup>
+
+    <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
       <_Parameter2>$(MeziantouSdkName)</_Parameter2>
