@@ -395,6 +395,11 @@ dotnet_diagnostic.CA1514.severity = suggestion
 # Enabled: False, Severity: warning
 dotnet_diagnostic.CA1515.severity = none
 
+# CA1516: Use cross-platform intrinsics
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1516
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA1516.severity = suggestion
+
 # CA1700: Do not name enum values 'Reserved'
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1700
 # Enabled: False, Severity: warning

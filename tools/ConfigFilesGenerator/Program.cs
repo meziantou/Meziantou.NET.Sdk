@@ -264,12 +264,55 @@ static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersi
     }
 
     var result = new List<Assembly>();
-    var groups = package.PackageReader.GetFiles("analyzers").GroupBy(Path.GetDirectoryName).ToArray();
-    foreach (var group in groups)
+    var files = package.PackageReader.GetFiles("analyzers");
+    var filesGroupedByFolder = files.GroupBy(Path.GetDirectoryName).ToArray();
+    foreach (var group in filesGroupedByFolder)
     {
         var context = new AssemblyLoadContext(null);
+        context.Resolving += (AssemblyLoadContext _, AssemblyName assemblyName) =>
+        {
+            var assemblyFileName = assemblyName.Name + ".dll";
+
+            foreach (var folder in GetProbeFolders())
+            {
+                var files = filesGroupedByFolder.FirstOrDefault(group => string.Equals(group.Key, folder, StringComparison.OrdinalIgnoreCase));
+                if (files is null)
+                    continue;
+
+                var assemblyPath = files.FirstOrDefault(f => string.Equals(Path.GetFileName(f), assemblyFileName, StringComparison.OrdinalIgnoreCase));
+                if (assemblyPath is not null)
+                {
+                    try
+                    {
+                        using var stream = package.PackageReader.GetStream(assemblyPath);
+                        return context.LoadFromStream(stream);
+                    }
+                    catch
+                    {
+                        // Ignore
+                    }
+                }
+            }
+
+            return null;
+
+            IEnumerable<string> GetProbeFolders()
+            {
+                var key = group.Key;
+                while (!string.IsNullOrEmpty(key))
+                {
+                    yield return key;
+                    key = Path.GetDirectoryName(key);
+                }
+            }
+        };
+
         foreach (var file in group)
         {
+            var extension = Path.GetExtension(file);
+            if (!string.Equals(extension, ".dll", StringComparison.OrdinalIgnoreCase))
+                continue;
+
             try
             {
                 using var stream = package.PackageReader.GetStream(file);
@@ -277,7 +320,7 @@ static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersi
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine($"Failed to load {file}\n{ex}");
             }
         }
     }
