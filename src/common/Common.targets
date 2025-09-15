@@ -13,7 +13,7 @@
 
   <!-- Ensure application can run with newer frameworks -->
   <PropertyGroup>
-    <RollForward Condition="'$(RollForward)' == ''">LatestMajor</RollForward>
+    <RollForward Condition="'$(RollForward)' == '' AND '$(IsTestProject)' != 'true'">LatestMajor</RollForward>
   </PropertyGroup>
 
     <ItemGroup>
@@ -103,5 +103,6 @@
     <None Include="$(_PackageThirdPartyNoticesPath)" Pack="true" PackagePath="" Condition="$(_PackageThirdPartyNoticesPath) != ''" />
     <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
   </ItemGroup>
+
 
 </Project>
