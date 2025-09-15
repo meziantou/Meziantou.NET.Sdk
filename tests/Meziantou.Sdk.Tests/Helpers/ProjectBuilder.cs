@@ -226,6 +226,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
         psi.Environment["VSTestDiag"] = vstestdiagPath;
         psi.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(psi.FileName);
+        psi.Environment["DOTNET_ROOT_X64"] = Path.GetDirectoryName(psi.FileName);
         psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
 
         if (environmentVariables != null)
