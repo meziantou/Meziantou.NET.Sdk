@@ -84,6 +84,15 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task ValidateDefaultProperties_Test()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile();
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("RollForward", expectedValue: null);
+    }
+
+    [Fact]
     public async Task CanOverrideLangVersion()
     {
         await using var project = CreateProjectBuilder();
