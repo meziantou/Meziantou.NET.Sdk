@@ -52,7 +52,7 @@
 
       <PropertyGroup>
         <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
-        <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=detailed</VSTestLogger>
+        <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -79,4 +79,5 @@
       </ItemGroup>
     </When>
   </Choose>
+
 </Project>
