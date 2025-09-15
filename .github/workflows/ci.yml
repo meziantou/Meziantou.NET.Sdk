@@ -92,7 +92,9 @@ jobs:
 
   deploy:
     runs-on: "ubuntu-latest"
-    needs: [create_nuget, lint_config, test]
+    needs: [create_nuget, lint_config, test, compute_version]
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,7 +104,28 @@ jobs:
           name: nuget
           path: ${{ env.NUGET_DIRECTORY }}
       - uses: actions/setup-dotnet@v4
+
+      - name: Has changes
+        id: has_changes
+        run: |
+          $PreviousTag = git describe --tags --abbrev=0 2>$null
+          if ($PreviousTag) {
+            Write-Host "Previous tag: $PreviousTag"
+            $Changes = git diff --name-only $PreviousTag HEAD -- '*.nuspec' 'src/**/*'
+          } else {
+            Write-Host "No previous tag found, checking all files"
+            $Changes = $true
+          }
+            
+          if ($Changes) {
+            Write-Host "Changes: $Changes"
+            echo "has_changes=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "has_changes=false" >> $env:GITHUB_OUTPUT
+          }
+
       - name: Publish NuGet packages
+        if: ${{ steps.has_changes.outputs.has_changes == 'true' }}
         env:
           NuGetApiKey: ${{ secrets.NuGetApiKey }}
           FeedzApiKey: ${{ secrets.FEEDZ_APIKEY }}
@@ -110,20 +133,16 @@ jobs:
           Write-Host "Current ref: $env:GITHUB_REF"
           Write-Host "Searching nupkg in folder: ${{ env.NUGET_DIRECTORY }}"
           $files = Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse -Include *.nupkg
-          foreach($file in $files) {
+          foreach ($file in $files) {
               Write-Host "Pushing NuGet package: $($file.FullName)"
               & dotnet nuget push "$($file.FullName)" --api-key "$env:FeedzApiKey" --source https://f.feedz.io/meziantou/meziantou-dotnet-codingstandard/nuget/index.json --force-english-output --skip-duplicate
               if ($env:GITHUB_REF -eq 'refs/heads/main')
               {
-                # Only push to nuget.org if we are on the main branch and a relevant file was found (nuspec or change under src/)
-                $Changes = git diff --name-only HEAD^1 HEAD -- '*.nuspec' 'src/**/*'
-                if ($Changes) {
-                  Write-Host "Changes: $Changes"
-                  Write-Host "Pushing to nuget.org"
-                  & dotnet nuget push "$($file.FullName)" --api-key "$env:NuGetApiKey" --source https://api.nuget.org/v3/index.json --force-english-output
-                } else {
-                  Write-Host "No relevant changes detected, skipping push to nuget.org"
-                }
+                  & dotnet nuget push "$($file.FullName)" --api-key "$env:NuGetApiKey" --source https://api.nuget.org/v3/index.json --force-english-output --skip-duplicate
               }
           }
-        
+
+      - run: gh release create "${{ needs.compute_version.outputs.package_version }}" --generate-notes
+        if: ${{ steps.has_changes.outputs.has_changes == 'true' && github.ref == 'refs/heads/main' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
