@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Web'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.12" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.13" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
@@ -24,7 +24,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.215" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.219" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
