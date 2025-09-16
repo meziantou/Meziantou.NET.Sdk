@@ -24,7 +24,7 @@ jobs:
   lint_config:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v4
       - run: dotnet run --project=tools/ConfigFilesGenerator/ConfigFilesGenerator.csproj
 
@@ -33,7 +33,7 @@ jobs:
     outputs:
       package_version: ${{ steps.compute-version.outputs.package_version }}
     steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
         - uses: actions/setup-dotnet@v4
         - id: compute-version
           run: |
@@ -54,7 +54,7 @@ jobs:
     needs: [compute_version]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v4
       - run: ./build.ps1 -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
       - uses: actions/upload-artifact@v4
@@ -72,7 +72,7 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     needs: [create_nuget, compute_version]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v5
         with:
           name: nuget
@@ -96,7 +96,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/download-artifact@v5
