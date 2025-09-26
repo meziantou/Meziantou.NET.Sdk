@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Meziantou.Framework.DependencyScanning;
+using System.Diagnostics;
 
 var rootFolder = GetRootFolderPath();
 
@@ -118,6 +119,12 @@ await Parallel.ForEachAsync(packages, async (item, cancellationToken) =>
         }
     }
 });
+
+Console.WriteLine($"{writtenFiles} configuration files written");
+if (writtenFiles > 0)
+{
+    Process.Start("git", "--no-pager diff --color").WaitForExit();
+}
 
 return writtenFiles;
 
