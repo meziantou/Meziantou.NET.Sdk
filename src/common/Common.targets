@@ -6,10 +6,15 @@
     <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Web'">
+  <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.15" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
+
+	<!-- Make web app globalization invariant as most of the time, it's an API -->
+  <PropertyGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
+    <InvariantGlobalization Condition="'$(InvariantGlobalization)' == ''">true</InvariantGlobalization>
+  </PropertyGroup>
 
   <!-- Ensure application can run with newer frameworks -->
   <PropertyGroup>
@@ -104,6 +109,4 @@
     <None Include="$(_LicensePath)" Pack="true" PackagePath="" Visible="false" Condition="$(_LicensePath) != ''" />
   </ItemGroup>
 
-
 </Project>
-
