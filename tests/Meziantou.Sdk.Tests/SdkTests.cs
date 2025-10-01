@@ -12,24 +12,19 @@ using NuGet.Packaging.Licenses;
 namespace Meziantou.Sdk.Tests;
 
 public sealed class Sdk9_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.ProjectElement)
-{ }
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.ProjectElement);
 
 public sealed class Sdk9_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.SdkElement)
-{ }
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.SdkElement);
 
 public sealed class Sdk10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.ProjectElement)
-{ }
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.ProjectElement);
 
 public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElement)
-{ }
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElement);
 
 public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElementDirectoryBuildProps)
-{ }
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElementDirectoryBuildProps);
 
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle) : IClassFixture<PackageFixture>
 {
@@ -1359,6 +1354,34 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var data = await project.BuildAndGetOutput([command]);
         Assert.Equal(0, data.ExitCode);
+    }
+
+    [Theory]
+    [InlineData("Library")]
+    [InlineData("Module")]
+    [InlineData("WinMdObj")]
+    public async Task ShouldNotUseInvariantCulture(string outputType)
+    {
+        await using var project = CreateProjectBuilder(SdkName);
+        project.AddCsprojFile(properties: [("OutputType", outputType)]);
+        var result = await project.BuildAndGetOutput();
+        var items = result.GetMSBuildItems("Compile");
+        Assert.DoesNotContain(items, item => item.EndsWith("SetDefaultThreadCulture.cs", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("exe")]
+    [InlineData("winexe")]
+    public async Task ShouldUseInvariantCulture(string outputType)
+    {
+        await using var project = CreateProjectBuilder(SdkName);
+        project.AddCsprojFile(properties: [("OutputType", outputType)]);
+        project.AddFile("Program.cs", "Console.WriteLine(CultureInfo.CurrentCulture == CultureInfo.InvariantCulture)");
+
+        var result = await project.RunAndGetOutput();
+        var items = result.GetMSBuildItems("Compile");
+        Assert.Contains(items, item => item.EndsWith("SetDefaultThreadCulture.cs", StringComparison.Ordinal));
+        result.OutputContains("True");
     }
 
     private static async Task AssertPdbIsEmbedded(string[] outputFiles)
