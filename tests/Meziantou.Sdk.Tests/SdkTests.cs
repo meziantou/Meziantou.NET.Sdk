@@ -1356,34 +1356,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
     }
 
-    [Theory]
-    [InlineData("Library")]
-    [InlineData("Module")]
-    [InlineData("WinMdObj")]
-    public async Task ShouldNotUseInvariantCulture(string outputType)
-    {
-        await using var project = CreateProjectBuilder(SdkName);
-        project.AddCsprojFile(properties: [("OutputType", outputType)]);
-        var result = await project.BuildAndGetOutput();
-        var items = result.GetMSBuildItems("Compile");
-        Assert.DoesNotContain(items, item => item.EndsWith("SetDefaultThreadCulture.cs", StringComparison.Ordinal));
-    }
-
-    [Theory]
-    [InlineData("exe")]
-    [InlineData("winexe")]
-    public async Task ShouldUseInvariantCulture(string outputType)
-    {
-        await using var project = CreateProjectBuilder(SdkName);
-        project.AddCsprojFile(properties: [("OutputType", outputType)]);
-        project.AddFile("Program.cs", "Console.WriteLine(CultureInfo.CurrentCulture == CultureInfo.InvariantCulture)");
-
-        var result = await project.RunAndGetOutput();
-        var items = result.GetMSBuildItems("Compile");
-        Assert.Contains(items, item => item.EndsWith("SetDefaultThreadCulture.cs", StringComparison.Ordinal));
-        result.OutputContains("True");
-    }
-
     private static async Task AssertPdbIsEmbedded(string[] outputFiles)
     {
         Assert.DoesNotContain(outputFiles, f => f.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase));

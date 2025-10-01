@@ -32,7 +32,6 @@ internal sealed record BuildResult(int ExitCode, ProcessOutputCollection Process
             {
                 result.Add(item.Name);
             }
-
         });
 
         return result;
