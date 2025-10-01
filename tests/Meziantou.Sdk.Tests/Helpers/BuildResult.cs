@@ -21,6 +21,22 @@ internal sealed record BuildResult(int ExitCode, ProcessOutputCollection Process
         return [.. build.SourceFiles.Select(file => file.FullPath)];
     }
 
+    public List<string> GetMSBuildItems(string name)
+    {
+        var result = new List<string>();
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        build.VisitAllChildren<Item>(item =>
+        {
+            if (item.Parent is AddItem parent && parent.Name == name)
+            {
+                result.Add(item.Name);
+            }
+        });
+
+        return result;
+    }
+
     public string GetMSBuildPropertyValue(string name)
     {
         using var stream = new MemoryStream(BinaryLogContent);
