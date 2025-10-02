@@ -15,12 +15,12 @@
   <Choose>
     <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true'">
       <ItemGroup>
-        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="1.8.5" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="1.9.0" IsImplicitlyDefined="true" />
         <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.4" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="1.8.5" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="1.8.5" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="1.8.5" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.5" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="1.9.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="1.9.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="1.9.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.9.0" IsImplicitlyDefined="true" />
       </ItemGroup>
 
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
