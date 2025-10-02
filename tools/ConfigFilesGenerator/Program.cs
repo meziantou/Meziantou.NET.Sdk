@@ -16,109 +16,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Meziantou.Framework.DependencyScanning;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
 
 var rootFolder = GetRootFolderPath();
 
 var writtenFiles = 0;
-var packages = await GetAllReferencedNuGetPackages();
-await Parallel.ForEachAsync(packages, async (item, cancellationToken) =>
-{
-    var (packageId, packageVersion) = item;
-
-    Console.WriteLine(packageId + "@" + packageVersion);
-    var configurationFilePath = rootFolder / "src" / "configuration" / ("Analyzer." + packageId + ".editorconfig");
-
-
-    var rules = new HashSet<AnalyzerRule>();
-    foreach (var assembly in await GetAnalyzerReferences(packageId, packageVersion))
-    {
-        foreach (var type in assembly.GetTypes())
-        {
-            if (type.IsAbstract || type.IsInterface)
-                continue;
-
-            if (!typeof(DiagnosticAnalyzer).IsAssignableFrom(type))
-                continue;
-
-            var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type)!;
-            foreach (var diagnostic in analyzer.SupportedDiagnostics)
-            {
-                rules.Add(new AnalyzerRule(diagnostic.Id, diagnostic.Title.ToString(CultureInfo.InvariantCulture).Trim(), diagnostic.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.DefaultSeverity, diagnostic.IsEnabledByDefault ? diagnostic.DefaultSeverity : null));
-            }
-        }
-    }
-
-    if (rules.Count > 0)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("# global_level must be higher than the NET Analyzer files");
-        sb.AppendLine("is_global = true");
-        sb.AppendLine("global_level = 0");
-
-        var currentConfiguration = GetConfiguration(configurationFilePath);
-
-        if (currentConfiguration.Unknowns.Length > 0)
-        {
-            foreach (var unknown in currentConfiguration.Unknowns)
-            {
-                sb.AppendLine(unknown);
-            }
-        }
-        else
-        {
-            sb.AppendLine();
-        }
-
-        foreach (var rule in rules.OrderBy(rule => rule.Id))
-        {
-            var currentRuleConfiguration = currentConfiguration.Rules.FirstOrDefault(r => r.Id == rule.Id);
-            var severity = currentRuleConfiguration != null ? currentRuleConfiguration.Severity : rule.DefaultEffectiveSeverity;
-
-            sb.AppendLine($"# {rule.Id}: {rule.Title}");
-            if (!string.IsNullOrEmpty(rule.Url))
-            {
-                sb.AppendLine($"# Help link: {rule.Url}");
-            }
-
-            sb.AppendLine($"# Enabled: {rule.Enabled}, Severity: {GetSeverity(rule.DefaultSeverity)}");
-
-            if (currentRuleConfiguration?.Comments.Length > 0)
-            {
-                foreach (var comment in currentRuleConfiguration.Comments)
-                {
-                    sb.AppendLine(comment);
-                }
-            }
-
-            sb.AppendLine($"dotnet_diagnostic.{rule.Id}.severity = {GetSeverity(severity)}");
-            sb.AppendLine();
-        }
-
-        var text = sb.ToString().ReplaceLineEndings("\n");
-        if (File.Exists(configurationFilePath))
-        {
-            if (File.ReadAllText(configurationFilePath).ReplaceLineEndings("\n") == text)
-                return;
-        }
-
-        configurationFilePath.CreateParentDirectory();
-        await File.WriteAllTextAsync(configurationFilePath, text, cancellationToken);
-        Interlocked.Increment(ref writtenFiles);
-
-        static string GetSeverity(DiagnosticSeverity? severity)
-        {
-            return severity switch
-            {
-                null => "none",
-                DiagnosticSeverity.Hidden => "silent",
-                DiagnosticSeverity.Info => "suggestion",
-                DiagnosticSeverity.Warning => "warning",
-                DiagnosticSeverity.Error => "error",
-                _ => throw new Exception($"Severity '{severity}' is not supported"),
-            };
-        }
-    }
-});
+await GenerateEditorConfigForAnalyzers();
+await GenerateBanSymbolsForNewtonsoftJson();
 
 Console.WriteLine($"{writtenFiles} configuration files written");
 if (writtenFiles > 0)
@@ -128,6 +32,157 @@ if (writtenFiles > 0)
 
 return writtenFiles;
 
+async Task GenerateEditorConfigForAnalyzers()
+{
+    var packages = await GetAllReferencedNuGetPackages();
+    await Parallel.ForEachAsync(packages, async (item, cancellationToken) =>
+    {
+        var (packageId, packageVersion) = item;
+
+        Console.WriteLine(packageId + "@" + packageVersion);
+        var configurationFilePath = rootFolder / "src" / "configuration" / ("Analyzer." + packageId + ".editorconfig");
+
+        var rules = new HashSet<AnalyzerRule>();
+        foreach (var assembly in await GetAnalyzerReferences(packageId, packageVersion))
+        {
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.IsAbstract || type.IsInterface)
+                    continue;
+
+                if (!typeof(DiagnosticAnalyzer).IsAssignableFrom(type))
+                    continue;
+
+                var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type)!;
+                foreach (var diagnostic in analyzer.SupportedDiagnostics)
+                {
+                    rules.Add(new AnalyzerRule(diagnostic.Id, diagnostic.Title.ToString(CultureInfo.InvariantCulture).Trim(), diagnostic.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.DefaultSeverity, diagnostic.IsEnabledByDefault ? diagnostic.DefaultSeverity : null));
+                }
+            }
+        }
+
+        if (rules.Count > 0)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("# global_level must be higher than the NET Analyzer files");
+            sb.AppendLine("is_global = true");
+            sb.AppendLine("global_level = 0");
+
+            var currentConfiguration = GetConfiguration(configurationFilePath);
+
+            if (currentConfiguration.Unknowns.Length > 0)
+            {
+                foreach (var unknown in currentConfiguration.Unknowns)
+                {
+                    sb.AppendLine(unknown);
+                }
+            }
+            else
+            {
+                sb.AppendLine();
+            }
+
+            foreach (var rule in rules.OrderBy(rule => rule.Id))
+            {
+                var currentRuleConfiguration = currentConfiguration.Rules.FirstOrDefault(r => r.Id == rule.Id);
+                var severity = currentRuleConfiguration != null ? currentRuleConfiguration.Severity : rule.DefaultEffectiveSeverity;
+
+                sb.AppendLine($"# {rule.Id}: {rule.Title}");
+                if (!string.IsNullOrEmpty(rule.Url))
+                {
+                    sb.AppendLine($"# Help link: {rule.Url}");
+                }
+
+                sb.AppendLine($"# Enabled: {rule.Enabled}, Severity: {GetSeverity(rule.DefaultSeverity)}");
+
+                if (currentRuleConfiguration?.Comments.Length > 0)
+                {
+                    foreach (var comment in currentRuleConfiguration.Comments)
+                    {
+                        sb.AppendLine(comment);
+                    }
+                }
+
+                sb.AppendLine($"dotnet_diagnostic.{rule.Id}.severity = {GetSeverity(severity)}");
+                sb.AppendLine();
+            }
+
+            var text = sb.ToString().ReplaceLineEndings("\n");
+            if (File.Exists(configurationFilePath))
+            {
+                if (File.ReadAllText(configurationFilePath).ReplaceLineEndings("\n") == text)
+                    return;
+            }
+
+            configurationFilePath.CreateParentDirectory();
+            await File.WriteAllTextAsync(configurationFilePath, text, cancellationToken);
+            Interlocked.Increment(ref writtenFiles);
+
+            static string GetSeverity(DiagnosticSeverity? severity)
+            {
+                return severity switch
+                {
+                    null => "none",
+                    DiagnosticSeverity.Hidden => "silent",
+                    DiagnosticSeverity.Info => "suggestion",
+                    DiagnosticSeverity.Warning => "warning",
+                    DiagnosticSeverity.Error => "error",
+                    _ => throw new Exception($"Severity '{severity}' is not supported"),
+                };
+            }
+        }
+    });
+}
+
+async Task GenerateBanSymbolsForNewtonsoftJson()
+{
+    var bannedSymbolsFilePath = rootFolder / "src" / "configuration" / "BannedSymbols.NewtonsoftJson.txt";
+    var bannedSymbols = new HashSet<string>(StringComparer.Ordinal);
+
+    var package = await DownloadNuGetPackage("Newtonsoft.Json", version: null, NullLogger.Instance, CancellationToken.None);
+    var libItems = await package.PackageReader.GetLibItemsAsync(CancellationToken.None);
+
+    var compatibleFrameworks = libItems.Where(item => DefaultCompatibilityProvider.Instance.IsCompatible(NuGetFramework.Parse("net10.0"), item.TargetFramework));
+    var items = compatibleFrameworks.SelectMany(item => item.Items).ToArray();
+    foreach (var item in items)
+    {
+        if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+            continue;
+
+        using var stream = package.PackageReader.GetStream(item);
+        var metadataRef = MetadataReference.CreateFromStream(stream);
+        var allRefs = Basic.Reference.Assemblies.Net100.References.All.Add(metadataRef);
+
+        var compilation = CSharpCompilation.Create("temp", syntaxTrees: [], references: allRefs);
+        var asm = compilation.GetTypeByMetadataName("Newtonsoft.Json.JsonConvert")!.ContainingAssembly;
+        foreach (var type in GetAllNamespaces(asm))
+        {
+            var ns = DocumentationCommentId.CreateDeclarationId(type);
+            if (ns is not null && ns.StartsWith("N:Newtonsoft", StringComparison.Ordinal))
+            {
+                bannedSymbols.Add(ns);
+            }
+        }
+    }
+
+    var sb = new StringBuilder();
+    sb.AppendLine("# Banned symbols from Newtonsoft.Json");
+    foreach (var symbol in bannedSymbols.OrderBy(s => s, StringComparer.Ordinal))
+    {
+        sb.AppendLine(symbol);
+    }
+
+    var text = sb.ToString().ReplaceLineEndings("\n");
+    if (File.Exists(bannedSymbolsFilePath))
+    {
+        if (File.ReadAllText(bannedSymbolsFilePath).ReplaceLineEndings("\n") == text)
+            return;
+    }
+
+    bannedSymbolsFilePath.CreateParentDirectory();
+    await File.WriteAllTextAsync(bannedSymbolsFilePath, text);
+    Interlocked.Increment(ref writtenFiles);
+}
 
 async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
 {
@@ -235,41 +290,7 @@ static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersi
     ILogger logger = NullLogger.Instance;
     CancellationToken cancellationToken = CancellationToken.None;
 
-    var settings = Settings.LoadDefaultSettings(null);
-    var globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
-    var source = "https://api.nuget.org/v3/index.json";
-
-    var cache = new SourceCacheContext();
-    var repository = Repository.Factory.GetCoreV3(source);
-    var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
-
-    var package = GlobalPackagesFolderUtility.GetPackage(new PackageIdentity(packageId, version), globalPackagesFolder);
-    if (package is null || package.Status is DownloadResourceResultStatus.NotFound)
-    {
-        // Download the package
-        using var packageStream = new MemoryStream();
-        await resource.CopyNupkgToStreamAsync(
-            packageId,
-            version,
-            packageStream,
-            cache,
-            logger,
-            cancellationToken);
-
-        packageStream.Seek(0, SeekOrigin.Begin);
-
-        // Add it to the global package folder
-        package = await GlobalPackagesFolderUtility.AddPackageAsync(
-            source,
-            new PackageIdentity(packageId, version),
-            packageStream,
-            globalPackagesFolder,
-            parentId: Guid.Empty,
-            ClientPolicyContext.GetClientPolicy(settings, logger),
-            logger,
-            cancellationToken);
-    }
-
+    var package = await DownloadNuGetPackage(packageId, version, logger, cancellationToken);
     var result = new List<Assembly>();
     var files = package.PackageReader.GetFiles("analyzers");
     var filesGroupedByFolder = files.GroupBy(Path.GetDirectoryName).ToArray();
@@ -418,6 +439,73 @@ static (AnalyzerConfiguration[] Rules, string[] Unknowns) GetConfiguration(FullP
     }
 
     return (rules.ToArray(), unknowns.ToArray());
+}
+
+static async Task<DownloadResourceResult> DownloadNuGetPackage(string packageId, NuGetVersion? version, ILogger logger, CancellationToken cancellationToken)
+{
+    var settings = Settings.LoadDefaultSettings(null);
+    var globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
+    var source = "https://api.nuget.org/v3/index.json";
+
+    var cache = new SourceCacheContext();
+    var repository = Repository.Factory.GetCoreV3(source);
+    var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
+
+    if (version is null)
+    {
+        var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>();
+        var metadata = await metadataResource.GetMetadataAsync(packageId, includePrerelease: true, includeUnlisted: false, cache, NullLogger.Instance, CancellationToken.None);
+        version = metadata.MaxBy(metadata => metadata.Identity.Version)!.Identity.Version;
+    }
+
+    var package = GlobalPackagesFolderUtility.GetPackage(new PackageIdentity(packageId, version), globalPackagesFolder);
+    if (package is null || package.Status is DownloadResourceResultStatus.NotFound)
+    {
+        // Download the package
+        using var packageStream = new MemoryStream();
+        await resource.CopyNupkgToStreamAsync(
+            packageId,
+            version,
+            packageStream,
+            cache,
+            logger,
+            cancellationToken);
+
+        packageStream.Seek(0, SeekOrigin.Begin);
+
+        // Add it to the global package folder
+        package = await GlobalPackagesFolderUtility.AddPackageAsync(
+            source,
+            new PackageIdentity(packageId, version),
+            packageStream,
+            globalPackagesFolder,
+            parentId: Guid.Empty,
+            ClientPolicyContext.GetClientPolicy(settings, logger),
+            logger,
+            cancellationToken);
+    }
+
+    return package;
+}
+
+static IEnumerable<INamespaceSymbol> GetAllNamespaces(IAssemblySymbol assembly)
+{
+    var result = new List<INamespaceSymbol>();
+    foreach (var module in assembly.Modules)
+    {
+        ProcessNamespace(result, module.GlobalNamespace);
+    }
+
+    return result;
+
+    static void ProcessNamespace(List<INamespaceSymbol> result, INamespaceSymbol ns)
+    {
+        result.Add(ns);
+        foreach (var nestedNs in ns.GetNamespaceMembers())
+        {
+            ProcessNamespace(result, nestedNs);
+        }
+    }
 }
 
 sealed record AnalyzerConfiguration(string Id, string[] Comments, DiagnosticSeverity? Severity);

@@ -1,0 +1,10 @@
+# Banned symbols from Newtonsoft.Json
+N:Newtonsoft
+N:Newtonsoft.Json
+N:Newtonsoft.Json.Bson
+N:Newtonsoft.Json.Converters
+N:Newtonsoft.Json.Linq
+N:Newtonsoft.Json.Linq.JsonPath
+N:Newtonsoft.Json.Schema
+N:Newtonsoft.Json.Serialization
+N:Newtonsoft.Json.Utilities

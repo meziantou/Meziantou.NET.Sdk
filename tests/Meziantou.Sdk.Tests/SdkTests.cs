@@ -182,6 +182,26 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task BannedSymbols_NewtonsoftJson_AreReported()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(nuGetPackages: [("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
+        var data = await project.BuildAndGetOutput();
+        Assert.True(data.HasWarning("RS0030"));
+    }
+
+    [Fact]
+    public async Task BannedSymbols_NewtonsoftJson_Disabled_AreNotReported()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("BannedNewtonsoftJsonSymbols", "false")], nuGetPackages: [("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
+        var data = await project.BuildAndGetOutput();
+        Assert.False(data.HasWarning("RS0030"));
+    }
+
+    [Fact]
     public async Task EditorConfigsAreInBinlog()
     {
         await using var project = CreateProjectBuilder();
