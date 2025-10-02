@@ -33,7 +33,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" IsImplicitlyDefined="true" />
       </ItemGroup>
 
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
