@@ -11,11 +11,6 @@
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
-	<!-- Make web app globalization invariant as most of the time, it's an API -->
-	<PropertyGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-		<InvariantGlobalization Condition="'$(InvariantGlobalization)' == ''">true</InvariantGlobalization>
-	</PropertyGroup>
-
 	<!-- Ensure application can run with newer frameworks -->
 	<PropertyGroup>
 		<RollForward Condition="'$(RollForward)' == '' AND '$(IsTestProject)' != 'true'">LatestMajor</RollForward>
@@ -111,3 +106,4 @@
 	</ItemGroup>
 
 </Project>
+
