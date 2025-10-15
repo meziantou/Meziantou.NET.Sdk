@@ -1,5 +1,8 @@
 using System.Diagnostics;
 using Meziantou.Framework;
+using Meziantou.Sdk.Tests.Helpers;
+
+[assembly: AssemblyFixture(typeof(PackageFixture))]
 
 namespace Meziantou.Sdk.Tests.Helpers;
 

@@ -26,7 +26,7 @@ public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelpe
 public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
     : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElementDirectoryBuildProps);
 
-public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle) : IClassFixture<PackageFixture>
+public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.4")];
     private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.0.1"), ("xunit.runner.visualstudio", "3.1.4")];
