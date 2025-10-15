@@ -85,7 +85,15 @@ public static class DotNetSdkHelpers
             if (!OperatingSystem.IsWindows())
             {
                 var tempDotnetPath = tempFolder / "dotnet";
+
+                Console.WriteLine("Updating permissions of " + tempDotnetPath);
                 File.SetUnixFileMode(tempDotnetPath, UnixFileMode.UserRead | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+
+                foreach (var cscPath in Directory.GetFiles(tempFolder, "csc", SearchOption.AllDirectories))
+                {
+                    Console.WriteLine("Updating permissions of " + cscPath);
+                    File.SetUnixFileMode(cscPath, UnixFileMode.UserRead | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+                }
             }
 
             try
