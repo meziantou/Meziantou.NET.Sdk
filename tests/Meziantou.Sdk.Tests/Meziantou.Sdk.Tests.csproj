@@ -12,6 +12,7 @@
     <PackageReference Include="Meziantou.Framework" Version="5.0.0" />
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="1.0.20" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="2.0.2" />
+    <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.59" />
