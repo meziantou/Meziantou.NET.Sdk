@@ -787,15 +787,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             }
             """);
 
-        project.AddFile("dotnet.config", """
-            [dotnet.test.runner]
-            name = "Microsoft.Testing.Platform"
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
             """);
 
         var data = await project.TestAndGetOutput();
-
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.HasWarning("RS0030"));
+        Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
     }
 
     [Fact]
@@ -821,9 +824,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             }
             """);
 
-        project.AddFile("dotnet.config", """
-            [dotnet.test.runner]
-            name = "Microsoft.Testing.Platform"
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
             """);
 
         var data = await project.TestAndGetOutput();
@@ -857,9 +863,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             }
             """);
 
-        project.AddFile("dotnet.config", """
-            [dotnet.test.runner]
-            name = "Microsoft.Testing.Platform"
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
             """);
 
         var data = await project.TestAndGetOutput();
@@ -886,9 +895,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             }
             """);
 
-        project.AddFile("dotnet.config", """
-            [dotnet.test.runner]
-            name = "Microsoft.Testing.Platform"
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
             """);
 
         var data = await project.TestAndGetOutput();

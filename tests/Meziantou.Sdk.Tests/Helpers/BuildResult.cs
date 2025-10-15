@@ -52,4 +52,18 @@ internal sealed record BuildResult(int ExitCode, ProcessOutputCollection Process
 
         Assert.Equal(expectedValue, actual, ignoreCase: ignoreCase);
     }
+
+    public bool IsMSBuildTargetExecuted(string name)
+    {
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        var target = build.FindLastDescendant<Target>(e => e.Name == name);
+        if (target is null)
+            return false;
+
+        if (target.Skipped)
+            return false;
+
+        return true;
+    }
 }
