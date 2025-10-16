@@ -72,6 +72,11 @@ csharp_style_deconstructed_variable_declaration = true
 csharp_style_pattern_local_over_anonymous_function = true
 csharp_style_prefer_switch_expression = true
 
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary
+
 # Expression-Bodied members
 csharp_style_expression_bodied_accessors = true
 csharp_style_expression_bodied_indexers = true
@@ -128,3 +133,4 @@ csharp_preserve_single_line_statements = false
 
 csharp_prefer_static_local_function = true
 dotnet_code_quality_unused_parameters = all
+
