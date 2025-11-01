@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 	<Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
 	<Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
@@ -79,10 +79,10 @@
 	</Choose>
 
 	<PropertyGroup>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath) == '' AND Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath) == '' AND Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath) == '' AND Exists('$(MSBuildProjectDirectory)\Readme.md')">$(MSBuildProjectDirectory)\Readme.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath) == '' AND Exists('$(MSBuildProjectDirectory)\ReadMe.md')">$(MSBuildProjectDirectory)\ReadMe.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\Readme.md')">$(MSBuildProjectDirectory)\Readme.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\ReadMe.md')">$(MSBuildProjectDirectory)\ReadMe.md</_PackageReadmeFilePath>
 
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
