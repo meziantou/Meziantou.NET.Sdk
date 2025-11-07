@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Framework.FullPath" Version="1.1.3" />
+    <PackageReference Include="Meziantou.Framework.FullPath" Version="1.1.5" />
   </ItemGroup>
 
 </Project>
