@@ -58,11 +58,9 @@
   </Choose>
 
   <!-- Add implicit using for xunit -->
-  <Target Name="_AddXunitUsingWhenPackageIsDetected" BeforeTargets="BeforeBuild">
-    <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
-      <Using Include="Xunit" />
-    </ItemGroup>
-  </Target>
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
+    <Using Include="Xunit" />
+  </ItemGroup>
 
   <!-- VSTest on GitHub -->
   <Choose>
