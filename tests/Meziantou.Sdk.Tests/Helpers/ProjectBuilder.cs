@@ -244,6 +244,26 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         }
 
         var result = await psi.RunAsTaskAsync();
+
+        // Retry up to 5 times if MSB4236 error occurs (SDK resolution issue)
+        const int maxRetries = 5;
+        for (int retry = 0; retry < maxRetries && result.ExitCode != 0; retry++)
+        {
+            if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal)))
+            {
+                _testOutputHelper.WriteLine($"MSB4236 error detected, retrying ({retry + 1}/{maxRetries})...");
+
+                // Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
+                await Task.Delay(100 * (1 << retry));
+
+                result = await psi.RunAsTaskAsync();
+            }
+            else
+            {
+                break;
+            }
+        }
+
         _testOutputHelper.WriteLine("Process exit code: " + result.ExitCode);
         _testOutputHelper.WriteLine(result.Output.ToString());
 

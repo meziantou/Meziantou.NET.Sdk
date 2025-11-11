@@ -29,6 +29,7 @@ public sealed class PackageFixture : IAsyncLifetime
                 {
                     foreach (var file in files)
                     {
+                        Console.WriteLine("Copying NuGet package from " + file + " to " + (_packageDirectory.FullPath / Path.GetFileName(file)));
                         File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
                     }
 
