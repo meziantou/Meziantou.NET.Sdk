@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
@@ -33,7 +33,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" IsImplicitlyDefined="true" />
       </ItemGroup>
 
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
