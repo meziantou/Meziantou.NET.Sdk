@@ -193,6 +193,14 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     public async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         _buildCount++;
+
+        foreach (var file in Directory.GetFiles(_directory.FullPath, "*", SearchOption.AllDirectories))
+        {
+            _testOutputHelper.WriteLine("File: " + file);
+            var content = await File.ReadAllTextAsync(file);
+            _testOutputHelper.WriteLine(content);
+        }
+
         _testOutputHelper.WriteLine("-------- dotnet " + command);
         var psi = new ProcessStartInfo(await DotNetSdkHelpers.Get(_sdkVersion))
         {
