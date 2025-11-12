@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v5
       - run: ./build.ps1 -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: nuget
           if-no-files-found: error
@@ -71,7 +71,7 @@ jobs:
     needs: [create_nuget, compute_version]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: nuget
           path: ${{ env.NUGET_DIRECTORY }}
@@ -82,7 +82,7 @@ jobs:
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: test_results_${{ matrix.runs-on }}
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: nuget
           path: ${{ env.NUGET_DIRECTORY }}
