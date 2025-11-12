@@ -257,9 +257,10 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         const int maxRetries = 5;
         for (int retry = 0; retry < maxRetries && result.ExitCode != 0; retry++)
         {
-            if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal)))
+            if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal) || 
+                                           line.Text.Contains("The project file may be invalid or missing targets required for restore", StringComparison.Ordinal)))
             {
-                _testOutputHelper.WriteLine($"MSB4236 error detected, retrying ({retry + 1}/{maxRetries})...");
+                _testOutputHelper.WriteLine($"SDK resolution or restore error detected, retrying ({retry + 1}/{maxRetries})...");
 
                 // Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
                 await Task.Delay(100 * (1 << retry));
