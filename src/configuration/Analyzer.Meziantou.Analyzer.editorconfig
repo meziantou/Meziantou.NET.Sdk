@@ -260,7 +260,7 @@ dotnet_diagnostic.MA0051.severity = none
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0052.severity = suggestion
 
-# MA0053: Make class sealed
+# MA0053: Make class or record sealed
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0053.md
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0053.severity = suggestion
