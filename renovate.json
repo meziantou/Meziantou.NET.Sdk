@@ -1,6 +1,17 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>meziantou/renovate-config"
-  ]
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "local>meziantou/renovate-config"
+    ],
+    "regexManagers": [
+        {
+            "fileMatch": [ "tests/Meziantou\\.Sdk\\.Tests/SdkTests\\.cs$" ],
+            "matchStringsStrategy": "any",
+            "matchStrings": [
+                "References\\s*=\\s*\\[(?:\\(\"(?<depName>[^\"]+)\",\\s*\"(?<currentValue>[^\"]+)\"\\)(?:,\\s*)?)+\\];"
+            ],
+            "datasourceTemplate": "nuget",
+            "versioningTemplate": "nuget"
+        }
+    ]
 }
