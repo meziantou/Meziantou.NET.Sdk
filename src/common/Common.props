@@ -23,12 +23,8 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
-	  
-	<!--
-      Disabling static graph restore due to a bug related to NuGetAuditSuppress.
-      See: https://github.com/NuGet/Home/issues/14300
-    -->
-	<RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
+
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
     <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
 
     <ReportAnalyzer>true</ReportAnalyzer>
