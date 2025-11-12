@@ -29,7 +29,7 @@ public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, IT
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
     private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.5")];
-    private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.1.0"), ("xunit.runner.visualstudio", "3.1.5")];
+    private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.2.0"), ("xunit.runner.visualstudio", "3.1.5")];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
