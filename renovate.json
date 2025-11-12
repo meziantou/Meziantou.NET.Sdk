@@ -8,7 +8,7 @@
             "fileMatch": [ "tests/Meziantou\\.Sdk\\.Tests/SdkTests\\.cs$" ],
             "matchStringsStrategy": "any",
             "matchStrings": [
-                "References\\s*=\\s*\\[(?:\\(\"(?<depName>[^\"]+)\",\\s*\"(?<currentValue>[^\"]+)\"\\)(?:,\\s*)?)+\\];"
+                "new\\s+NuGetReference\\s*\\(\\s*\"(?<depName>[^\"]+)\"\\s*,\\s*\"(?<currentValue>[^\"]+)\"\\s*\\)"
             ],
             "datasourceTemplate": "nuget",
             "versioningTemplate": "nuget"
