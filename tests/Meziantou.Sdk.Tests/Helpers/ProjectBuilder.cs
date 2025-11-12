@@ -115,7 +115,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         File.WriteAllText(fullPath, fileContent);
     }
 
-    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, (string Name, string Version)[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string? sdk = null, string? rootSdk = null, string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
+    public ProjectBuilder AddCsprojFile((string Name, string Value)[]? properties = null, NuGetReference[]? nuGetPackages = null, XElement[]? additionalProjectElements = null, string? sdk = null, string? rootSdk = null, string filename = "Meziantou.TestProject.csproj", SdkImportStyle importStyle = SdkImportStyle.Default)
     {
         sdk ??= _defaultSdkName;
         var propertiesElement = new XElement("PropertyGroup");

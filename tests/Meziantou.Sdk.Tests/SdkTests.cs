@@ -28,8 +28,9 @@ public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, IT
 
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
-    private static readonly (string, string)[] XUnit2References = [("xunit", "2.9.3"), ("xunit.runner.visualstudio", "3.1.5")];
-    private static readonly (string, string)[] XUnit3References = [("xunit.v3", "3.2.0"), ("xunit.runner.visualstudio", "3.1.5")];
+    // note: don't simplify names as they are used in the Renovate regex
+    private static readonly NuGetReference[] XUnit2References = [new NuGetReference("xunit", "2.9.3"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
+    private static readonly NuGetReference[] XUnit3References = [new NuGetReference("xunit.v3", "3.2.0"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
@@ -185,7 +186,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task BannedSymbols_NewtonsoftJson_AreReported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
         project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
         var data = await project.BuildAndGetOutput();
         Assert.True(data.HasWarning("RS0030"));
@@ -195,7 +196,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task BannedSymbols_NewtonsoftJson_Disabled_AreNotReported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("BannedNewtonsoftJsonSymbols", "false")], nuGetPackages: [("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(properties: [("BannedNewtonsoftJsonSymbols", "false")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
         project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
         var data = await project.BuildAndGetOutput();
         Assert.False(data.HasWarning("RS0030"));
@@ -361,7 +362,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [("System.Net.Http", "4.3.3")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("System.Net.Http", "4.3.3")]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
         Assert.True(data.OutputContains("error NU1903", StringComparison.Ordinal));
@@ -372,7 +373,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task NuGetAuditIsReportedAsWarning()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [("System.Net.Http", "4.3.3")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("System.Net.Http", "4.3.3")]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
         Assert.True(data.OutputContains("warning NU1903", StringComparison.Ordinal));
@@ -941,7 +942,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
-            nuGetPackages: [("System.Net.Http", "4.3.3")],
+            nuGetPackages: [new NuGetReference("System.Net.Http", "4.3.3")],
             properties: [("NOWARN", "$(NOWARN);NU1510")]);
 
         project.AddFile("Program.cs", """
@@ -957,7 +958,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
-            nuGetPackages: [("System.Net.Http", "4.3.3")],
+            nuGetPackages: [new NuGetReference("System.Net.Http", "4.3.3")],
             additionalProjectElements: [new XElement("ItemGroup", new XElement("NuGetAuditSuppress", new XAttribute("Include", "https://github.com/advisories/GHSA-7jgj-8wvc-jh57")))],
             properties: [("NOWARN", "$(NOWARN);NU1510")]);
 
