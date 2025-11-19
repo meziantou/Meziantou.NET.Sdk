@@ -12,50 +12,47 @@
     </PropertyGroup>
   </Target>
 
-  <Choose>
-    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true')">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.0.2" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.0.2" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.0.2" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.0.2" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" IsImplicitlyDefined="true" />
-      </ItemGroup>
+  <!-- MTP -->
+  <ItemGroup Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true')">
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.0.2" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.0.2" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.0.2" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.0.2" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" IsImplicitlyDefined="true" />
+  </ItemGroup>
 
-      <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
-        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
-        <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
-        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
-        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
-        <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" IsImplicitlyDefined="true" />
-      </ItemGroup>
+  <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
+    <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
 
-      <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
-        <VSTestBlame>true</VSTestBlame>
+  <!-- VSTest -->
+  <ItemGroup Condition="!('$(UseMicrosoftTestingPlatform)' != 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'))">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" IsImplicitlyDefined="true" />
+  </ItemGroup>
 
-        <VSTestBlameCrash>true</VSTestBlameCrash>
-        <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
+  <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
+    <VSTestBlame>true</VSTestBlame>
 
-        <VSTestBlameHang>true</VSTestBlameHang>
-        <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
-        <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
+    <VSTestBlameCrash>true</VSTestBlameCrash>
+    <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
 
-        <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
-        <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
-      </PropertyGroup>
+    <VSTestBlameHang>true</VSTestBlameHang>
+    <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
+    <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
 
-      <PropertyGroup>
-        <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
-        <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+    <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
+    <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)..\configuration\default.runsettings</VSTestSetting>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
+    <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
+  </PropertyGroup>
 
   <!-- Add implicit using for xunit -->
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (
