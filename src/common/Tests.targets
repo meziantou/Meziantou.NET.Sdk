@@ -4,6 +4,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
+    <UseMicrosoftTestingPlatform Condition="'$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'">true</UseMicrosoftTestingPlatform>
   </PropertyGroup>
 
   <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
@@ -15,12 +16,12 @@
   <Choose>
     <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true'">
       <ItemGroup>
-        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="1.9.0" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.0.4" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="1.9.0" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="1.9.0" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="1.9.0" IsImplicitlyDefined="true" />
-        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.9.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.0.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.0.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.0.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.0.2" IsImplicitlyDefined="true" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.0.2" IsImplicitlyDefined="true" />
       </ItemGroup>
 
       <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
@@ -58,7 +59,12 @@
   </Choose>
 
   <!-- Add implicit using for xunit -->
-  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (@(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true')">
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR 
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v1')) == 'true' OR 
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'
+                            )">
     <Using Include="Xunit" />
   </ItemGroup>
 

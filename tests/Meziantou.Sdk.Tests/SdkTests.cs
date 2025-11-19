@@ -31,6 +31,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     // note: don't simplify names as they are used in the Renovate regex
     private static readonly NuGetReference[] XUnit2References = [new NuGetReference("xunit", "2.9.3"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
     private static readonly NuGetReference[] XUnit3References = [new NuGetReference("xunit.v3", "3.2.0"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
+    private static readonly NuGetReference[] XUnit3MTP2References = [new NuGetReference("xunit.v3.mtp-v2", "3.2.0"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
@@ -774,7 +775,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
-            nuGetPackages: [.. XUnit3References]
+            nuGetPackages: [.. XUnit3MTP2References]
             );
 
         project.AddFile("Program.cs", """
@@ -811,7 +812,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
-            nuGetPackages: [.. XUnit3References]
+            nuGetPackages: [.. XUnit3MTP2References]
             );
 
         project.AddFile("Program.cs", """
@@ -842,16 +843,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Empty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
     }
 
-    [Fact]
-    public async Task MTP_SuccessTests()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MTP_SuccessTests(bool addUseMicrosoftTestingPlatformProperty)
     {
         Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
 
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            properties: [("UseMicrosoftTestingPlatform", "true")],
-            nuGetPackages: [.. XUnit3References]
+            properties: addUseMicrosoftTestingPlatformProperty ? [("UseMicrosoftTestingPlatform", "true")] : [],
+            nuGetPackages: [.. XUnit3MTP2References]
             );
 
         project.AddFile("Program.cs", """
@@ -887,7 +890,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [("UseMicrosoftTestingPlatform", "true")],
-            nuGetPackages: [.. XUnit3References]
+            nuGetPackages: [.. XUnit3MTP2References]
             );
 
         project.AddFile("Program.cs", """
