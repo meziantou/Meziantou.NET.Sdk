@@ -4,7 +4,6 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
-    <UseMicrosoftTestingPlatform Condition="'$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'">true</UseMicrosoftTestingPlatform>
   </PropertyGroup>
 
   <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
@@ -14,7 +13,7 @@
   </Target>
 
   <Choose>
-    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true'">
+    <When Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true')">
       <ItemGroup>
         <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.0.2" IsImplicitlyDefined="true" />
         <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" IsImplicitlyDefined="true" />
