@@ -31,7 +31,7 @@
   </PropertyGroup>
 
   <!-- VSTest -->
-  <ItemGroup Condition="!('$(UseMicrosoftTestingPlatform)' != 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'))">
+  <ItemGroup Condition="!('$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'))">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" IsImplicitlyDefined="true" />
   </ItemGroup>
 
