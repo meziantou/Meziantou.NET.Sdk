@@ -176,6 +176,9 @@ dotnet_diagnostic.IDE0304.severity = suggestion
 # Use collection expression for fluent
 dotnet_diagnostic.IDE0305.severity = suggestion
 
+# Remove unnecessary nullable warning suppression
+dotnet_diagnostic.IDE0370.severity = warning
+
 # Use conditional delegate call
 dotnet_diagnostic.IDE1005.severity = suggestion
 
