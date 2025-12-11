@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   lint_config:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-dotnet@v5
@@ -50,7 +50,7 @@ jobs:
 
   create_nuget:
     needs: [compute_version]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-dotnet@v5
@@ -89,7 +89,7 @@ jobs:
           path: test_results
 
   deploy:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     needs: [create_nuget, lint_config, test, compute_version]
     permissions:
       contents: write
