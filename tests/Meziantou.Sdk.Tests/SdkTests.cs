@@ -1185,7 +1185,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 _ = blobReader.ReadSerializedString();
                 var key = blobReader.ReadSerializedString();
 
-                Assert.Contains(version.Replace("net", "v", StringComparison.Ordinal), key);
+                Assert.Contains(expectedVersion.Replace("net", "v", StringComparison.Ordinal), key);
                 return;
             }
         }

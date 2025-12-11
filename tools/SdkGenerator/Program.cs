@@ -16,8 +16,8 @@ foreach (var (sdkName, baseSdkName) in sdks)
 {
     var propsPath = sdkRootPath / sdkName / "Sdk.props";
     var targetsPath = sdkRootPath / sdkName / "Sdk.targets";
-    var nuspecPath = sdkRootPath / ".." / $"{sdkName}.nuspec";
-    var csprojPath = sdkRootPath / ".." / $"{sdkName}.csproj";
+    var nuspecPath = rootFolder / "src" / $"{sdkName}.nuspec";
+    var csprojPath = rootFolder / "src" / $"{sdkName}.csproj";
 
     propsPath.CreateParentDirectory();
     targetsPath.CreateParentDirectory();

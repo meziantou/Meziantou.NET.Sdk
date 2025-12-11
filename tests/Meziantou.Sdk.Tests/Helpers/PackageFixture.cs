@@ -64,12 +64,4 @@ public sealed class PackageFixture : IAsyncLifetime
     {
         await _packageDirectory.DisposeAsync();
     }
-
-    private static async Task DownloadFileAsync(string url, FullPath path)
-    {
-        path.CreateParentDirectory();
-        await using var nugetStream = await SharedHttpClient.Instance.GetStreamAsync(url);
-        await using var fileStream = File.Create(path);
-        await nugetStream.CopyToAsync(fileStream);
-    }
 }
