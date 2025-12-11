@@ -78,7 +78,7 @@ jobs:
       - uses: actions/setup-dotnet@v5
       - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --logger GitHub --results-directory test_results
+      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --logger GitHubActions --results-directory test_results
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
