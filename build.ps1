@@ -1,7 +1,7 @@
-Push-Location -Path $PSScriptRoot/src/Sdk
+Push-Location -Path $PSScriptRoot/src
 try {
-    Get-ChildItem *.nuspec | ForEach-Object -Parallel {
-        nuget pack $_ -OutputDirectory nupkgs -BasePath $using:PSScriptRoot/src/ -OutputDirectory $using:PSScriptRoot/artifacts @using:args
+    Get-ChildItem *.csproj | ForEach-Object -Parallel {
+        dotnet pack $_ --output $using:PSScriptRoot/artifacts @using:args
     }
 }
 finally {

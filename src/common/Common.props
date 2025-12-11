@@ -1,6 +1,6 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)\ContinuousIntegrationBuild.props" />
-  
+
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <_IsMeziantouProject>$(MSBuildProjectName.StartsWith('Meziantou', StringComparison.OrdinalIgnoreCase))</_IsMeziantouProject>
@@ -9,7 +9,7 @@
   <PropertyGroup>
     <IsTestProject Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Test'">true</IsTestProject>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -23,7 +23,7 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
-	  
+
 	<!--
       Disabling static graph restore due to a bug related to NuGetAuditSuppress.
       See: https://github.com/NuGet/Home/issues/14300
@@ -56,7 +56,7 @@
   <PropertyGroup>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
- 
+
   <ItemGroup>
     <!-- Add all editorconfig files -->
     <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig" />

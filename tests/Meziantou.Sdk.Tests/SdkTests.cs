@@ -100,6 +100,47 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task GenerateSbom_IsSetWhenContinuousIntegrationBuildIsSet()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("ContinuousIntegrationBuild", "true")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.PackAndGetOutput();
+        data.AssertMSBuildPropertyValue("GenerateSBOM", "true");
+
+        var nupkg = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories).Single();
+        using var archive = ZipFile.OpenRead(nupkg);
+        Assert.Contains(archive.Entries, e => e.FullName.EndsWith("manifest.spdx.json", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GenerateSbom_IsNotSetWhenContinuousIntegrationBuildIsNotSet()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.PackAndGetOutput();
+        data.AssertMSBuildPropertyValue("GenerateSBOM", expectedValue: null);
+
+        var nupkg = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories).Single();
+        using var archive = ZipFile.OpenRead(nupkg);
+        Assert.DoesNotContain(archive.Entries, e => e.FullName.EndsWith("manifest.spdx.json", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task GenerateSbom_IsNotSetWhenIsPackableIsFalse()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("ContinuousIntegrationBuild", "true"), ("IsPackable", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.PackAndGetOutput();
+        data.AssertMSBuildPropertyValue("GenerateSBOM", expectedValue: null);
+
+        var nupkgs = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories);
+        Assert.Empty(nupkgs);
+    }
+
+    [Fact]
     public async Task CanOverrideRollForward()
     {
         await using var project = CreateProjectBuilder();
@@ -347,10 +388,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                     }
                 }
             }
-            
+
             """);
         project.AddFile(".editorconfig", """
-            [*.cs]      
+            [*.cs]
             csharp_style_expression_bodied_local_functions = true:warning
             """);
 
@@ -388,7 +429,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", """
             System.Console.WriteLine();
-            
+
             """);
         project.AddCsprojFile(additionalProjectElements: [
             new XElement("Target", new XAttribute("Name", "Custom"), new XAttribute("BeforeTargets", "Build"),
@@ -420,7 +461,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             System.Console.WriteLine();
 
             class A {}
-            
+
             file class Sample
             {
             }
@@ -1224,9 +1265,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
         var slnFile = project.AddFile("sample.slnx", """
-            <Solution>             
+            <Solution>
                 <Project Path="sample.csproj" />
-            </Solution>            
+            </Solution>
             """);
         project.AddFile("package.json", """
             {
@@ -1255,9 +1296,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var csprojFile = project.AddFile("Program.cs", "Console.WriteLine();");
         var slnFile = project.AddFile("sample.slnx", """
-            <Solution>             
+            <Solution>
                 <Project Path="sample.csproj" />
-            </Solution>            
+            </Solution>
             """);
         project.AddFile("package.json", """
             {
@@ -1385,7 +1426,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 }
               }
             }
-            
+
             """);
 
         var data = await project.BuildAndGetOutput([command]);

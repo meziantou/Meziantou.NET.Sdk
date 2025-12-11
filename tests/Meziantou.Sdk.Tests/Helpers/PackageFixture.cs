@@ -29,7 +29,6 @@ public sealed class PackageFixture : IAsyncLifetime
                 {
                     foreach (var file in files)
                     {
-                        Console.WriteLine("Copying NuGet package from " + file + " to " + (_packageDirectory.FullPath / Path.GetFileName(file)));
                         File.Copy(file, _packageDirectory.FullPath / Path.GetFileName(file));
                     }
 
@@ -42,31 +41,17 @@ public sealed class PackageFixture : IAsyncLifetime
             Assert.Fail("NuGetDirectory environment variable not set");
         }
 
-        var nugetPath = FullPath.GetTempPath() / $"meziantou.sdk.tests-nuget.exe";
-        if (!File.Exists(nugetPath))
-        {
-            var tempNugetPath = FullPath.GetTempPath() / $"nuget-{Guid.NewGuid()}.exe";
-            await DownloadFileAsync("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", tempNugetPath);
-            try
-            {
-                File.Move(tempNugetPath, nugetPath);
-            }
-            catch (Exception) when (File.Exists(nugetPath))
-            {
-            }
-        }
-
         // Build NuGet packages
-        var nuspecFiles = Directory.GetFiles(PathHelpers.GetRootDirectory() / "src" / "Sdk", "*.nuspec").Select(FullPath.FromPath);
-        Assert.NotEmpty(nuspecFiles);
-        await Parallel.ForEachAsync(nuspecFiles, async (nuspecPath, _) =>
+        var buildFiles = Directory.GetFiles(PathHelpers.GetRootDirectory() / "src", "*.csproj").Select(FullPath.FromPath);
+        Assert.NotEmpty(buildFiles);
+        await Parallel.ForEachAsync(buildFiles, async (nuspecPath, _) =>
         {
-            var psi = new ProcessStartInfo(nugetPath);
+            var psi = new ProcessStartInfo("dotnet");
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", nuspecPath, "-ForceEnglishOutput", "-BasePath", PathHelpers.GetRootDirectory() / "src", "-Version", Version, "-OutputDirectory", _packageDirectory.FullPath]);
+            psi.ArgumentList.AddRange(["pack", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath]);
             var result = await psi.RunAsTaskAsync();
             if (result.ExitCode != 0)
             {

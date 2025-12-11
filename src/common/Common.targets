@@ -6,6 +6,10 @@
 		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
 	</PropertyGroup>
 
+	<PropertyGroup>
+    <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
+	</PropertyGroup>
+
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.23" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
@@ -16,24 +20,29 @@
 		<RollForward Condition="'$(RollForward)' == '' AND '$(IsTestProject)' != 'true'">LatestMajor</RollForward>
 	</PropertyGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
       <_Parameter2>$(MeziantouSdkName)</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
-  
+
   <ItemGroup>
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
     <PackageReference Include="Meziantou.Analyzer" Version="2.0.251" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 
-		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" IsImplicitlyDefined="true">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
+	  <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" IsImplicitlyDefined="true">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+	  </PackageReference>
+  </ItemGroup>
 
 	<ItemGroup>
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.txt" Condition="'$(IncludeDefaultBannedSymbols)' != 'false'" Visible="false" />

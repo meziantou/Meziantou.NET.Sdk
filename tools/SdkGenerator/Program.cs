@@ -16,12 +16,26 @@ foreach (var (sdkName, baseSdkName) in sdks)
 {
     var propsPath = sdkRootPath / sdkName / "Sdk.props";
     var targetsPath = sdkRootPath / sdkName / "Sdk.targets";
-    var nuspecPath = sdkRootPath / $"{sdkName}.nuspec";
+    var nuspecPath = sdkRootPath / ".." / $"{sdkName}.nuspec";
+    var csprojPath = sdkRootPath / ".." / $"{sdkName}.csproj";
 
     propsPath.CreateParentDirectory();
     targetsPath.CreateParentDirectory();
     nuspecPath.CreateParentDirectory();
+    csprojPath.CreateParentDirectory();
 
+    File.WriteAllText(csprojPath, $$"""
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <NoBuild>true</NoBuild>
+            <IncludeBuildOutput>false</IncludeBuildOutput>
+            <TargetFramework>netstandard2.0</TargetFramework>
+            <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+            <NoWarn>NU5128</NoWarn>
+            <NuSpecFile>{{nuspecPath.Name}}</NuSpecFile>
+          </PropertyGroup>
+        </Project>
+        """);
 
     File.WriteAllText(propsPath, $$"""
         <Project>
@@ -37,7 +51,6 @@ foreach (var (sdkName, baseSdkName) in sdks)
             <Import Project="$(MSBuildThisFileDirectory)../common/Common.props" Condition="'$(_MustImportMicrosoftNETSdk)' != 'true'" />
         </Project>
         """);
-
 
     File.WriteAllText(targetsPath, $$"""
         <Project>
