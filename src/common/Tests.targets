@@ -72,7 +72,7 @@
       </PropertyGroup>
 
       <ItemGroup>
-        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" IsImplicitlyDefined="true">
+        <PackageReference Include="GitHubActionsTestLogger" Version="3.0.1" IsImplicitlyDefined="true">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
