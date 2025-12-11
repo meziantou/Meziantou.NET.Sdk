@@ -33,6 +33,11 @@ foreach (var (sdkName, baseSdkName) in sdks)
             <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
             <NoWarn>NU5128</NoWarn>
             <NuSpecFile>{{nuspecPath.Name}}</NuSpecFile>
+            <Version>1.0.0</Version>
+            <NuspecProperties>$(NuspecProperties);version=$(Version)</NuspecProperties>
+            <NuspecProperties>$(NuspecProperties);RepositoryBranch=$(GITHUB_REF_NAME);RepositoryUrl=$(GITHUB_REPOSITORY_URL)</NuspecProperties>
+            <NuspecProperties>$(NuspecProperties);RepositoryUrl=$(GITHUB_REPOSITORY_URL)</NuspecProperties>
+            <NuspecProperties>$(NuspecProperties);RepositoryUrl=$(GITHUB_REPOSITORY_URL)</NuspecProperties>
           </PropertyGroup>
         </Project>
         """);
