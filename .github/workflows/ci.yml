@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   lint_config:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-dotnet@v5
@@ -44,7 +44,7 @@ jobs:
             {
                 $NewVersion = "1.0.0"
             }
-            
+
             Write-Host "New version: $NewVersion"
             "package_version=$NewVersion" >> $env:GITHUB_OUTPUT
 
@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-dotnet@v5
-      - run: ./build.ps1 -Version ${{ needs.compute_version.outputs.package_version }} -Properties "RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
+      - run: ./build.ps1 "-p:NuspecProperties=version=${{ needs.compute_version.outputs.package_version }};RepositoryCommit=${{ github.sha }};RepositoryBranch=${{ github.ref_name }};RepositoryUrl=${{ github.repositoryUrl }}"
       - uses: actions/upload-artifact@v5
         with:
           name: nuget
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/setup-dotnet@v5
       - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results
+      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --logger GitHubActions --results-directory test_results
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
@@ -89,7 +89,7 @@ jobs:
           path: test_results
 
   deploy:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     needs: [create_nuget, lint_config, test, compute_version]
     permissions:
       contents: write
@@ -114,7 +114,7 @@ jobs:
             Write-Host "No previous tag found, checking all files"
             $Changes = $true
           }
-            
+
           if ($Changes) {
             Write-Host "Changes: $Changes"
             echo "has_changes=true" >> $env:GITHUB_OUTPUT
@@ -147,4 +147,3 @@ jobs:
         if: ${{ steps.has_changes.outputs.has_changes == 'true' && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
-
