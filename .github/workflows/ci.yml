@@ -44,7 +44,7 @@ jobs:
             {
                 $NewVersion = "1.0.0"
             }
-            
+
             Write-Host "New version: $NewVersion"
             "package_version=$NewVersion" >> $env:GITHUB_OUTPUT
 
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/setup-dotnet@v5
       - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results
+      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --logger GitHub --results-directory test_results
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
@@ -114,7 +114,7 @@ jobs:
             Write-Host "No previous tag found, checking all files"
             $Changes = $true
           }
-            
+
           if ($Changes) {
             Write-Host "Changes: $Changes"
             echo "has_changes=true" >> $env:GITHUB_OUTPUT

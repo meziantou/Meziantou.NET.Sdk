@@ -7,10 +7,6 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-  
-  <PropertyGroup>
-    <VSTestLogger>$(VSTestLogger);GitHubActions</VSTestLogger>
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Meziantou.Framework" Version="5.0.4" />
