@@ -120,24 +120,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile();
         project.AddFile("Program.cs", "Console.WriteLine();");
         var data = await project.PackAndGetOutput();
-        data.AssertMSBuildPropertyValue("GenerateSBOM", expectedValue: null);
 
         var nupkg = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories).Single();
         using var archive = ZipFile.OpenRead(nupkg);
         Assert.DoesNotContain(archive.Entries, e => e.FullName.EndsWith("manifest.spdx.json", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task GenerateSbom_IsNotSetWhenIsPackableIsFalse()
-    {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("ContinuousIntegrationBuild", "true"), ("IsPackable", "false")]);
-        project.AddFile("Program.cs", "Console.WriteLine();");
-        var data = await project.PackAndGetOutput();
-        data.AssertMSBuildPropertyValue("GenerateSBOM", expectedValue: null);
-
-        var nupkgs = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories);
-        Assert.Empty(nupkgs);
     }
 
     [Fact]

@@ -42,7 +42,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                     <add key="globalPackagesFolder" value="{_fixture.PackageDirectory}/packages" />
                 </config>
                 <packageSources>
-                    <clear />    
+                    <clear />
                     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
                     <add key="TestSource" value="{_fixture.PackageDirectory}" />
                 </packageSources>
@@ -236,6 +236,10 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         psi.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(psi.FileName);
         psi.Environment["DOTNET_ROOT_X64"] = Path.GetDirectoryName(psi.FileName);
         psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
+        psi.Environment["NUGET_HTTP_CACHE_PATH"] = _fixture.PackageDirectory / "http-cache";
+        psi.Environment["NUGET_PACKAGES"] = _fixture.PackageDirectory;
+        psi.Environment["NUGET_SCRATCH"] = _fixture.PackageDirectory / "nuget-scratch";
+        psi.Environment["NUGET_PLUGINS_CACHE_PATH"] = _fixture.PackageDirectory / "nuget-plugins-cache";
 
         if (environmentVariables != null)
         {
@@ -257,7 +261,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         const int maxRetries = 5;
         for (int retry = 0; retry < maxRetries && result.ExitCode != 0; retry++)
         {
-            if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal) || 
+            if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal) ||
                                            line.Text.Contains("The project file may be invalid or missing targets required for restore", StringComparison.Ordinal)))
             {
                 _testOutputHelper.WriteLine($"SDK resolution or restore error detected, retrying ({retry + 1}/{maxRetries})...");
