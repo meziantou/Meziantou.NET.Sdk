@@ -7,7 +7,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "/tests/Meziantou\\.Sdk\\.Tests/.*\\.cs$/"
+        "**/*.cs"
       ],
       "matchStringsStrategy": "any",
       "matchStrings": [
