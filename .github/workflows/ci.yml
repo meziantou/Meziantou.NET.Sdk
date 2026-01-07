@@ -93,6 +93,7 @@ jobs:
     needs: [create_nuget, lint_config, test, compute_version]
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -102,7 +103,11 @@ jobs:
           name: nuget
           path: ${{ env.NUGET_DIRECTORY }}
       - uses: actions/setup-dotnet@v5
-
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: meziantou
       - name: Must Publish Packages
         id: has_changes
         run: |
@@ -128,7 +133,7 @@ jobs:
       - name: Publish NuGet packages
         if: ${{ steps.has_changes.outputs.has_changes == 'true' }}
         env:
-          NuGetApiKey: ${{ secrets.NuGetApiKey }}
+          NuGetApiKey: ${{steps.login.outputs.NUGET_API_KEY}}
           FeedzApiKey: ${{ secrets.FEEDZ_APIKEY }}
         run: |
           Write-Host "Current ref: $env:GITHUB_REF"
