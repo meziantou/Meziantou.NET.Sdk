@@ -29,9 +29,21 @@ public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, IT
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
     // note: don't simplify names as they are used in the Renovate regex
-    private static readonly NuGetReference[] XUnit2References = [new NuGetReference("xunit", "2.9.3"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
-    private static readonly NuGetReference[] XUnit3References = [new NuGetReference("xunit.v3", "3.2.0"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
-    private static readonly NuGetReference[] XUnit3MTP2References = [new NuGetReference("xunit.v3.mtp-v2", "3.2.0"), new NuGetReference("xunit.runner.visualstudio", "3.1.5")];
+    private static readonly NuGetReference[] XUnit2References =
+    [
+        new NuGetReference("xunit", "2.9.3"),
+        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+    ];
+    private static readonly NuGetReference[] XUnit3References =
+    [
+        new NuGetReference("xunit.v3", "3.2.0"),
+        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+    ];
+    private static readonly NuGetReference[] XUnit3MTP2References =
+    [
+        new NuGetReference("xunit.v3.mtp-v2", "3.2.0"),
+        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+    ];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
