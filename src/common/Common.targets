@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 	<Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
 	<Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
@@ -11,7 +11,7 @@
 	</PropertyGroup>
 
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.23" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.26" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
@@ -28,12 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.4" IsImplicitlyDefined="true">
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.5" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.251" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.268" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

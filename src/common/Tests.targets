@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
@@ -56,9 +56,9 @@
 
   <!-- Add implicit using for xunit -->
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (
-                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR 
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
-                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v1')) == 'true' OR 
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v1')) == 'true' OR
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'
                             )">
     <Using Include="Xunit" />
