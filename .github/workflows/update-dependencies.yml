@@ -37,14 +37,13 @@ jobs:
       
       - name: Create Pull Request
         if: steps.check_changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: Update dependencies
-          title: Update dependencies
-          body: |
-            This PR was automatically created by the Update Dependencies workflow.
-            
-            Please review the changes before merging.
-          branch: automated/update-dependencies
-          delete-branch: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b automated/update-dependencies
+          git add .
+          git commit -m "Update dependencies"
+          git push -f origin automated/update-dependencies
+          gh pr create --title "Update dependencies" --body "This PR was automatically created by the Update Dependencies workflow." --base main --head automated/update-dependencies || true
