@@ -30,7 +30,11 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          git diff --exit-code || echo "has_changes=true" >> $env:GITHUB_OUTPUT
+          if (git diff --exit-code) {
+            echo "has_changes=false" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "has_changes=true" >> $env:GITHUB_OUTPUT
+          }
       - name: Commit and push changes
         if: steps.check_changes.outputs.has_changes == 'true' && github.repository == 'meziantou/Meziantou.NET.Sdk'
         run: |
