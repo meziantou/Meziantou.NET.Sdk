@@ -25,6 +25,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-dotnet@v5
       - run: dotnet run --project=tools/ConfigFilesGenerator/ConfigFilesGenerator.csproj
       - name: Check for changes
