@@ -32,7 +32,8 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          if (git diff --exit-code) {
+          git diff --exit-code
+          if ($LASTEXITCODE -eq 0) {
             echo "has_changes=false" >> $env:GITHUB_OUTPUT
           } else {
             echo "has_changes=true" >> $env:GITHUB_OUTPUT
