@@ -901,3 +901,8 @@ dotnet_diagnostic.MA0180.severity = none
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0181.severity = none
 
+# MA0182: Avoid unused internal types
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0182.md
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MA0182.severity = warning
+
