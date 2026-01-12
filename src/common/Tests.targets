@@ -15,7 +15,7 @@
   <!-- MTP -->
   <ItemGroup Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true')">
     <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.0.2" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.3.2" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.0.2" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.0.2" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.0.2" IsImplicitlyDefined="true" />
