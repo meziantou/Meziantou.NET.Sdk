@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Framework" Version="5.0.9" />
+    <PackageReference Include="Meziantou.Framework" Version="5.0.10" />
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="1.0.30" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="2.0.3" />
     <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6" />
