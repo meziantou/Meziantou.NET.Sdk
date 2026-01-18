@@ -11,8 +11,8 @@
 	</PropertyGroup>
 
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.26" IsImplicitlyDefined="true" />
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.1" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.27" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.2" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
 	<!-- Ensure application can run with newer frameworks -->
