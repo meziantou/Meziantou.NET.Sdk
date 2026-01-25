@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.4" />
-    <PackageReference Include="Meziantou.Framework.DependencyScanning" Version="2.0.6" />
-    <PackageReference Include="Meziantou.Framework.FullPath" Version="1.1.13" />
+    <PackageReference Include="Meziantou.Framework.DependencyScanning" Version="2.0.7" />
+    <PackageReference Include="Meziantou.Framework.FullPath" Version="1.1.14" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0">
       <PrivateAssets>all</PrivateAssets>
