@@ -665,12 +665,12 @@ dotnet_diagnostic.CA1847.severity = warning
 # CA1848: Use the LoggerMessage delegates
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1848
 # Enabled: True, Severity: silent
-dotnet_diagnostic.CA1848.severity = warning
+dotnet_diagnostic.CA1848.severity = silent
 
 # CA1849: Call async methods when in an async method
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1849
 # Enabled: False, Severity: warning
-dotnet_diagnostic.CA1849.severity = warning
+dotnet_diagnostic.CA1849.severity = none
 
 # CA1850: Prefer static 'HashData' method over 'ComputeHash'
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1850
@@ -1011,7 +1011,7 @@ dotnet_diagnostic.CA2231.severity = warning
 # CA2234: Pass system uri objects instead of strings
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2234
 # Enabled: False, Severity: warning
-dotnet_diagnostic.CA2234.severity = suggestion
+dotnet_diagnostic.CA2234.severity = none
 
 # CA2235: Mark all non-serializable fields
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2235
