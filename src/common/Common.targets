@@ -10,6 +10,24 @@
     <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true' AND '$(UsingMicrosoftNETSdkWeb)' == 'true'">
+		<EnableSdkContainerSupport Condition="'$(EnableSdkContainerSupport)' == ''">true</EnableSdkContainerSupport>
+		<ContainerRegistry Condition="'$(ContainerRegistry)' == ''">ghcr.io</ContainerRegistry>
+		<_GitHubRepositoryOwner Condition="'$(_GitHubRepositoryOwner)' == '' AND '$(GITHUB_REPOSITORY_OWNER)' != ''">$(GITHUB_REPOSITORY_OWNER)</_GitHubRepositoryOwner>
+		<_GitHubRepositoryOwner Condition="'$(_GitHubRepositoryOwner)' == '' AND '$(GITHUB_REPOSITORY)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(GITHUB_REPOSITORY)', '^([^/]+)/.*$', '$1'))</_GitHubRepositoryOwner>
+		<_GitHubRepositoryName Condition="'$(_GitHubRepositoryName)' == '' AND '$(GITHUB_REPOSITORY)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(GITHUB_REPOSITORY)', '^[^/]+/', ''))</_GitHubRepositoryName>
+		<_GitHubRepositoryNameNormalized Condition="'$(_GitHubRepositoryNameNormalized)' == '' AND '$(_GitHubRepositoryName)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(_GitHubRepositoryName)', '[^0-9A-Za-z]+', '-'))</_GitHubRepositoryNameNormalized>
+		<_GitHubRepositoryNameKebabCase Condition="'$(_GitHubRepositoryNameKebabCase)' == '' AND '$(_GitHubRepositoryNameNormalized)' != ''">$([System.String]::Copy($([System.Text.RegularExpressions.Regex]::Replace('$(_GitHubRepositoryNameNormalized)', '([a-z0-9])([A-Z])', '$1-$2'))).ToLowerInvariant())</_GitHubRepositoryNameKebabCase>
+		<ContainerRepository Condition="'$(ContainerRepository)' == '' AND '$(_GitHubRepositoryOwner)' != '' AND '$(_GitHubRepositoryNameKebabCase)' != ''">$(_GitHubRepositoryOwner)/$(_GitHubRepositoryNameKebabCase)</ContainerRepository>
+		<_IsGitHubMain Condition="'$(_IsGitHubMain)' == '' AND ('$(GITHUB_REF_NAME)' == 'main' OR '$(GITHUB_REF)' == 'refs/heads/main')">true</_IsGitHubMain>
+		<ContainerImageTagsMainVersionPrefix Condition="'$(ContainerImageTagsMainVersionPrefix)' == ''">1.0</ContainerImageTagsMainVersionPrefix>
+		<ContainerImageTagsIncludeLatest Condition="'$(ContainerImageTagsIncludeLatest)' == ''">true</ContainerImageTagsIncludeLatest>
+		<_ContainerImageTagsLatestSuffix Condition="'$(ContainerImageTagsIncludeLatest)' == 'true'">;latest</_ContainerImageTagsLatestSuffix>
+		<_ContainerImageTagsLatestSuffix Condition="'$(ContainerImageTagsIncludeLatest)' != 'true'"></_ContainerImageTagsLatestSuffix>
+		<ContainerImageTags Condition="'$(ContainerImageTags)' == '' AND '$(_IsGitHubMain)' == 'true' AND '$(GITHUB_RUN_NUMBER)' != ''">$(ContainerImageTagsMainVersionPrefix).$(GITHUB_RUN_NUMBER)$(_ContainerImageTagsLatestSuffix)</ContainerImageTags>
+		<ContainerImageTags Condition="'$(ContainerImageTags)' == '' AND '$(_IsGitHubMain)' != 'true' AND '$(GITHUB_SHA)' != ''">0.0.1-preview.$(GITHUB_SHA)</ContainerImageTags>
+	</PropertyGroup>
+
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.27" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.2" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />

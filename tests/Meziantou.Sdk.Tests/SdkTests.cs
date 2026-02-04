@@ -1107,6 +1107,89 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.NotEqual(0, data.ExitCode);
     }
 
+    [Fact]
+    public async Task Web_ContainerDefaultsOnGitHubActions_UsePreviewTags()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.Web");
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REPOSITORY", "meziantou/Meziantou.SampleProject"),
+            ("GITHUB_SHA", "0123456789abcdef"),
+            ("GITHUB_REF_NAME", "feature/test"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("EnableSdkContainerSupport", "true");
+        data.AssertMSBuildPropertyValue("ContainerRegistry", "ghcr.io");
+        data.AssertMSBuildPropertyValue("ContainerRepository", "meziantou/meziantou-sample-project");
+        data.AssertMSBuildPropertyValue("ContainerImageTags", "0.0.1-preview.0123456789abcdef");
+    }
+
+    [Fact]
+    public async Task Web_ContainerDefaultsOnGitHubActions_UseMainTags()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.Web");
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REPOSITORY", "meziantou/Meziantou.SampleProject"),
+            ("GITHUB_SHA", "fedcba9876543210"),
+            ("GITHUB_REF_NAME", "main"),
+            ("GITHUB_RUN_NUMBER", "42"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("EnableSdkContainerSupport", "true");
+        data.AssertMSBuildPropertyValue("ContainerRegistry", "ghcr.io");
+        data.AssertMSBuildPropertyValue("ContainerRepository", "meziantou/meziantou-sample-project");
+        data.AssertMSBuildPropertyValue("ContainerImageTags", "1.0.42;latest");
+    }
+
+    [Fact]
+    public async Task Web_ContainerDefaultsOnGitHubActions_MainTagsPrefixCanBeOverridden()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(
+            rootSdk: "Microsoft.NET.Sdk.Web",
+            properties: [("ContainerImageTagsMainVersionPrefix", "2.5")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REPOSITORY", "meziantou/Meziantou.SampleProject"),
+            ("GITHUB_REF_NAME", "main"),
+            ("GITHUB_RUN_NUMBER", "7"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("ContainerImageTags", "2.5.7;latest");
+    }
+
+    [Fact]
+    public async Task Web_ContainerDefaultsOnGitHubActions_LatestTagCanBeDisabled()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(
+            rootSdk: "Microsoft.NET.Sdk.Web",
+            properties: [("ContainerImageTagsIncludeLatest", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REPOSITORY", "meziantou/Meziantou.SampleProject"),
+            ("GITHUB_REF_NAME", "main"),
+            ("GITHUB_RUN_NUMBER", "13"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("ContainerImageTags", "1.0.13");
+    }
+
     [Theory]
     [InlineData(SdkName)]
     [InlineData(SdkTestName)]
