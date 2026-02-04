@@ -1,0 +1,5 @@
+# global_level must be higher than the base editorconfig files
+is_global = true
+global_level = 1
+
+dotnet_diagnostic.CA1002.severity = none

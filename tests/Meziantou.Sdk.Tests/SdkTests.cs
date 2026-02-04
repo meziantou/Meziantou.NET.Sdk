@@ -399,6 +399,43 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task WebEditorConfig_DisablesCA1002()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.Web");
+        project.AddFile("Sample.cs", """
+            using System.Collections.Generic;
+
+            public sealed class Sample
+            {
+                public List<int> Items { get; } = new();
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.False(data.HasWarning("CA1002"));
+        Assert.False(data.HasError("CA1002"));
+    }
+
+    [Fact]
+    public async Task DefaultEditorConfig_ReportsCA1002()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            using System.Collections.Generic;
+
+            public sealed class Sample
+            {
+                public List<int> Items { get; } = new();
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("CA1002"));
+    }
+
+    [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
@@ -1336,6 +1373,30 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
         Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+    }
+
+    [Fact]
+    public async Task NpmRestore_DisabledWhenEnableDefaultNpmPackageFileIsFalse()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile(properties: [("EnableDefaultNpmPackageFile", "false")]);
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+                        {
+                            "name": "sample",
+                            "version": "1.0.0",
+                            "private": true,
+                            "devDependencies": {
+                                "is-number": "7.0.0"
+                            }
+                        }
+                        """);
+
+        var data = await project.RestoreAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(File.Exists(project.RootFolder / "package-lock.json"));
+        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
     }
 
     [Fact]

@@ -59,7 +59,10 @@
 
   <ItemGroup>
     <!-- Add all editorconfig files -->
-    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig" />
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig"
+                       Exclude="$(MSBuildThisFileDirectory)\..\configuration\Meziantou.NET.Sdk.*.editorconfig" />
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\$(MeziantouSdkName).editorconfig"
+                       Condition="'$(MeziantouSdkName)' != '' AND Exists('$(MSBuildThisFileDirectory)\..\configuration\$(MeziantouSdkName).editorconfig')" />
   </ItemGroup>
 
 </Project>

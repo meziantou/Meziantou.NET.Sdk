@@ -1,7 +1,7 @@
 <Project>
 
   <ItemGroup>
-    <NpmPackageFile Condition="'$(EnableDefaultNpmPackageFile)' != 'true' AND Exists('$(MSBuildProjectDirectory)\package.json')" Include="$(MSBuildProjectDirectory)\package.json" />
+    <NpmPackageFile Condition="'$(EnableDefaultNpmPackageFile)' != 'false' AND Exists('$(MSBuildProjectDirectory)\package.json')" Include="$(MSBuildProjectDirectory)\package.json" />
   </ItemGroup>
 
   <!-- Compute additional metadata for the NpmPackageFile items -->
