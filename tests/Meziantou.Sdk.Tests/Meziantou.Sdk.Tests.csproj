@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Framework" Version="5.0.11" />
-    <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="1.0.32" />
+    <PackageReference Include="Meziantou.Framework" Version="5.0.12" />
+    <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="1.0.33" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="2.0.4" />
     <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.1" />
