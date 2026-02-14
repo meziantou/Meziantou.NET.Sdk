@@ -400,6 +400,11 @@ dotnet_diagnostic.CA1515.severity = none
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.CA1516.severity = suggestion
 
+# CA1517: Use 'ReadOnlySpan<T>' or 'ReadOnlyMemory<T>' instead of 'Span<T>' or 'Memory<T>'
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1517
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA1517.severity = suggestion
+
 # CA1700: Do not name enum values 'Reserved'
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1700
 # Enabled: False, Severity: warning
@@ -802,6 +807,16 @@ dotnet_diagnostic.CA1874.severity = suggestion
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.CA1875.severity = suggestion
 
+# CA1876: Do not use 'AsParallel' in 'foreach'
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1876
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA1876.severity = suggestion
+
+# CA1877: Collapse consecutive Path.Combine or Path.Join operations
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1877
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA1877.severity = suggestion
+
 # CA2000: Dispose objects before losing scope
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2000
 # Enabled: False, Severity: warning
@@ -902,6 +917,16 @@ dotnet_diagnostic.CA2024.severity = warning
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2025
 # Enabled: False, Severity: warning
 dotnet_diagnostic.CA2025.severity = warning
+
+# CA2026: Prefer JsonElement.Parse over JsonDocument.Parse().RootElement
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2026
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA2026.severity = suggestion
+
+# CA2027: Cancel Task.Delay after Task.WhenAny completes
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2027
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.CA2027.severity = suggestion
 
 # CA2100: Review SQL queries for security vulnerabilities
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2100
