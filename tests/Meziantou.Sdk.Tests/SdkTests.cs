@@ -1451,7 +1451,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
-        project.AddFile("sample.cs", "");
+        project.AddFile("Program.cs", "Console.WriteLine();");
 
         var environmentVariables = new (string Name, string Value)[]
         {
