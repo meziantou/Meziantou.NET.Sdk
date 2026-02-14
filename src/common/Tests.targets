@@ -80,4 +80,21 @@
     </When>
   </Choose>
 
+  <!-- Log GitHub Actions metadata before running tests -->
+  <Target Name="LogGitHubActionsMetadata" BeforeTargets="VSTest;_MTPBuild" Condition="'$(_IsGitHubActions)' == 'true'">
+    <PropertyGroup>
+      <_GitHubJobIdEscaped>$(GITHUB_JOB.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubJobIdEscaped>
+      <_GitHubWorkflowEscaped>$(GITHUB_WORKFLOW.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubWorkflowEscaped>
+      <_GitHubActionEscaped>$(GITHUB_ACTION.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubActionEscaped>
+      <_GitHubRunIdEscaped>$(GITHUB_RUN_ID.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubRunIdEscaped>
+      <_GitHubRunNumberEscaped>$(GITHUB_RUN_NUMBER.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubRunNumberEscaped>
+      <_GitHubRunAttemptEscaped>$(GITHUB_RUN_ATTEMPT.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_GitHubRunAttemptEscaped>
+      <_RunnerNameEscaped>$(RUNNER_NAME.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_RunnerNameEscaped>
+      <_RunnerOsEscaped>$(RUNNER_OS.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_RunnerOsEscaped>
+      <_RunnerArchEscaped>$(RUNNER_ARCH.Replace('\', '\\').Replace('"', '\"').Replace('$([System.Environment]::NewLine)', '\n'))</_RunnerArchEscaped>
+      <_GitHubMetadataJson>{"github_job_id":"$(_GitHubJobIdEscaped)","github_workflow":"$(_GitHubWorkflowEscaped)","github_action":"$(_GitHubActionEscaped)","github_run_id":"$(_GitHubRunIdEscaped)","github_run_number":"$(_GitHubRunNumberEscaped)","github_run_attempt":"$(_GitHubRunAttemptEscaped)","runner_name":"$(_RunnerNameEscaped)","runner_os":"$(_RunnerOsEscaped)","runner_arch":"$(_RunnerArchEscaped)"}</_GitHubMetadataJson>
+    </PropertyGroup>
+    <Message Text="GitHub Actions Metadata: $(_GitHubMetadataJson)" Importance="high" />
+  </Target>
+
 </Project>
