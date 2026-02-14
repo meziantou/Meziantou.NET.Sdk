@@ -1227,6 +1227,59 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("ContainerImageTags", "1.0.13");
     }
 
+    [Fact]
+    public async Task GitHubVersion_TagWithVPrefix_UsesTagVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "9.9.9")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_TYPE", "tag"),
+            ("GITHUB_REF_NAME", "v2.3.4"),
+            ("GITHUB_SHA", "0123456789abcdef"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "2.3.4");
+    }
+
+    [Fact]
+    public async Task GitHubVersion_InvalidTag_UsesBuildSuffix()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "1.0.0")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_TYPE", "tag"),
+            ("GITHUB_REF_NAME", "release-2026-02-13"),
+            ("GITHUB_SHA", "abcdef0123456789"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "1.0.0-build-abcdef0123456789");
+    }
+
+    [Fact]
+    public async Task GitHubVersion_MainBranch_UsesBaseVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "3.2.1")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_NAME", "main"),
+            ("GITHUB_SHA", "1111111111111111"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "3.2.1");
+    }
+
     [Theory]
     [InlineData(SdkName)]
     [InlineData(SdkTestName)]
