@@ -906,3 +906,28 @@ dotnet_diagnostic.MA0181.severity = none
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0182.severity = warning
 
+# MA0183: string.Format should use a format string with placeholders
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0183.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0183.severity = warning
+
+# MA0184: Do not use interpolated string without parameters
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0184.md
+# Enabled: True, Severity: silent
+dotnet_diagnostic.MA0184.severity = silent
+
+# MA0185: Simplify string.Create when all parameters are culture invariant
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0185.md
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MA0185.severity = suggestion
+
+# MA0186: Equals method should use [NotNullWhen(true)] on the parameter
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0186.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0186.severity = suggestion
+
+# MA0186: TryGetValue method should use [MaybeNullWhen(false)] on the value parameter
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0186.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0186.severity = suggestion
+
