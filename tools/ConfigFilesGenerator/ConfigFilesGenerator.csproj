@@ -11,7 +11,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.4" />
     <PackageReference Include="Meziantou.Framework.DependencyScanning" Version="2.0.7" />
     <PackageReference Include="Meziantou.Framework.FullPath" Version="1.1.15" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.3" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="5.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="5.0.0" />
-    <PackageReference Include="NuGet.Protocol" Version="7.0.1" />
+    <PackageReference Include="NuGet.Protocol" Version="7.3.0" />
   </ItemGroup>
 
 </Project>
