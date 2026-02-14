@@ -28,6 +28,18 @@
 		<ContainerImageTags Condition="'$(ContainerImageTags)' == '' AND '$(_IsGitHubMain)' != 'true' AND '$(GITHUB_SHA)' != ''">0.0.1-preview.$(GITHUB_SHA)</ContainerImageTags>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true'">
+		<_IsGitHubMain Condition="'$(_IsGitHubMain)' == '' AND ('$(GITHUB_REF_NAME)' == 'main' OR '$(GITHUB_REF)' == 'refs/heads/main')">true</_IsGitHubMain>
+		<_GitHubTagName Condition="'$(GITHUB_REF_TYPE)' == 'tag'">$(GITHUB_REF_NAME)</_GitHubTagName>
+		<_GitHubTagName Condition="'$(_GitHubTagName)' == '' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(GITHUB_REF)', '^refs/tags/'))">$([System.Text.RegularExpressions.Regex]::Replace('$(GITHUB_REF)', '^refs/tags/', ''))</_GitHubTagName>
+		<_GitHubTagVersion Condition="'$(_GitHubTagName)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(_GitHubTagName)', '^[vV](?=\d)', ''))</_GitHubTagVersion>
+		<_GitHubTagVersionIsValid Condition="'$(_GitHubTagVersion)' != ''">$([System.Text.RegularExpressions.Regex]::IsMatch('$(_GitHubTagVersion)', '^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'))</_GitHubTagVersionIsValid>
+		<_GitHubBaseVersion Condition="'$(Version)' != ''">$(Version)</_GitHubBaseVersion>
+		<_GitHubBaseVersion Condition="'$(_GitHubBaseVersion)' == '' AND '$(VersionPrefix)' != ''">$(VersionPrefix)</_GitHubBaseVersion>
+		<Version Condition="'$(_GitHubTagVersionIsValid)' == 'true'">$(_GitHubTagVersion)</Version>
+		<Version Condition="'$(_GitHubTagVersionIsValid)' != 'true' AND '$(_IsGitHubMain)' != 'true' AND '$(GITHUB_SHA)' != '' AND '$(_GitHubBaseVersion)' != ''">$(_GitHubBaseVersion)-build-$(GITHUB_SHA)</Version>
+	</PropertyGroup>
+
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.27" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.2" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
@@ -83,6 +95,27 @@
 		<ItemGroup>
 			<EmbedInBinlog Include="@(EditorConfigFiles)" />
 		</ItemGroup>
+	</Target>
+
+	<!-- Embed GitHub Actions environment variables in binlog -->
+	<Target Name="EmbedGitHubActionsEnvironmentVariablesInBinLog" AfterTargets="CoreCompile" Condition="'$(_IsGitHubActions)' == 'true'">
+		<PropertyGroup>
+			<_GitHubJobId>$(GITHUB_JOB)</_GitHubJobId>
+			<_GitHubWorkflow>$(GITHUB_WORKFLOW)</_GitHubWorkflow>
+			<_GitHubAction>$(GITHUB_ACTION)</_GitHubAction>
+			<_GitHubRunId>$(GITHUB_RUN_ID)</_GitHubRunId>
+			<_GitHubRunNumber>$(GITHUB_RUN_NUMBER)</_GitHubRunNumber>
+			<_GitHubRunAttempt>$(GITHUB_RUN_ATTEMPT)</_GitHubRunAttempt>
+			<_GitHubRepository>$(GITHUB_REPOSITORY)</_GitHubRepository>
+			<_GitHubRepositoryOwner>$(GITHUB_REPOSITORY_OWNER)</_GitHubRepositoryOwner>
+			<_GitHubRef>$(GITHUB_REF)</_GitHubRef>
+			<_GitHubRefName>$(GITHUB_REF_NAME)</_GitHubRefName>
+			<_GitHubSha>$(GITHUB_SHA)</_GitHubSha>
+			<_GitHubActor>$(GITHUB_ACTOR)</_GitHubActor>
+			<_RunnerName>$(RUNNER_NAME)</_RunnerName>
+			<_RunnerOs>$(RUNNER_OS)</_RunnerOs>
+			<_RunnerArch>$(RUNNER_ARCH)</_RunnerArch>
+		</PropertyGroup>
 	</Target>
 
 	<!-- Disable packages -->
