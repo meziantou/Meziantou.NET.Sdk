@@ -78,7 +78,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | `ImplicitUsings` | `enable` | Enables implicit global usings. |
 | `Nullable` | `enable` | Enables nullable reference types. |
 | `GenerateDocumentationFile` | `true` | Generates XML docs. |
-| `RestoreUseStaticGraphEvaluation` | `false` | Disables static graph restore. |
+| `RestoreUseStaticGraphEvaluation` | `true` | Enables static graph restore. |
 | `RestoreSerializeGlobalProperties` | `true` | Serializes global properties for restore. |
 | `ReportAnalyzer` | `true` | Enables analyzer reporting. |
 | `Features` | `strict` | Enables strict compiler features. |

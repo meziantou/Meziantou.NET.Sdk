@@ -11,6 +11,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!-- Ensure a default target framework is available early during restore -->
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
@@ -24,11 +29,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
 
-	<!--
-      Disabling static graph restore due to a bug related to NuGetAuditSuppress.
-      See: https://github.com/NuGet/Home/issues/14300
-    -->
-	<RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
     <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>
 
     <ReportAnalyzer>true</ReportAnalyzer>

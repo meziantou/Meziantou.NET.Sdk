@@ -26,7 +26,6 @@ public static class DotNetSdkHelpers
 
             var versionString = version switch
             {
-                NetSdkVersion.Net9_0 => "9.0",
                 NetSdkVersion.Net10_0 => "10.0",
                 _ => throw new NotSupportedException(),
             };
