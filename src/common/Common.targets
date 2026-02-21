@@ -63,7 +63,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
 
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.10" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.12" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
