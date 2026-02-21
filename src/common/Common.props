@@ -11,6 +11,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!--
+      Ensure TargetFramework is available early for static graph restore.
+      NETCoreAppMaximumVersion is not always initialized in props, so fallback to NETCoreSdkVersion.
+    -->
+    <_HasExplicitTargetFrameworkInProjectFile>$([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)')), '(?i)&lt;\s*TargetFrameworks?\b'))</_HasExplicitTargetFrameworkInProjectFile>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(_HasExplicitTargetFrameworkInProjectFile)' != 'True' AND '$(NETCoreAppMaximumVersion)' != ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(_HasExplicitTargetFrameworkInProjectFile)' != 'True' AND $([System.Text.RegularExpressions.Regex]::IsMatch('$(NETCoreSdkVersion)', '^\d+\.\d+'))">$([System.Text.RegularExpressions.Regex]::Replace('$(NETCoreSdkVersion)', '^(\d+)\.(\d+).*$', 'net$1.$2'))</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
