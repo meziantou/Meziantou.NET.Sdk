@@ -6,14 +6,6 @@
 		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
 	</PropertyGroup>
 
-	<!--
-	  NuGetAuditSuppress is not honored during static graph restore with .NET SDK 9.
-	  See: https://github.com/NuGet/Home/issues/14300
-	-->
-	<PropertyGroup Condition="'$(NETCoreSdkVersion)' != '' AND $([MSBuild]::VersionLessThan('$(NETCoreSdkVersion)', '10.0.100'))">
-		<RestoreUseStaticGraphEvaluation>false</RestoreUseStaticGraphEvaluation>
-	</PropertyGroup>
-
 	<PropertyGroup>
     <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
 	</PropertyGroup>

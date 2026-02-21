@@ -11,7 +11,6 @@ public enum SdkImportStyle
     Default,
     ProjectElement,
     SdkElement,
-    SdkElementDirectoryBuildProps,
 }
 
 internal sealed class ProjectBuilder : IAsyncDisposable
@@ -57,11 +56,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             </configuration>
             """);
 
-        if (defaultSdkImportStyle is SdkImportStyle.SdkElementDirectoryBuildProps)
-        {
-            AddDirectoryBuildPropsFile(string.Empty);
-        }
-
         _githubStepSummaryFile = _directory.CreateEmptyFile("GITHUB_STEP_SUMMARY.txt");
     }
 
@@ -99,14 +93,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return $"""<Sdk Name="{sdkName}" Version="{_fixture.Version}" />""";
     }
 
-    public void AddDirectoryBuildPropsFile(string postSdkContent, string preSdkContent = "", string? sdkName = null)
+    public void AddDirectoryBuildPropsFile(string postSdkContent, string preSdkContent = "")
     {
-        var sdk = _defaultSdkImportStyle == SdkImportStyle.SdkElementDirectoryBuildProps ? GetSdkElementContent(sdkName ?? _defaultSdkName) : string.Empty;
-
         var fileContent = $"""
             <Project>
                 {preSdkContent}
-                {sdk}
                 {postSdkContent}
             </Project>
             """;

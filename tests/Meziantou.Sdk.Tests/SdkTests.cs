@@ -11,20 +11,11 @@ using NuGet.Packaging.Licenses;
 
 namespace Meziantou.Sdk.Tests;
 
-public sealed class Sdk9_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.ProjectElement);
-
-public sealed class Sdk9_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net9_0, SdkImportStyle.SdkElement);
-
 public sealed class Sdk10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
     : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.ProjectElement);
 
 public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
     : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElement);
-
-public sealed class Sdk10_0_DirectoryBuildProps_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElementDirectoryBuildProps);
 
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
@@ -89,14 +80,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
         data.AssertMSBuildPropertyValue("AnalysisLevel", "latest-all");
         data.AssertMSBuildPropertyValue("EnablePackageValidation", "true");
-        var expectedStaticGraphRestoreValue = dotnetSdkVersion switch
-        {
-            NetSdkVersion.Net9_0 => "false",
-            NetSdkVersion.Net10_0 => "true",
-            _ => throw new NotSupportedException(),
-        };
-
-        data.AssertMSBuildPropertyValue("RestoreUseStaticGraphEvaluation", expectedStaticGraphRestoreValue);
+        data.AssertMSBuildPropertyValue("RestoreUseStaticGraphEvaluation", "true");
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
     }
 
@@ -853,8 +837,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task MTP_DotnetTestSkipAnalyzers()
     {
-        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
-
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
@@ -890,8 +872,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task MTP_OnUnknownContextShouldNotAddCustomLogger()
     {
-        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
-
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
@@ -932,8 +912,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData(true)]
     public async Task MTP_SuccessTests(bool addUseMicrosoftTestingPlatformProperty)
     {
-        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
-
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
@@ -968,8 +946,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Fact]
     public async Task MTP_NoTest()
     {
-        Assert.SkipWhen(dotnetSdkVersion == NetSdkVersion.Net9_0, "only fully supported in .NET10+");
-
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
@@ -1297,7 +1273,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await using var project = CreateProjectBuilder(sdkName);
         project.AddCsprojFile(filename: "Sample.Tests.csproj");
 
-        project.AddDirectoryBuildPropsFile(postSdkContent: "", sdkName: sdkName);
+        project.AddDirectoryBuildPropsFile(postSdkContent: "");
 
         project.AddFile("Program.cs", """
             Console.WriteLine();
@@ -1334,10 +1310,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData("TargetFramework", "")]
     [InlineData("TargetFrameworks", "")]
-    [InlineData("TargetFramework", "net8.0")]
-    [InlineData("TargetFramework", "net9.0")]
-    [InlineData("TargetFrameworks", "net8.0")]
-    [InlineData("TargetFrameworks", "net9.0")]
+    [InlineData("TargetFramework", "net10.0")]
+    [InlineData("TargetFrameworks", "net10.0")]
     public async Task SetTargetFramework(string propName, string version)
     {
         await using var project = CreateProjectBuilder();
@@ -1356,9 +1330,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var expectedVersion = version;
         if (string.IsNullOrEmpty(expectedVersion))
         {
-            expectedVersion = dotnetSdkVersion switch
+               expectedVersion = dotnetSdkVersion switch
             {
-                NetSdkVersion.Net9_0 => "net9.0",
                 NetSdkVersion.Net10_0 => "net10.0",
                 _ => throw new NotSupportedException(),
             };
@@ -1604,7 +1577,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("build")]
     [InlineData("publish")]
     public async Task Npm_Dotnet_sln(string command)
     {
