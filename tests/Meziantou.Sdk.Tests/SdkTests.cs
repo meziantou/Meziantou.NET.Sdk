@@ -89,6 +89,14 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
         data.AssertMSBuildPropertyValue("AnalysisLevel", "latest-all");
         data.AssertMSBuildPropertyValue("EnablePackageValidation", "true");
+        var expectedStaticGraphRestoreValue = dotnetSdkVersion switch
+        {
+            NetSdkVersion.Net9_0 => "false",
+            NetSdkVersion.Net10_0 => "true",
+            _ => throw new NotSupportedException(),
+        };
+
+        data.AssertMSBuildPropertyValue("RestoreUseStaticGraphEvaluation", expectedStaticGraphRestoreValue);
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
     }
 
