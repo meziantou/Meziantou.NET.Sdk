@@ -11,8 +11,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- Ensure a default target framework is available early during restore -->
-    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net10.0</TargetFramework>
+    <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == ''">$(NETCoreAppMaximumVersion)</_DefaultNetCoreAppVersion>
+    <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == '' AND '$(NETCoreSdkVersion)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(NETCoreSdkVersion)', '^(\d+)\.(\d+).*$', '$1.$2'))</_DefaultNetCoreAppVersion>
+    <_ProjectDeclaresTargetFramework>$([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)')), 'TargetFrameworks?'))</_ProjectDeclaresTargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(_ProjectDeclaresTargetFramework)' != 'True' AND '$(_DefaultNetCoreAppVersion)' != ''">net$(_DefaultNetCoreAppVersion)</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -57,6 +59,23 @@
   <PropertyGroup>
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.5" IsImplicitlyDefined="true">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.12" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" IsImplicitlyDefined="true">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Add all editorconfig files -->

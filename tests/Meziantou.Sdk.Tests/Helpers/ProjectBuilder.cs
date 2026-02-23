@@ -23,7 +23,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     private readonly SdkImportStyle _defaultSdkImportStyle;
     private readonly string _defaultSdkName;
     private readonly FullPath _githubStepSummaryFile;
-    private NetSdkVersion _sdkVersion = NetSdkVersion.Net10_0;
+    private NetSdkVersion _sdkVersion = NetSdkVersion.Default;
     private int _buildCount;
 
     public FullPath RootFolder => _directory.FullPath;
@@ -227,6 +227,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         psi.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(psi.FileName);
         psi.Environment["DOTNET_ROOT_X64"] = Path.GetDirectoryName(psi.FileName);
         psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
+        psi.Environment["DOTNET_ROLL_FORWARD"] = "LatestMajor";
+        psi.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
         psi.Environment["NUGET_HTTP_CACHE_PATH"] = _fixture.PackageDirectory / "http-cache";
         psi.Environment["NUGET_PACKAGES"] = _fixture.PackageDirectory;
         psi.Environment["NUGET_SCRATCH"] = _fixture.PackageDirectory / "nuget-scratch";
