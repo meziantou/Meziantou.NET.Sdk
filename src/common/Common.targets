@@ -51,7 +51,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe' AND '$(UsingMicrosoftNETSdkWeb)' != 'true' AND '$(IsTestProject)' != 'true'">true</PackAsTool>
+		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe' AND '$(IsTestProject)' != 'true'">true</PackAsTool>
 	</PropertyGroup>
 
   <ItemGroup>
