@@ -1,5 +1,6 @@
 #nullable enable
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Xml.Linq;
 using Meziantou.Framework;
@@ -224,8 +225,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         psi.Environment["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true";
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
         psi.Environment["VSTestDiag"] = vstestdiagPath;
-        psi.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(psi.FileName);
-        psi.Environment["DOTNET_ROOT_X64"] = Path.GetDirectoryName(psi.FileName);
+        var dotnetRoot = Path.GetDirectoryName(psi.FileName);
+        psi.Environment["DOTNET_ROOT"] = dotnetRoot;
+        if (RuntimeInformation.ProcessArchitecture is Architecture.X64)
+        {
+            psi.Environment["DOTNET_ROOT_X64"] = dotnetRoot;
+        }
+        else if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64)
+        {
+            psi.Environment["DOTNET_ROOT_ARM64"] = dotnetRoot;
+        }
         psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
         psi.Environment["DOTNET_ROLL_FORWARD"] = "LatestMajor";
         psi.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
