@@ -51,7 +51,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackAsTool Condition="'$(PackAsTool)' == '' AND $([System.String]::Equals('$(OutputType)', 'Exe', StringComparison.OrdinalIgnoreCase))">true</PackAsTool>
+		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe'">true</PackAsTool>
 	</PropertyGroup>
 
   <ItemGroup>
