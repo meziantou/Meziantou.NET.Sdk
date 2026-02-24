@@ -51,8 +51,17 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe'">true</PackAsTool>
+		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe' AND '$(UsingMicrosoftNETSdkWeb)' != 'true' AND '$(IsTestProject)' != 'true'">true</PackAsTool>
 	</PropertyGroup>
+
+	<!-- The .NET SDK's Microsoft.NET.PackTool.targets sets EnablePackageValidation=false for tool packages.
+	     Restore Meziantou SDK's expected value (true) via a build-time target so that the binary log
+	     records the correct final value and package validation runs as intended. -->
+	<Target Name="_MeziantouRestoreEnablePackageValidation" BeforeTargets="Build" Condition="'$(PackAsTool)' == 'true'">
+		<PropertyGroup>
+			<EnablePackageValidation>true</EnablePackageValidation>
+		</PropertyGroup>
+	</Target>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
