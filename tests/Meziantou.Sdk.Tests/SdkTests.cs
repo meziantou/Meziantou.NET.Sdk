@@ -156,6 +156,35 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task PackAsTool_IsSetForExe()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", "true");
+    }
+
+    [Fact]
+    public async Task PackAsTool_IsNotSetForLibrary()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", expectedValue: null);
+    }
+
+    [Fact]
+    public async Task PackAsTool_CanBeOverridden()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("PackAsTool", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", "false");
+    }
+
+    [Fact]
     public async Task CanOverrideLangVersionInDirectoryBuildProps()
     {
         if (sdkImportStyle is SdkImportStyle.SdkElement)

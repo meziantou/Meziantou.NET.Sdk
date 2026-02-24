@@ -50,6 +50,10 @@
 		<RollForward Condition="'$(RollForward)' == '' AND '$(IsTestProject)' != 'true'">LatestMajor</RollForward>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PackAsTool Condition="'$(PackAsTool)' == '' AND $([System.String]::Equals('$(OutputType)', 'Exe', StringComparison.OrdinalIgnoreCase))">true</PackAsTool>
+	</PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
