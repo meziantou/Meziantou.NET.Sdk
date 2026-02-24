@@ -61,25 +61,7 @@ public static class DotNetSdkHelpers
                 // .tar.gz
                 using var ms = new MemoryStream(bytes);
                 using var gz = new GZipStream(ms, CompressionMode.Decompress);
-                using var tar = new TarReader(gz);
-                while (tar.GetNextEntry() is { } entry)
-                {
-                    var destinationPath = tempFolder / entry.Name;
-                    if (entry.EntryType is TarEntryType.Directory)
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                    }
-                    else if (entry.EntryType == TarEntryType.RegularFile)
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                        var entryStream = entry.DataStream;
-                        using var outputStream = File.Create(destinationPath);
-                        if (entryStream is not null)
-                        {
-                            await entryStream.CopyToAsync(outputStream);
-                        }
-                    }
-                }
+                TarFile.ExtractToDirectory(gz, tempFolder, overwriteFiles: true);
             }
 
             if (!OperatingSystem.IsWindows())
