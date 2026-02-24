@@ -76,8 +76,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task ValidateDefaultProperties()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile();
-        project.AddFile("sample.cs", "");
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("LangVersion", "latest");
         data.AssertMSBuildPropertyValue("PublishRepositoryUrl", "true");
