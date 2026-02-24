@@ -72,10 +72,12 @@ public static class DotNetSdkHelpers
                 }
             }
 
+            var tempDotnetPath = tempFolder / (OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+            if (!File.Exists(tempDotnetPath))
+                throw new InvalidOperationException($"The extracted SDK archive does not contain '{Path.GetFileName(tempDotnetPath)}' in '{tempFolder}'");
+
             if (!OperatingSystem.IsWindows())
             {
-                var tempDotnetPath = tempFolder / "dotnet";
-
                 Console.WriteLine("Updating permissions of " + tempDotnetPath);
                 File.SetUnixFileMode(tempDotnetPath, UnixFileMode.UserRead | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
 
