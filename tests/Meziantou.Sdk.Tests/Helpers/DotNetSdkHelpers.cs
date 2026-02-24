@@ -48,6 +48,7 @@ public static class DotNetSdkHelpers
             }
 
             var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
             if (Path.GetExtension(file.Name) is ".zip")
@@ -85,7 +86,10 @@ public static class DotNetSdkHelpers
             }
             catch
             {
-                Directory.Delete(tempFolder, recursive: true);
+                if (Directory.Exists(tempFolder))
+                {
+                    Directory.Delete(tempFolder, recursive: true);
+                }
             }
 
             Assert.True(File.Exists(finalDotnetPath));
