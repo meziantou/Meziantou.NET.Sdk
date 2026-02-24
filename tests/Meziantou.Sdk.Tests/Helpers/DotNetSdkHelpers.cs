@@ -27,6 +27,7 @@ public static class DotNetSdkHelpers
             var versionString = version switch
             {
                 NetSdkVersion.Net10_0 => "10.0",
+                NetSdkVersion.Net11_0 => "11.0",
                 _ => throw new NotSupportedException(),
             };
 
@@ -47,6 +48,7 @@ public static class DotNetSdkHelpers
             }
 
             var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
             if (Path.GetExtension(file.Name) is ".zip")
@@ -58,33 +60,24 @@ public static class DotNetSdkHelpers
             else
             {
                 // .tar.gz
-                using var ms = new MemoryStream(bytes);
-                using var gz = new GZipStream(ms, CompressionMode.Decompress);
-                using var tar = new TarReader(gz);
-                while (tar.GetNextEntry() is { } entry)
+                try
                 {
-                    var destinationPath = tempFolder / entry.Name;
-                    if (entry.EntryType is TarEntryType.Directory)
-                    {
-                        Directory.CreateDirectory(destinationPath);
-                    }
-                    else if (entry.EntryType == TarEntryType.RegularFile)
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                        var entryStream = entry.DataStream;
-                        using var outputStream = File.Create(destinationPath);
-                        if (entryStream is not null)
-                        {
-                            await entryStream.CopyToAsync(outputStream);
-                        }
-                    }
+                    using var ms = new MemoryStream(bytes);
+                    using var gzipStream = new GZipStream(ms, CompressionMode.Decompress);
+                    TarFile.ExtractToDirectory(gzipStream, tempFolder, overwriteFiles: true);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Failed to extract SDK archive", ex);
                 }
             }
 
+            var tempDotnetPath = tempFolder / (OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+            if (!File.Exists(tempDotnetPath))
+                throw new InvalidOperationException($"The extracted SDK archive does not contain '{Path.GetFileName(tempDotnetPath)}' in '{tempFolder}'");
+
             if (!OperatingSystem.IsWindows())
             {
-                var tempDotnetPath = tempFolder / "dotnet";
-
                 Console.WriteLine("Updating permissions of " + tempDotnetPath);
                 File.SetUnixFileMode(tempDotnetPath, UnixFileMode.UserRead | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
 
@@ -102,7 +95,10 @@ public static class DotNetSdkHelpers
             }
             catch
             {
-                Directory.Delete(tempFolder, recursive: true);
+                if (Directory.Exists(tempFolder))
+                {
+                    Directory.Delete(tempFolder, recursive: true);
+                }
             }
 
             Assert.True(File.Exists(finalDotnetPath));

@@ -17,6 +17,12 @@ public sealed class Sdk10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper
 public sealed class Sdk10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
     : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, SdkImportStyle.SdkElement);
 
+public sealed class Sdk11_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net11_0, SdkImportStyle.ProjectElement);
+
+public sealed class Sdk11_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : SdkTests(fixture, testOutputHelper, NetSdkVersion.Net11_0, SdkImportStyle.SdkElement);
+
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, SdkImportStyle sdkImportStyle)
 {
     // note: don't simplify names as they are used in the Renovate regex
@@ -1330,9 +1336,14 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var expectedVersion = version;
         if (string.IsNullOrEmpty(expectedVersion))
         {
-               expectedVersion = dotnetSdkVersion switch
+            expectedVersion = propName switch
             {
-                NetSdkVersion.Net10_0 => "net10.0",
+                "TargetFramework" or "TargetFrameworks" => dotnetSdkVersion switch
+                {
+                    NetSdkVersion.Net10_0 => "net10.0",
+                    NetSdkVersion.Net11_0 => "net11.0",
+                    _ => throw new NotSupportedException(),
+                },
                 _ => throw new NotSupportedException(),
             };
         }

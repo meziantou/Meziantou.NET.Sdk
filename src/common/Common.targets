@@ -3,7 +3,7 @@
 	<Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
 
 	<PropertyGroup>
-		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
+		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(NETCoreAppMaximumVersion)' != ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -55,23 +55,6 @@
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
       <_Parameter2>$(MeziantouSdkName)</_Parameter2>
     </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.5" IsImplicitlyDefined="true">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.12" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-
-	  <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" IsImplicitlyDefined="true">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-	  </PackageReference>
   </ItemGroup>
 
 	<ItemGroup>
