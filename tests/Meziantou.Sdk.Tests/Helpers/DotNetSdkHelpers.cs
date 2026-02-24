@@ -1,6 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Formats.Tar;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using Meziantou.Framework;
@@ -60,35 +60,15 @@ public static class DotNetSdkHelpers
             else
             {
                 // .tar.gz
-                var tempArchivePath = FullPath.GetTempPath() / "dotnet" / (Guid.NewGuid().ToString("N") + ".tar.gz");
-                tempArchivePath.CreateParentDirectory();
-                await File.WriteAllBytesAsync(tempArchivePath, bytes);
-
                 try
                 {
-                    var psi = new ProcessStartInfo("tar")
-                    {
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                    };
-
-                    psi.ArgumentList.Add("-xzf");
-                    psi.ArgumentList.Add(tempArchivePath);
-                    psi.ArgumentList.Add("-C");
-                    psi.ArgumentList.Add(tempFolder);
-
-                    var extractionResult = await psi.RunAsTaskAsync();
-                    if (extractionResult.ExitCode != 0)
-                        throw new InvalidOperationException($"Failed to extract SDK archive: {extractionResult.Output}");
+                    using var ms = new MemoryStream(bytes);
+                    using var gzipStream = new GZipStream(ms, CompressionMode.Decompress);
+                    TarFile.ExtractToDirectory(gzipStream, tempFolder, overwriteFiles: true);
                 }
-                finally
+                catch (Exception ex)
                 {
-                    if (File.Exists(tempArchivePath))
-                    {
-                        File.Delete(tempArchivePath);
-                    }
+                    throw new InvalidOperationException("Failed to extract SDK archive", ex);
                 }
             }
 
