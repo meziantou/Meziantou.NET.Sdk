@@ -76,8 +76,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task ValidateDefaultProperties()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile();
-        project.AddFile("sample.cs", "");
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("LangVersion", "latest");
         data.AssertMSBuildPropertyValue("PublishRepositoryUrl", "true");
@@ -153,6 +152,35 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
+    }
+
+    [Fact]
+    public async Task PackAsTool_IsSetForExe()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", "true");
+    }
+
+    [Fact]
+    public async Task PackAsTool_IsNotSetForLibrary()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", expectedValue: null);
+    }
+
+    [Fact]
+    public async Task PackAsTool_CanBeOverridden()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("PackAsTool", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PackAsTool", "false");
     }
 
     [Fact]
