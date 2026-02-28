@@ -259,11 +259,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         var result = await psi.RunAsTaskAsync();
 
-        // Retry up to 5 times if MSB4236 error occurs (SDK resolution issue)
+        // Retry up to 5 times if MSB4236 or NETSDK1004 error occurs (SDK resolution or assets file issue)
         const int maxRetries = 5;
         for (int retry = 0; retry < maxRetries && result.ExitCode != 0; retry++)
         {
             if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal) ||
+                                           line.Text.Contains("error NETSDK1004", StringComparison.Ordinal) ||
                                            line.Text.Contains("The project file may be invalid or missing targets required for restore", StringComparison.Ordinal)))
             {
                 _testOutputHelper.WriteLine($"SDK resolution or restore error detected, retrying ({retry + 1}/{maxRetries})...");
