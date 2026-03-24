@@ -1079,6 +1079,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         project.AddFile("Class1.cs", """
             namespace Meziantou.Sample;
+
             public static class Class1
             {
             }
@@ -1769,5 +1770,103 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var peReader = new PEReader(stream);
         var debug = peReader.ReadDebugDirectory();
         Assert.Contains(debug, entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+    }
+}
+
+public sealed class FileBasedApp10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, useAsRootSdk: true);
+
+public sealed class FileBasedApp10_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, useAsRootSdk: false);
+
+public sealed class FileBasedApp11_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net11_0, useAsRootSdk: true);
+
+public sealed class FileBasedApp11_0_Inner_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net11_0, useAsRootSdk: false);
+
+/// <summary>
+/// Tests for file-based apps using the <c>#:sdk</c> directive.
+/// </summary>
+public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, bool useAsRootSdk)
+{
+    private ProjectBuilder CreateProjectBuilder()
+    {
+        var builder = new ProjectBuilder(fixture, testOutputHelper, SdkImportStyle.Default, SdkName);
+        builder.SetDotnetSdkVersion(dotnetSdkVersion);
+        return builder;
+    }
+
+    private string GetSdkDirectives()
+    {
+        if (useAsRootSdk)
+        {
+            return $"#:sdk {SdkName}@{fixture.Version}";
+        }
+
+        return $$"""
+            #:sdk Microsoft.NET.Sdk
+            #:sdk {{SdkName}}@{{fixture.Version}}
+            """;
+    }
+
+    [Fact]
+    public async Task FileBasedApp_Build()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Program.cs", $$"""
+            {{GetSdkDirectives()}}
+            Console.WriteLine("Hello from file-based app");
+            """);
+
+        var data = await project.BuildFileAndGetOutput("Program.cs");
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task FileBasedApp_Run()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Program.cs", $$"""
+            {{GetSdkDirectives()}}
+            Console.WriteLine("Hello from file-based app");
+            """);
+
+        var data = await project.RunFileAndGetOutput("Program.cs");
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("Hello from file-based app"));
+    }
+
+    [Fact]
+    public async Task FileBasedApp_WithPackageDirective()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Program.cs", $$"""
+            {{GetSdkDirectives()}}
+            #:package Humanizer.Core@2.14.1
+            using Humanizer;
+            Console.WriteLine("truncated: " + "Hello from file-based app".Truncate(10));
+            """);
+
+        var data = await project.RunFileAndGetOutput("Program.cs");
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("truncated: Hello fro"));
+    }
+
+    [Fact]
+    public async Task FileBasedApp_DefaultProperties()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Program.cs", $$"""
+            {{GetSdkDirectives()}}
+            Console.WriteLine("Hello");
+            """);
+
+        var data = await project.BuildFileAndGetOutput("Program.cs");
+        Assert.Equal(0, data.ExitCode);
+        data.AssertMSBuildPropertyValue("LangVersion", "latest");
+        data.AssertMSBuildPropertyValue("Nullable", "enable");
+        data.AssertMSBuildPropertyValue("ImplicitUsings", "enable");
+        data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
     }
 }

@@ -83,6 +83,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         var path = _directory.FullPath / relativePath;
         path.CreateParentDirectory();
+
+        // Ensure source files end with a newline to satisfy the insert_final_newline editorconfig rule.
+        // .NET 11+ enforces this as IDE0055.
+        if (Path.GetExtension(relativePath) is ".cs" or ".vb" or ".fs"
+            && content.Length > 0
+            && content[^1] is not '\n')
+        {
+            content += '\n';
+        }
+
         File.WriteAllText(path, content);
         return path;
     }
@@ -177,6 +187,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return ExecuteDotnetCommandAndGetOutput("run", ["--", .. buildArguments ?? []], environmentVariables);
     }
 
+    public Task<BuildResult> BuildFileAndGetOutput(string fileName, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("build", [fileName, .. buildArguments ?? []], environmentVariables);
+    }
+
+    public Task<BuildResult> RunFileAndGetOutput(string fileName, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("run", [fileName, .. buildArguments ?? []], environmentVariables);
+    }
+
     public Task<BuildResult> TestAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return ExecuteDotnetCommandAndGetOutput("test", buildArguments, environmentVariables);
@@ -265,6 +285,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         {
             if (result.Output.Any(line => line.Text.Contains("error MSB4236", StringComparison.Ordinal) ||
                                            line.Text.Contains("error NETSDK1004", StringComparison.Ordinal) ||
+                                           line.Text.Contains("Could not resolve SDK", StringComparison.Ordinal) ||
+                                           line.Text.Contains("Invalid restore input", StringComparison.Ordinal) ||
                                            line.Text.Contains("The project file may be invalid or missing targets required for restore", StringComparison.Ordinal)))
             {
                 _testOutputHelper.WriteLine($"SDK resolution or restore error detected, retrying ({retry + 1}/{maxRetries})...");

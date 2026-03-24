@@ -59,6 +59,29 @@ You can the SDK by specifying the version inside the `csproj` file:
 </Project>
 ````
 
+## File-based apps (.NET 10+)
+
+You can use the SDK with [file-based apps](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps?WT.mc_id=DT-MVP-5003978) using the `#:sdk` directive:
+
+````csharp
+#:sdk Meziantou.NET.Sdk@1.0.16
+Console.WriteLine("Hello from a file-based app!");
+````
+
+Then run with:
+
+````shell
+dotnet run Program.cs
+````
+
+You can also use it as an additional SDK alongside `Microsoft.NET.Sdk`:
+
+````csharp
+#:sdk Microsoft.NET.Sdk
+#:sdk Meziantou.NET.Sdk@1.0.16
+Console.WriteLine("Hello!");
+````
+
 # Build configuration properties
 
 Set these properties in your project file or a directory-level props file. Unless stated otherwise, defaults apply only when the property is empty.
