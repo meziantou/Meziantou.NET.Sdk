@@ -1079,6 +1079,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         project.AddFile("Class1.cs", """
             namespace Meziantou.Sample;
+
             public static class Class1
             {
             }

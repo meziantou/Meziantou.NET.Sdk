@@ -83,6 +83,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         var path = _directory.FullPath / relativePath;
         path.CreateParentDirectory();
+
+        // Ensure source files end with a newline to satisfy the insert_final_newline editorconfig rule.
+        // .NET 11+ enforces this as IDE0055.
+        if (Path.GetExtension(relativePath) is ".cs" or ".vb" or ".fs"
+            && content.Length > 0
+            && content[^1] is not '\n')
+        {
+            content += '\n';
+        }
+
         File.WriteAllText(path, content);
         return path;
     }
