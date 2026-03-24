@@ -177,6 +177,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         return ExecuteDotnetCommandAndGetOutput("run", ["--", .. buildArguments ?? []], environmentVariables);
     }
 
+    public Task<BuildResult> BuildFileAndGetOutput(string fileName, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("build", [fileName, .. buildArguments ?? []], environmentVariables);
+    }
+
+    public Task<BuildResult> RunFileAndGetOutput(string fileName, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
+    {
+        return ExecuteDotnetCommandAndGetOutput("run", [fileName, .. buildArguments ?? []], environmentVariables);
+    }
+
     public Task<BuildResult> TestAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
         return ExecuteDotnetCommandAndGetOutput("test", buildArguments, environmentVariables);

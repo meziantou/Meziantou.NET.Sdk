@@ -13,7 +13,7 @@
   <PropertyGroup>
     <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == ''">$(NETCoreAppMaximumVersion)</_DefaultNetCoreAppVersion>
     <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == '' AND '$(NETCoreSdkVersion)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(NETCoreSdkVersion)', '^(\d+)\.(\d+).*$', '$1.$2'))</_DefaultNetCoreAppVersion>
-    <_ProjectDeclaresTargetFramework>$([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)')), 'TargetFrameworks?'))</_ProjectDeclaresTargetFramework>
+    <_ProjectDeclaresTargetFramework Condition="Exists('$(MSBuildProjectFullPath)')">$([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)')), 'TargetFrameworks?'))</_ProjectDeclaresTargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(_ProjectDeclaresTargetFramework)' != 'True' AND '$(_DefaultNetCoreAppVersion)' != ''">net$(_DefaultNetCoreAppVersion)</TargetFramework>
   </PropertyGroup>
 
