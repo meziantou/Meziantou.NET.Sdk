@@ -290,6 +290,49 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task SingleFileAppEditorConfig_NotIncludedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        var files = data.GetBinLogFiles();
+        Assert.DoesNotContain(files, f => f.EndsWith("Meziantou.NET.Sdk.SingleFileApp.editorconfig", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SingleFileAppEditorConfig_IncludedWhenMeziantouSingleFileAppIsTrue()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("MeziantouSingleFileApp", "true")]);
+        project.AddFile("Sample.cs", """
+            Console.WriteLine();
+
+            class Foo { }
+            """);
+        var data = await project.BuildAndGetOutput();
+
+        var files = data.GetBinLogFiles();
+        Assert.Contains(files, f => f.EndsWith("Meziantou.NET.Sdk.SingleFileApp.editorconfig", StringComparison.Ordinal));
+        Assert.False(data.HasWarning("MA0048"));
+    }
+
+    [Fact]
+    public async Task SingleFileAppEditorConfig_MA0048IsReportedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            Console.WriteLine();
+
+            class Foo { }
+            """);
+        var data = await project.BuildAndGetOutput();
+        Assert.True(data.HasWarning("MA0048"));
+    }
+
+    [Fact]
     public async Task WarningsAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
@@ -1868,5 +1911,22 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         data.AssertMSBuildPropertyValue("Nullable", "enable");
         data.AssertMSBuildPropertyValue("ImplicitUsings", "enable");
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
+    }
+
+    [Fact]
+    public async Task FileBasedApp_SingleFileAppEditorConfigIsIncluded()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Program.cs", $$"""
+            {{GetSdkDirectives()}}
+            Console.WriteLine("Hello");
+            """);
+
+        var data = await project.BuildFileAndGetOutput("Program.cs");
+        Assert.Equal(0, data.ExitCode);
+        data.AssertMSBuildPropertyValue("MeziantouSingleFileApp", "true");
+
+        var files = data.GetBinLogFiles();
+        Assert.Contains(files, f => f.EndsWith("Meziantou.NET.Sdk.SingleFileApp.editorconfig", StringComparison.Ordinal));
     }
 }

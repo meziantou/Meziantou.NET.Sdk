@@ -1,0 +1,12 @@
+# global_level must be higher than the base editorconfig files
+is_global = true
+global_level = 1
+
+# MA0047: Declare types in namespaces
+dotnet_diagnostic.MA0047.severity = none
+
+# MA0048: File name must match type name
+dotnet_diagnostic.MA0048.severity = none
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = none
