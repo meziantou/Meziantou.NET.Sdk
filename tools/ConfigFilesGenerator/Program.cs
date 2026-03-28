@@ -273,7 +273,7 @@ static FullPath GetRootFolderPath()
     var path = FullPath.CurrentDirectory();
     while (!path.IsEmpty)
     {
-        if (Directory.Exists(path / ".git"))
+        if (Directory.Exists(path / ".git") || File.Exists(path / ".git"))
             return path;
 
         path = path.Parent;
