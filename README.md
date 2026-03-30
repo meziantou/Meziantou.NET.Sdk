@@ -169,7 +169,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | --- | --- | --- |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
-| `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3.mtp-v2` is referenced. |
+| `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3.mtp-v2` or `TUnit` is referenced. |
 | `EnableDefaultTestSettings` | `true` | Adds default crash/hang dumps and loggers. |
 | `TestingPlatformCommandLineArguments` | Appended | Adds MTP arguments such as `--report-trx` and `--coverage` when enabled. |
 | `VSTestBlame` | `true` | Enables VSTest blame. |

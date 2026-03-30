@@ -41,6 +41,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         new NuGetReference("xunit.v3.mtp-v2", "3.2.0"),
         new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
     ];
+    private static readonly NuGetReference[] TUnitReferences =
+    [
+        new NuGetReference("TUnit", "1.22.19"),
+    ];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
@@ -1018,6 +1022,43 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(0, data.ExitCode);
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MTP_SuccessTests_TUnit(bool addUseMicrosoftTestingPlatformProperty)
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: addUseMicrosoftTestingPlatformProperty ? [("UseMicrosoftTestingPlatform", "true")] : [],
+            nuGetPackages: [.. TUnitReferences]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Test]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+        Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
     }
 
     [Fact]
