@@ -1024,13 +1024,15 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
     }
 
-    [Fact]
-    public async Task MTP_SuccessTests_TUnit()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MTP_SuccessTests_TUnit(bool addUseMicrosoftTestingPlatformProperty)
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            properties: [("UseMicrosoftTestingPlatform", "true")],
+            properties: addUseMicrosoftTestingPlatformProperty ? [("UseMicrosoftTestingPlatform", "true")] : [],
             nuGetPackages: [.. TUnitReferences]
             );
 
