@@ -547,7 +547,7 @@ static (AnalyzerConfiguration[] Rules, string[] Unknowns) GetConfiguration(FullP
                 if (line.StartsWith("global_level", StringComparison.Ordinal))
                     continue;
 
-                var match = Regex.Match(line, @"^dotnet_diagnostic\.(?<RuleId>[a-zA-Z0-9]+).severity\s*=\s*(?<Severity>[a-z]+)");
+                var match = Regex.Match(line, @"^dotnet_diagnostic\.(?<RuleId>[a-zA-Z0-9_]+).severity\s*=\s*(?<Severity>[a-z]+)");
                 if (match.Success)
                 {
                     DiagnosticSeverity? diagnosticSeverity = null;

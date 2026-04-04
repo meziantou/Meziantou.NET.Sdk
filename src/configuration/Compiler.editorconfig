@@ -5,8 +5,6 @@ global_level = 0
 dotnet_style_prefer_foreach_explicit_cast_in_source=when_strongly_typed
 
 csharp_style_unused_value_assignment_preference = discard_variable
-# IDE0005_gen: Using directive is unnecessary.
-dotnet_diagnostic.IDE0005_gen.severity = silent
 # EnableGenerateDocumentationFile: Set MSBuild property 'GenerateDocumentationFile' to 'true'
 # Help link: https://github.com/dotnet/roslyn/issues/41640
 # Enabled: True, Severity: warning
