@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.CSharp;
 var rootFolder = GetRootFolderPath();
 
 var writtenFiles = 0;
+await GenerateEditorConfigForCompilerAnalyzers();
 await GenerateEditorConfigForAnalyzers();
 await GenerateBanSymbolsForNewtonsoftJson();
 
@@ -45,93 +46,140 @@ async Task GenerateEditorConfigForAnalyzers()
         var rules = new HashSet<AnalyzerRule>();
         foreach (var assembly in await GetAnalyzerReferences(packageId, packageVersion))
         {
-            foreach (var type in assembly.GetTypes())
-            {
-                if (type.IsAbstract || type.IsInterface)
-                    continue;
-
-                if (!typeof(DiagnosticAnalyzer).IsAssignableFrom(type))
-                    continue;
-
-                var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type)!;
-                foreach (var diagnostic in analyzer.SupportedDiagnostics)
-                {
-                    rules.Add(new AnalyzerRule(diagnostic.Id, diagnostic.Title.ToString(CultureInfo.InvariantCulture).Trim(), diagnostic.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.DefaultSeverity, diagnostic.IsEnabledByDefault ? diagnostic.DefaultSeverity : null));
-                }
-            }
+            AddAnalyzerRules(rules, assembly);
         }
 
-        if (rules.Count > 0)
+        if (await WriteConfigurationFile(configurationFilePath, rules, cancellationToken))
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("# global_level must be higher than the NET Analyzer files");
-            sb.AppendLine("is_global = true");
-            sb.AppendLine("global_level = 0");
-
-            var currentConfiguration = GetConfiguration(configurationFilePath);
-
-            if (currentConfiguration.Unknowns.Length > 0)
-            {
-                foreach (var unknown in currentConfiguration.Unknowns)
-                {
-                    sb.AppendLine(unknown);
-                }
-            }
-            else
-            {
-                sb.AppendLine();
-            }
-
-            foreach (var rule in rules.OrderBy(rule => rule.Id))
-            {
-                var currentRuleConfiguration = currentConfiguration.Rules.FirstOrDefault(r => r.Id == rule.Id);
-                var severity = currentRuleConfiguration != null ? currentRuleConfiguration.Severity : rule.DefaultEffectiveSeverity;
-
-                sb.AppendLine($"# {rule.Id}: {rule.Title}");
-                if (!string.IsNullOrEmpty(rule.Url))
-                {
-                    sb.AppendLine($"# Help link: {rule.Url}");
-                }
-
-                sb.AppendLine($"# Enabled: {rule.Enabled}, Severity: {GetSeverity(rule.DefaultSeverity)}");
-
-                if (currentRuleConfiguration?.Comments.Length > 0)
-                {
-                    foreach (var comment in currentRuleConfiguration.Comments)
-                    {
-                        sb.AppendLine(comment);
-                    }
-                }
-
-                sb.AppendLine($"dotnet_diagnostic.{rule.Id}.severity = {GetSeverity(severity)}");
-                sb.AppendLine();
-            }
-
-            var text = sb.ToString().ReplaceLineEndings("\n");
-            if (File.Exists(configurationFilePath))
-            {
-                if (File.ReadAllText(configurationFilePath).ReplaceLineEndings("\n") == text)
-                    return;
-            }
-
-            configurationFilePath.CreateParentDirectory();
-            await File.WriteAllTextAsync(configurationFilePath, text, cancellationToken);
             Interlocked.Increment(ref writtenFiles);
-
-            static string GetSeverity(DiagnosticSeverity? severity)
-            {
-                return severity switch
-                {
-                    null => "none",
-                    DiagnosticSeverity.Hidden => "silent",
-                    DiagnosticSeverity.Info => "suggestion",
-                    DiagnosticSeverity.Warning => "warning",
-                    DiagnosticSeverity.Error => "error",
-                    _ => throw new Exception($"Severity '{severity}' is not supported"),
-                };
-            }
         }
     });
+}
+
+async Task GenerateEditorConfigForCompilerAnalyzers()
+{
+    var configurationFilePath = rootFolder / "src" / "configuration" / "Compiler.editorconfig";
+    var rules = new HashSet<AnalyzerRule>();
+    foreach (var assembly in await GetCompilerAnalyzerReferences())
+    {
+        AddAnalyzerRules(rules, assembly);
+    }
+
+    if (await WriteConfigurationFile(configurationFilePath, rules, CancellationToken.None))
+    {
+        Interlocked.Increment(ref writtenFiles);
+    }
+}
+
+static void AddAnalyzerRules(HashSet<AnalyzerRule> rules, Assembly assembly)
+{
+    foreach (var type in GetTypes(assembly))
+    {
+        if (type.IsAbstract || type.IsInterface)
+            continue;
+
+        if (!typeof(DiagnosticAnalyzer).IsAssignableFrom(type))
+            continue;
+
+        var analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type)!;
+        foreach (var diagnostic in analyzer.SupportedDiagnostics)
+        {
+            rules.Add(new AnalyzerRule(diagnostic.Id, diagnostic.Title.ToString(CultureInfo.InvariantCulture).Trim(), diagnostic.HelpLinkUri, diagnostic.IsEnabledByDefault, diagnostic.DefaultSeverity, diagnostic.IsEnabledByDefault ? diagnostic.DefaultSeverity : null));
+        }
+    }
+
+    static IEnumerable<Type> GetTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(type => type is not null)!;
+        }
+    }
+}
+
+static async Task<bool> WriteConfigurationFile(FullPath configurationFilePath, HashSet<AnalyzerRule> rules, CancellationToken cancellationToken)
+{
+    if (rules.Count == 0)
+        return false;
+
+    var sb = new StringBuilder();
+    sb.AppendLine("# global_level must be higher than the NET Analyzer files");
+    sb.AppendLine("is_global = true");
+    sb.AppendLine("global_level = 0");
+
+    var currentConfiguration = GetConfiguration(configurationFilePath);
+
+    if (currentConfiguration.Unknowns.Length > 0)
+    {
+        foreach (var unknown in currentConfiguration.Unknowns)
+        {
+            sb.AppendLine(unknown);
+        }
+    }
+    else
+    {
+        sb.AppendLine();
+    }
+
+    foreach (var rule in rules.OrderBy(rule => rule.Id))
+    {
+        var currentRuleConfiguration = currentConfiguration.Rules.FirstOrDefault(r => r.Id == rule.Id);
+        var severity = currentRuleConfiguration is not null ? currentRuleConfiguration.Severity : rule.DefaultEffectiveSeverity;
+
+        if (string.IsNullOrEmpty(rule.Title))
+        {
+            sb.AppendLine($"# {rule.Id}");
+        }
+        else
+        {
+            sb.AppendLine($"# {rule.Id}: {rule.Title}");
+        }
+        if (!string.IsNullOrEmpty(rule.Url))
+        {
+            sb.AppendLine($"# Help link: {rule.Url}");
+        }
+
+        sb.AppendLine($"# Enabled: {rule.Enabled}, Severity: {GetSeverity(rule.DefaultSeverity)}");
+
+        if (currentRuleConfiguration?.Comments.Length > 0)
+        {
+            foreach (var comment in currentRuleConfiguration.Comments)
+            {
+                sb.AppendLine(comment);
+            }
+        }
+
+        sb.AppendLine($"dotnet_diagnostic.{rule.Id}.severity = {GetSeverity(severity)}");
+        sb.AppendLine();
+    }
+
+    var text = sb.ToString().ReplaceLineEndings("\n");
+    if (File.Exists(configurationFilePath))
+    {
+        if (File.ReadAllText(configurationFilePath).ReplaceLineEndings("\n") == text)
+            return false;
+    }
+
+    configurationFilePath.CreateParentDirectory();
+    await File.WriteAllTextAsync(configurationFilePath, text, cancellationToken);
+    return true;
+
+    static string GetSeverity(DiagnosticSeverity? severity)
+    {
+        return severity switch
+        {
+            null => "none",
+            DiagnosticSeverity.Hidden => "silent",
+            DiagnosticSeverity.Info => "suggestion",
+            DiagnosticSeverity.Warning => "warning",
+            DiagnosticSeverity.Error => "error",
+            _ => throw new Exception($"Severity '{severity}' is not supported"),
+        };
+    }
 }
 
 async Task GenerateBanSymbolsForNewtonsoftJson()
@@ -262,7 +310,7 @@ async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages(
     }
 
     // Add analyzers from the .NET SDK
-    foreach (var package in new[] { "Microsoft.CodeAnalysis.NetAnalyzers", /* "Microsoft.CodeAnalysis.CSharp.CodeStyle" */ })
+    foreach (var package in new[] { "Microsoft.CodeAnalysis.NetAnalyzers" })
     {
         yield return (package, null);
     }
@@ -356,6 +404,114 @@ static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersi
     return [.. result];
 }
 
+static async Task<Assembly[]> GetCompilerAnalyzerReferences()
+{
+    var sdkPath = await GetDotNetSdkPath();
+    var sdkCompilerAnalyzersPath = sdkPath / "Sdks" / "Microsoft.NET.Sdk" / "codestyle" / "cs";
+    if (!Directory.Exists(sdkCompilerAnalyzersPath))
+        throw new InvalidOperationException($"Cannot find compiler analyzers in '{sdkCompilerAnalyzersPath}'");
+
+    var analyzerFiles = Directory.GetFiles(sdkCompilerAnalyzersPath, "*.dll", SearchOption.TopDirectoryOnly)
+        .Where(file => !file.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase))
+        .ToArray();
+    if (analyzerFiles.Length == 0)
+        throw new InvalidOperationException($"Cannot find compiler analyzers in '{sdkCompilerAnalyzersPath}'");
+
+    return LoadAssembliesFromDisk(
+        analyzerFiles,
+        [
+            sdkCompilerAnalyzersPath,
+            sdkPath / "Roslyn" / "bincore",
+            sdkPath,
+        ]);
+}
+
+static Assembly[] LoadAssembliesFromDisk(string[] assemblyPaths, string[] probeFolders)
+{
+    var context = new AssemblyLoadContext(null);
+    context.Resolving += (AssemblyLoadContext _, AssemblyName assemblyName) =>
+    {
+        if (string.IsNullOrEmpty(assemblyName.Name))
+            return null;
+
+        var assemblyPath = probeFolders
+            .Select(folder => Path.Combine(folder, assemblyName.Name + ".dll"))
+            .FirstOrDefault(File.Exists);
+        if (assemblyPath is null)
+            return AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => string.Equals(assembly.GetName().Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase));
+
+        try
+        {
+            return context.LoadFromAssemblyPath(assemblyPath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load {assemblyPath}\n{ex}");
+            return null;
+        }
+    };
+
+    var result = new List<Assembly>();
+    foreach (var assemblyPath in assemblyPaths)
+    {
+        try
+        {
+            result.Add(context.LoadFromAssemblyPath(assemblyPath));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load {assemblyPath}\n{ex}");
+        }
+    }
+
+    return [.. result];
+}
+
+static async Task<FullPath> GetDotNetSdkPath()
+{
+    var sdkVersion = (await RunProcess("dotnet", "--version")).Trim();
+    var listSdks = await RunProcess("dotnet", "--list-sdks");
+    foreach (var line in listSdks.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        if (!line.StartsWith(sdkVersion + " ", StringComparison.Ordinal))
+            continue;
+
+        var startIndex = line.IndexOf('[', StringComparison.Ordinal);
+        var endIndex = line.IndexOf(']', startIndex + 1);
+        if (startIndex < 0 || endIndex <= startIndex)
+            continue;
+
+        var sdkRootPath = line[(startIndex + 1)..endIndex];
+        var sdkPath = FullPath.FromPath(sdkRootPath) / sdkVersion;
+        if (Directory.Exists(sdkPath))
+            return sdkPath;
+    }
+
+    throw new InvalidOperationException($"Cannot find .NET SDK path for version '{sdkVersion}'");
+}
+
+static async Task<string> RunProcess(string fileName, string arguments)
+{
+    var startInfo = new ProcessStartInfo(fileName, arguments)
+    {
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+    };
+
+    using var process = Process.Start(startInfo) ?? throw new InvalidOperationException($"Cannot start '{fileName} {arguments}'");
+    var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+    var standardErrorTask = process.StandardError.ReadToEndAsync();
+    await process.WaitForExitAsync();
+
+    var standardOutput = await standardOutputTask;
+    var standardError = await standardErrorTask;
+    if (process.ExitCode != 0)
+        throw new InvalidOperationException($"Command '{fileName} {arguments}' failed with exit code {process.ExitCode}:{Environment.NewLine}{standardError}");
+
+    return standardOutput;
+}
+
 static (AnalyzerConfiguration[] Rules, string[] Unknowns) GetConfiguration(FullPath editorconfig)
 {
     var rules = new List<AnalyzerConfiguration>();
@@ -391,7 +547,7 @@ static (AnalyzerConfiguration[] Rules, string[] Unknowns) GetConfiguration(FullP
                 if (line.StartsWith("global_level", StringComparison.Ordinal))
                     continue;
 
-                var match = Regex.Match(line, @"^dotnet_diagnostic\.(?<RuleId>[a-zA-Z0-9]+).severity\s*=\s*(?<Severity>[a-z]+)");
+                var match = Regex.Match(line, @"^dotnet_diagnostic\.(?<RuleId>[a-zA-Z0-9_]+).severity\s*=\s*(?<Severity>[a-z]+)");
                 if (match.Success)
                 {
                     DiagnosticSeverity? diagnosticSeverity = null;
