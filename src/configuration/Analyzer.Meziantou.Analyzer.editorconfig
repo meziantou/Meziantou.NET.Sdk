@@ -2,7 +2,7 @@
 is_global = true
 global_level = 0
 
-dotnet_diagnostic.MA0015.consider_member_access_as_parameter = true
+MA0015.consider_member_access_as_parameter = true
 
 # MA0001: StringComparison is missing
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0001.md
@@ -962,4 +962,3 @@ dotnet_diagnostic.MA0191.severity = none
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0192.md
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0192.severity = none
-
