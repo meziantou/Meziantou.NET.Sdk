@@ -962,3 +962,4 @@ dotnet_diagnostic.MA0191.severity = none
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0192.md
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0192.severity = none
+
