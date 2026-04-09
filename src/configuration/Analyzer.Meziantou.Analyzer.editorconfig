@@ -2,6 +2,8 @@
 is_global = true
 global_level = 0
 
+dotnet_diagnostic.MA0015.consider_member_access_as_parameter = true
+
 # MA0001: StringComparison is missing
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0001.md
 # Enabled: True, Severity: suggestion
@@ -633,7 +635,7 @@ dotnet_diagnostic.MA0126.severity = warning
 
 # MA0127: Use String.Equals instead of is pattern
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0127.md
-# Enabled: False, Severity: warning
+# Enabled: True, Severity: silent
 dotnet_diagnostic.MA0127.severity = none
 
 # MA0128: Use 'is' operator instead of SequenceEqual
@@ -950,4 +952,14 @@ dotnet_diagnostic.MA0189.severity = suggestion
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0190.md
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0190.severity = suggestion
+
+# MA0191: Do not use the null-forgiving operator
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0191.md
+# Enabled: False, Severity: warning
+dotnet_diagnostic.MA0191.severity = none
+
+# MA0192: Use HasFlag instead of bitwise checks
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0192.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0192.severity = none
 
