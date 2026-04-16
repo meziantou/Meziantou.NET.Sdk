@@ -2,10 +2,10 @@
 
 - [![Meziantou.NET.Sdk on NuGet](https://img.shields.io/nuget/v/Meziantou.NET.Sdk.svg)](https://www.nuget.org/packages/Meziantou.NET.Sdk/)
 
-MSBuild SDK that provides:
-- Opinionated defaults for .NET projects
-- Naming conventions
-- Static analysis with Roslyn analyzers
+MSBuild SDK that helps standardize build and quality settings across repositories. It provides:
+- Opinionated defaults and naming conventions for .NET projects
+- Best practices for build, CI, and test workflows
+- A static analysis baseline with Roslyn analyzers
 - Set `ContinuousIntegrationBuild` based on the context
 - dotnet test features
   - Dump on crash or hang
