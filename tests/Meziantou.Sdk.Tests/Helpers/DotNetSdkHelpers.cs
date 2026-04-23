@@ -38,7 +38,8 @@ public static class DotNetSdkHelpers
             var latestSdk = latestRelease.Sdks.MaxBy(sdk => sdk.Version);
 
             var runtimeIdentifier = RuntimeInformation.RuntimeIdentifier;
-            var file = latestSdk!.Files.Single(file => file.Rid == runtimeIdentifier && Path.GetExtension(file.Name) is ".zip" or ".gz");
+            var expectedExtension = OperatingSystem.IsWindows() ? ".zip" : ".gz";
+            var file = latestSdk!.Files.Single(file => file.Rid == runtimeIdentifier && Path.GetExtension(file.Name) == expectedExtension);
             var finalFolderPath = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / latestSdk.Version.ToString();
             var finalDotnetPath = finalFolderPath / (OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
             if (File.Exists(finalDotnetPath))
