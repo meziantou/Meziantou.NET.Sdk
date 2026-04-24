@@ -1,6 +1,6 @@
 ﻿<Project>
-	<Import Project="$(MSBuildThisFileDirectory)\Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
-	<Import Project="$(MSBuildThisFileDirectory)\Npm.targets" />
+	<Import Project="$(MSBuildThisFileDirectory)/Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
+	<Import Project="$(MSBuildThisFileDirectory)/Npm.targets" />
 
 	<PropertyGroup>
 		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(NETCoreAppMaximumVersion)' != ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
@@ -41,7 +41,7 @@
 	</PropertyGroup>
 
   <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.30" IsImplicitlyDefined="true" />
+    <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.32" IsImplicitlyDefined="true" />
     <PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.2" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
   </ItemGroup>
 
@@ -62,8 +62,8 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.txt" Condition="'$(IncludeDefaultBannedSymbols)' != 'false'" Visible="false" />
-		<AdditionalFiles Include="$(MSBuildThisFileDirectory)\..\configuration\BannedSymbols.NewtonsoftJson.txt" Condition="'$(BannedNewtonsoftJsonSymbols)' != 'false'" Visible="false" />
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)../configuration/BannedSymbols.txt" Condition="'$(IncludeDefaultBannedSymbols)' != 'false'" Visible="false" />
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)../configuration/BannedSymbols.NewtonsoftJson.txt" Condition="'$(BannedNewtonsoftJsonSymbols)' != 'false'" Visible="false" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
@@ -120,23 +120,23 @@
 				<PackageIcon>icon.png</PackageIcon>
 			</PropertyGroup>
 			<ItemGroup>
-				<None Include="$(MSBuildThisFileDirectory)\..\icon.png" Pack="true" PackagePath="" Visible="false" />
+				<None Include="$(MSBuildThisFileDirectory)../icon.png" Pack="true" PackagePath="" Visible="false" />
 			</ItemGroup>
 		</When>
 	</Choose>
 
 	<PropertyGroup>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\README.md')">$(MSBuildProjectDirectory)\README.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\readme.md')">$(MSBuildProjectDirectory)\readme.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\Readme.md')">$(MSBuildProjectDirectory)\Readme.md</_PackageReadmeFilePath>
-		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)\ReadMe.md')">$(MSBuildProjectDirectory)\ReadMe.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)/README.md')">$(MSBuildProjectDirectory)/README.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)/readme.md')">$(MSBuildProjectDirectory)/readme.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)/Readme.md')">$(MSBuildProjectDirectory)/Readme.md</_PackageReadmeFilePath>
+		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND Exists('$(MSBuildProjectDirectory)/ReadMe.md')">$(MSBuildProjectDirectory)/ReadMe.md</_PackageReadmeFilePath>
 
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('Readme.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 		<_PackageReadmeFilePath Condition="'$(_PackageReadmeFilePath)' == '' AND '$(SearchReadmeFileAbove)' == 'true' AND Exists($([MSBuild]::GetPathOfFileAbove('ReadMe.md', '$(MSBuildProjectDirectory)')))">$([MSBuild]::GetPathOfFileAbove('ReadMe.md', '$(MSBuildProjectDirectory)'))</_PackageReadmeFilePath>
 
-		<_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)\THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
+		<_PackageThirdPartyNoticesPath Condition="Exists('$(MSBuildProjectDirectory)/THIRD-PARTY-NOTICES.TXT')">$(MSBuildProjectDirectory)/THIRD-PARTY-NOTICES.TXT</_PackageThirdPartyNoticesPath>
 
 		<_LicensePath Condition="Exists($([MSBuild]::GetPathOfFileAbove('LICENSE.txt')))">$([MSBuild]::GetPathOfFileAbove('LICENSE.txt'))</_LicensePath>
 
