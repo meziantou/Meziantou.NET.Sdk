@@ -534,6 +534,31 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task DefaultEditorConfig_MA0015_DoesNotReportThrowIfLessThanWithMemberAccess()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            class Options
+            {
+                public int ModuleSize { get; set; }
+            }
+
+            class Sample
+            {
+                public void Test(Options options)
+                {
+                    System.ArgumentOutOfRangeException.ThrowIfLessThan(options.ModuleSize, 1, nameof(options.ModuleSize));
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.False(data.HasWarning("MA0015"));
+        Assert.False(data.HasError("MA0015"));
+    }
+
+    [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
