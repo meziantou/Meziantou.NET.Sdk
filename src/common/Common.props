@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)\ContinuousIntegrationBuild.props" />
+  <Import Project="$(MSBuildThisFileDirectory)/ContinuousIntegrationBuild.props" />
 
   <PropertyGroup>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
@@ -84,11 +84,11 @@
 
   <ItemGroup>
     <!-- Add all editorconfig files -->
-    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\*.editorconfig"
-                       Exclude="$(MSBuildThisFileDirectory)\..\configuration\Meziantou.NET.Sdk.*.editorconfig" />
-    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\$(MeziantouSdkName).editorconfig"
-                       Condition="'$(MeziantouSdkName)' != '' AND Exists('$(MSBuildThisFileDirectory)\..\configuration\$(MeziantouSdkName).editorconfig')" />
-    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)\..\configuration\Meziantou.NET.Sdk.SingleFileApp.editorconfig"
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)../configuration/*.editorconfig"
+                       Exclude="$(MSBuildThisFileDirectory)../configuration/Meziantou.NET.Sdk.*.editorconfig" />
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)../configuration/$(MeziantouSdkName).editorconfig"
+                       Condition="'$(MeziantouSdkName)' != '' AND Exists('$(MSBuildThisFileDirectory)../configuration/$(MeziantouSdkName).editorconfig')" />
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)../configuration/Meziantou.NET.Sdk.SingleFileApp.editorconfig"
                        Condition="'$(MeziantouSingleFileApp)' == 'true'" />
   </ItemGroup>
 
