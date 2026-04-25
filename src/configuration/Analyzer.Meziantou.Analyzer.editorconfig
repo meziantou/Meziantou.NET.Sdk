@@ -963,3 +963,8 @@ dotnet_diagnostic.MA0191.severity = none
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0192.severity = none
 
+# MA0193: Use an overload with a MidpointRounding argument
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0193.md
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MA0193.severity = warning
+
