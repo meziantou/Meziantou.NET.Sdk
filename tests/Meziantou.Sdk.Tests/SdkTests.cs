@@ -534,7 +534,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task DefaultEditorConfig_MA0015_DoesNotReportThrowIfLessThanWithNameofMemberAccess()
+    public async Task DefaultEditorConfig_MA0015_ReportsThrowIfLessThanWithNameofMemberAccess()
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
@@ -554,7 +554,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             """);
 
         var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
-        Assert.False(data.HasWarning("MA0015"));
+        Assert.True(data.HasWarning("MA0015"));
         Assert.False(data.HasError("MA0015"));
     }
 
