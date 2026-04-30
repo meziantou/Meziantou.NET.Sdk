@@ -13,6 +13,8 @@ MSBuild SDK that helps standardize build and quality settings across repositorie
   - Disable Roslyn analyzers to speed up build
 - Relevant NuGet packages based on the project type
 
+Blog post: [Creating a custom MSBuild SDK to reduce boilerplate in dotnet projects](https://www.meziantou.net/creating-a-custom-msbuild-sdk-to-reduce-boilerplate-in-dotnet-projects.htm)
+
 # Usage
 
 ## Method 1
