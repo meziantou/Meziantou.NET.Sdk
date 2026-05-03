@@ -973,3 +973,8 @@ dotnet_diagnostic.MA0193.severity = warning
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0194.severity = suggestion
 
+# MA0195: Do not use static fields before they are initialized
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0195.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0195.severity = warning
+
