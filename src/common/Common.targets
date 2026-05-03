@@ -41,7 +41,7 @@
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
-		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.34" IsImplicitlyDefined="true" />
+		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.35" IsImplicitlyDefined="true" />
 		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.3" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
 	</ItemGroup>
 
