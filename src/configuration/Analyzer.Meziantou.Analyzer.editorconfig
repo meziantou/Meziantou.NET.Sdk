@@ -978,3 +978,13 @@ dotnet_diagnostic.MA0194.severity = suggestion
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0195.severity = warning
 
+# MA0196: Do not use inheritdoc on non-inheriting members
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0196.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0196.severity = warning
+
+# MA0197: Do not use inheritdoc on types
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0197.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0197.severity = warning
+
