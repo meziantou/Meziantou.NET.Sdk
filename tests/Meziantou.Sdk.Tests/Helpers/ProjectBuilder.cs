@@ -279,7 +279,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             TestContext.Current.TestOutputHelper?.WriteLine($"  {env.Key}={env.Value}");
         }
 
-        var result = await psi.RunAsTaskAsync();
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, TestContext.Current.CancellationToken);
+        var cancellationToken = linkedCts.Token;
+
+        var result = await psi.RunAsTaskAsync(cancellationToken);
 
         // Retry up to 5 times if MSB4236 or NETSDK1004 error occurs (SDK resolution or assets file issue)
         const int maxRetries = 5;
@@ -294,9 +298,9 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                 _testOutputHelper.WriteLine($"SDK resolution or restore error detected, retrying ({retry + 1}/{maxRetries})...");
 
                 // Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
-                await Task.Delay(100 * (1 << retry));
+                await Task.Delay(100 * (1 << retry), cancellationToken);
 
-                result = await psi.RunAsTaskAsync();
+                result = await psi.RunAsTaskAsync(cancellationToken);
             }
             else
             {
@@ -378,7 +382,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             }
         }
 
-        return psi.RunAsTaskAsync();
+        return psi.RunAsTaskAsync(TestContext.Current.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()

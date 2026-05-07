@@ -736,7 +736,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task DocumentationWarnings_ReportedWhenEnabled()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("OutputType", "Library"), ("EnableDocumentationWarnings", "true")]);
+        project.AddCsprojFile(properties: [("OutputType", "Library"), ("DisableDocumentationWarnings", "false")]);
         project.AddFile("Sample.cs", """
             public class Sample
             {
