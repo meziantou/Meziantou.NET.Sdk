@@ -29,7 +29,6 @@
     <Nullable>enable</Nullable>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1573;CS1591</NoWarn> <!-- Remove warning for undocumented members -->
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
     <RestoreSerializeGlobalProperties>true</RestoreSerializeGlobalProperties>

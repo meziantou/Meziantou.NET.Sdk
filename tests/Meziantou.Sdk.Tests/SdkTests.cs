@@ -713,6 +713,40 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Contains(outputFiles, f => f.EndsWith(".xml", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task DocumentationWarnings_SuppressedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        project.AddFile("Sample.cs", """
+            public class Sample
+            {
+                /// <param name="undocumented">Missing param doc triggers CS1573</param>
+                public static void Method(int undocumented, int alsoUndocumented) { }
+
+                public int UndocumentedProperty { get; set; }
+            }
+            """);
+        var data = await project.BuildAndGetOutput();
+        Assert.False(data.HasWarning("CS1573"));
+        Assert.False(data.HasWarning("CS1591"));
+    }
+
+    [Fact]
+    public async Task DocumentationWarnings_ReportedWhenEnabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library"), ("EnableDocumentationWarnings", "true")]);
+        project.AddFile("Sample.cs", """
+            public class Sample
+            {
+                public int UndocumentedProperty { get; set; }
+            }
+            """);
+        var data = await project.BuildAndGetOutput();
+        Assert.True(data.HasWarning("CS1591"));
+    }
+
     [Theory]
     [InlineData("readme.md")]
     [InlineData("Readme.md")]

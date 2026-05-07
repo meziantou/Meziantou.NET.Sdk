@@ -10,6 +10,11 @@
     <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<!-- Suppress documentation warnings (CS1573, CS1591) unless EnableDocumentationWarnings is set to true -->
+		<NoWarn Condition="'$(EnableDocumentationWarnings)' != 'true'">$(NoWarn);CS1573;CS1591</NoWarn>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true' AND '$(UsingMicrosoftNETSdkWeb)' == 'true'">
 		<EnableSdkContainerSupport Condition="'$(EnableSdkContainerSupport)' == ''">true</EnableSdkContainerSupport>
 		<ContainerRegistry Condition="'$(ContainerRegistry)' == ''">ghcr.io</ContainerRegistry>
