@@ -51,7 +51,9 @@ public sealed class PackageFixture : IAsyncLifetime
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath]);
+            psi.ArgumentList.AddRange(["pack", "--disable-build-servers", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath]);
+            psi.Environment["MSBUILDDISABLENODEREUSE"] = "1";
+            psi.Environment["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1";
             var result = await psi.RunAsTaskAsync();
             if (result.ExitCode != 0)
             {
