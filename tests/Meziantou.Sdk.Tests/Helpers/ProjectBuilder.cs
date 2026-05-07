@@ -222,7 +222,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             UseShellExecute = false,
         };
         psi.ArgumentList.Add(command);
-        psi.ArgumentList.Add("--disable-build-servers");
         if (buildArguments != null)
         {
             foreach (var arg in buildArguments)
