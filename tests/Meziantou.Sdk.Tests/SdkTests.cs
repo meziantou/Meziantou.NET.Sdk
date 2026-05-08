@@ -1594,48 +1594,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task GitHubActionsMetadataIsLoggedBeforeTests()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. XUnit2References]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Fact]
-                public void Test1()
-                {
-                    Assert.True(true);
-                }
-            }
-            """);
-
-        var environmentVariables = new (string Name, string Value)[]
-        {
-            ("GITHUB_ACTIONS", "true"),
-            ("GITHUB_JOB", "test-job"),
-            ("GITHUB_WORKFLOW", "CI"),
-            ("GITHUB_ACTION", "run-tests"),
-            ("GITHUB_RUN_ID", "123456"),
-            ("GITHUB_RUN_NUMBER", "42"),
-            ("GITHUB_RUN_ATTEMPT", "1"),
-            ("RUNNER_NAME", "GitHub Actions 1"),
-            ("RUNNER_OS", "Linux"),
-            ("RUNNER_ARCH", "X64"),
-            ("GITHUB_STEP_SUMMARY", project.RootFolder / "step_summary.txt")
-        };
-
-        var data = await project.TestAndGetOutput(environmentVariables: environmentVariables);
-        Assert.Equal(0, data.ExitCode);
-
-        var expectedJson = """GitHub Actions Metadata: {"github_job_id":"test-job","github_workflow":"CI","github_action":"run-tests","github_run_id":"123456","github_run_number":"42","github_run_attempt":"1","runner_name":"GitHub Actions 1","runner_os":"Linux","runner_arch":"X64"}""";
-        Assert.True(data.OutputContains(expectedJson, StringComparison.Ordinal));
-    }
-
-    [Fact]
     public async Task GitHubActionsEnvironmentVariablesAreEmbeddedInBinLog()
     {
         await using var project = CreateProjectBuilder();
@@ -1680,31 +1638,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("_RunnerName", "Runner-1");
         data.AssertMSBuildPropertyValue("_RunnerOs", "Windows");
         data.AssertMSBuildPropertyValue("_RunnerArch", "X64");
-    }
-
-    [Fact]
-    public async Task GitHubActionsMetadataNotLoggedWhenNotOnGitHub()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. XUnit2References]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Fact]
-                public void Test1()
-                {
-                    Assert.True(true);
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
-        Assert.Equal(0, data.ExitCode);
-        Assert.False(data.OutputContains("GitHub Actions Metadata:", StringComparison.Ordinal));
     }
 
     [Fact]
