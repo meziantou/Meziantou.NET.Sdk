@@ -971,7 +971,7 @@ dotnet_diagnostic.MA0193.severity = warning
 # MA0194: Merge is expressions on the same value
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0194.md
 # Enabled: True, Severity: suggestion
-dotnet_diagnostic.MA0194.severity = suggestion
+dotnet_diagnostic.MA0194.severity = warning
 
 # MA0195: Do not use static fields before they are initialized
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0195.md
@@ -983,8 +983,18 @@ dotnet_diagnostic.MA0195.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0196.severity = warning
 
-# MA0197: Do not use inheritdoc on types
+# MA0197: Add dedicated documentation on types
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0197.md
-# Enabled: True, Severity: warning
+# Enabled: True, Severity: suggestion
 dotnet_diagnostic.MA0197.severity = warning
+
+# MA0198: Specify cref for ambiguous inheritdoc on types
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0198.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0198.severity = warning
+
+# MA0199: Do not use inheritdoc on types without inheritance source
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0199.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0199.severity = warning
 
