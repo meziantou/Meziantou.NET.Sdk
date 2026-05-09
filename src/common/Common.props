@@ -41,8 +41,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);CA1014</NoWarn>
-    <MSBuildTreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</MSBuildTreatWarningsAsErrors>
-    <TreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
+    <_IsAiAgentBuild Condition="'$(GITHUB_COPILOT_RUNTIME)' != '' OR '$(CLAUDECODE)' != '' OR '$(CLAUDE_CODE_ENTRYPOINT)' != '' OR '$(GEMINI_CLI)' != '' OR '$(CODEX_SANDBOX)' != ''">true</_IsAiAgentBuild>
+    <_EnableWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release' OR '$(_IsAiAgentBuild)' == 'true'">true</_EnableWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors Condition="'$(_EnableWarningsAsErrors)' == 'true'">true</MSBuildTreatWarningsAsErrors>
+    <TreatWarningsAsErrors Condition="'$(_EnableWarningsAsErrors)' == 'true'">true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
 
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">true</EnablePackageValidation>
@@ -52,7 +54,7 @@
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
-    <WarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">$(WarningsAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+    <WarningsAsErrors Condition="'$(_EnableWarningsAsErrors)' == 'true'">$(WarningsAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
