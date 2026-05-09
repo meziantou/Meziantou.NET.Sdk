@@ -113,8 +113,8 @@ Set these properties in your project file or a directory-level props file. Unles
 | `AnalysisLevel` | `latest-all` | Uses the latest analyzer rules. |
 | `AllowUnsafeBlocks` | `true` | Allows `unsafe` code blocks. |
 | `LangVersion` | `latest` | Uses the latest C# language version. |
-| `MSBuildTreatWarningsAsErrors` | `true` on CI or Release | Treats MSBuild warnings as errors. |
-| `TreatWarningsAsErrors` | `true` on CI or Release | Treats compiler warnings as errors. |
+| `MSBuildTreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats MSBuild warnings as errors. |
+| `TreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats compiler warnings as errors. |
 | `EnforceCodeStyleInBuild` | `true` on CI or Release | Enforces analyzer code style during builds. |
 | `AccelerateBuildsInVisualStudio` | `true` | Enables faster builds in Visual Studio. |
 
@@ -126,7 +126,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | `NuGetAudit` | `true` | Enables NuGet vulnerability auditing. |
 | `NuGetAuditMode` | `all` | Audits all dependency types. |
 | `NuGetAuditLevel` | `low` | Minimum severity level to report. |
-| `WarningsAsErrors` | Adds `NU1900`–`NU1904` on CI or Release | Promotes NuGet audit warnings to errors. |
+| `WarningsAsErrors` | Adds `NU1900`–`NU1904` on CI, Release, or AI agent runtime | Promotes NuGet audit warnings to errors. |
 
 ## Banned symbols and analyzers
 

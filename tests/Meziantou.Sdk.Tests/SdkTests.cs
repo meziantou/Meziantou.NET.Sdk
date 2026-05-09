@@ -347,6 +347,39 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task WarningsAsErrorOnAiAgent()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """_ = System.DateTime.Now;""");
+        var data = await project.BuildAndGetOutput(environmentVariables: [("CLAUDECODE", "1")]);
+        Assert.True(data.HasError("RS0030"));
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("ContinuousIntegrationBuild"));
+    }
+
+    [Theory]
+    [InlineData("GITHUB_COPILOT_RUNTIME")]
+    [InlineData("CLAUDECODE")]
+    [InlineData("CLAUDE_CODE_ENTRYPOINT")]
+    [InlineData("GEMINI_CLI")]
+    [InlineData("CODEX_SANDBOX")]
+    public async Task AiAgentEnvironmentVariables_EnableWarningsAsErrors(string environmentVariableName)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables: [(environmentVariableName, "1")]);
+
+        data.AssertMSBuildPropertyValue("_IsAiAgentBuild", "true");
+        data.AssertMSBuildPropertyValue("_EnableWarningsAsErrors", "true");
+        data.AssertMSBuildPropertyValue("MSBuildTreatWarningsAsErrors", "true");
+        data.AssertMSBuildPropertyValue("TreatWarningsAsErrors", "true");
+        Assert.Contains("NU1903", data.GetMSBuildPropertyValue("WarningsAsErrors"), StringComparison.Ordinal);
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("ContinuousIntegrationBuild"));
+    }
+
+    [Fact]
     public async Task Override_WarningsAsErrors()
     {
         await using var project = CreateProjectBuilder();
