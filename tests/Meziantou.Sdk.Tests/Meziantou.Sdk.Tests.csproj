@@ -15,7 +15,7 @@
     <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.178" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.204" />
     <PackageReference Include="NuGet.Packaging" Version="7.3.1" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
