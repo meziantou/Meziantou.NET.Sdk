@@ -199,7 +199,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
 
         using var stream = package.PackageReader.GetStream(item);
         var metadataRef = MetadataReference.CreateFromStream(stream);
-        var allRefs = Basic.Reference.Assemblies.Net100.References.All.Add(metadataRef);
+        var allRefs = GetCompilationReferences(metadataRef);
 
         var compilation = CSharpCompilation.Create("temp", syntaxTrees: [], references: allRefs);
         var asm = compilation.GetTypeByMetadataName("Newtonsoft.Json.JsonConvert")!.ContainingAssembly;
@@ -230,6 +230,42 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
     bannedSymbolsFilePath.CreateParentDirectory();
     await File.WriteAllTextAsync(bannedSymbolsFilePath, text);
     Interlocked.Increment(ref writtenFiles);
+}
+
+static MetadataReference[] GetCompilationReferences(MetadataReference metadataReference)
+{
+    var references = new List<MetadataReference>();
+    var referencedAssemblyPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    if (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") is string trustedPlatformAssemblies && !string.IsNullOrEmpty(trustedPlatformAssemblies))
+    {
+        foreach (var assemblyPath in trustedPlatformAssemblies.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (referencedAssemblyPaths.Add(assemblyPath))
+            {
+                references.Add(MetadataReference.CreateFromFile(assemblyPath));
+            }
+        }
+    }
+    else
+    {
+        AddAssemblyReference(typeof(object).Assembly);
+        AddAssemblyReference(typeof(Enumerable).Assembly);
+        AddAssemblyReference(typeof(System.Runtime.GCSettings).Assembly);
+    }
+
+    references.Add(metadataReference);
+    return [.. references];
+
+    void AddAssemblyReference(Assembly assembly)
+    {
+        if (string.IsNullOrEmpty(assembly.Location))
+            return;
+
+        if (!referencedAssemblyPaths.Add(assembly.Location))
+            return;
+
+        references.Add(MetadataReference.CreateFromFile(assembly.Location));
+    }
 }
 
 async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
