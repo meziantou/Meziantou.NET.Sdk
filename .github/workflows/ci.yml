@@ -46,6 +46,11 @@ jobs:
           git add -A
           git commit -m "Update configuration files"
           git push
+      - name: Fail if there are changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          Write-Host "Configuration files are not up to date. Please run the ConfigFilesGenerator tool and commit the changes."
+          exit 1
 
   compute_version:
     runs-on: ubuntu-latest
