@@ -183,4 +183,4 @@ Set these properties in your project file or a directory-level props file. Unles
 | `VSTestBlameHangTimeout` | `10min` | Sets hang dump timeout. |
 | `VSTestCollect` | `Code Coverage` when enabled | Enables VSTest code coverage. |
 | `VSTestSetting` | Default runsettings when enabled | Uses the default runsettings file for coverage. |
-| `VSTestLogger` | `trx;console%3bverbosity=normal` | Appends loggers, including GitHub Actions on CI. |
+| `VSTestLogger` | `trx;console%3bverbosity=normal` | Appends loggers. |
