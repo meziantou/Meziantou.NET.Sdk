@@ -296,7 +296,20 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             return await ProcessWrapper.Create(dotnetPath)
                 .WithWorkingDirectory(_directory.FullPath)
                 .WithArguments(arguments)
-                .WithEnvironmentVariables(environmentChanges)
+                .WithEnvironmentVariables(env =>
+                {
+                    foreach (var environmentChange in environmentChanges)
+                    {
+                        if (environmentChange.Value is null)
+                        {
+                            env.Remove(environmentChange.Key);
+                        }
+                        else
+                        {
+                            env.Set(environmentChange.Key, environmentChange.Value);
+                        }
+                    }
+                })
                 .WithValidation(ProcessValidationMode.None)
                 .ExecuteBufferedAsync(cancellationToken);
         }
