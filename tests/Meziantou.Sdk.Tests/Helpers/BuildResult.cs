@@ -1,12 +1,11 @@
-using Meziantou.Framework;
 using Microsoft.Build.Logging.StructuredLogger;
 
 namespace Meziantou.Sdk.Tests.Helpers;
 
-internal sealed record BuildResult(int ExitCode, ProcessOutputCollection ProcessOutput, SarifFile SarifFile, byte[] BinaryLogContent, string VSTestDiagnosticFileContent)
+internal sealed record BuildResult(int ExitCode, IReadOnlyList<string> OutputLines, SarifFile SarifFile, byte[] BinaryLogContent, string VSTestDiagnosticFileContent)
 {
-    public bool OutputContains(string value, StringComparison stringComparison = StringComparison.Ordinal) => ProcessOutput.Any(line => line.Text.Contains(value, stringComparison));
-    public bool OutputDoesNotContain(string value, StringComparison stringComparison = StringComparison.Ordinal) => !ProcessOutput.Any(line => line.Text.Contains(value, stringComparison));
+    public bool OutputContains(string value, StringComparison stringComparison = StringComparison.Ordinal) => OutputLines.Any(line => line.Contains(value, stringComparison));
+    public bool OutputDoesNotContain(string value, StringComparison stringComparison = StringComparison.Ordinal) => !OutputLines.Any(line => line.Contains(value, stringComparison));
 
     public bool HasError() => SarifFile.AllResults().Any(r => r.Level == "error");
     public bool HasError(string ruleId) => SarifFile.AllResults().Any(r => r.Level == "error" && r.RuleId == ruleId);
