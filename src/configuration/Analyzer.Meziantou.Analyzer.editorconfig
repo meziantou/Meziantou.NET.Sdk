@@ -1008,3 +1008,8 @@ dotnet_diagnostic.MA0200.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0201.severity = warning
 
+# MA0202: Conditional compilation branches have identical code
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0202.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0202.severity = warning
+
