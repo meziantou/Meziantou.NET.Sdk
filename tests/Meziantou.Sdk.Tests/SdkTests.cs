@@ -936,7 +936,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit2()
+    public async Task VSTests_OnGitHubActionsShouldNotAddCustomLogger_Xunit2()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
@@ -963,12 +963,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal), userMessage: "Output must contain 'failure message'");
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
-        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
-        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+        Assert.False(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal));
+        Assert.Empty(project.GetGitHubStepSummaryContent());
     }
 
     [Fact]
-    public async Task VSTests_OnGitHubActionsShouldAddCustomLogger_Xunit3()
+    public async Task VSTests_OnGitHubActionsShouldNotAddCustomLogger_Xunit3()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -999,8 +999,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-        Assert.True(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal), userMessage: "Output must contain '::error title=Tests.Test1'");
-        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+        Assert.False(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal));
+        Assert.Empty(project.GetGitHubStepSummaryContent());
     }
 
     [Fact]

@@ -70,20 +70,4 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!-- VSTest on GitHub -->
-  <Choose>
-    <When Condition="'$(_IsGitHubActions)' == 'true'">
-      <PropertyGroup>
-        <VSTestLogger>$(VSTestLogger);GitHubActions</VSTestLogger>
-      </PropertyGroup>
-
-      <ItemGroup>
-        <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" IsImplicitlyDefined="true">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-        </PackageReference>
-      </ItemGroup>
-    </When>
-  </Choose>
-
 </Project>
