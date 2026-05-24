@@ -1,5 +1,4 @@
 #nullable enable
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -204,6 +203,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
+        static bool ShouldRemoveEnvironmentVariable(string key) => key.StartsWith("GITHUB", StringComparison.Ordinal) || key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || key.StartsWith("GITHUB_", StringComparison.Ordinal) || key.StartsWith("RUNNER_", StringComparison.Ordinal);
+
         _buildCount++;
 
         foreach (var file in Directory.GetFiles(_directory.FullPath, "*", SearchOption.AllDirectories))
@@ -214,67 +215,75 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         }
 
         _testOutputHelper.WriteLine("-------- dotnet " + command);
-        var psi = new ProcessStartInfo(await DotNetSdkHelpers.Get(_sdkVersion))
-        {
-            WorkingDirectory = _directory.FullPath,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        psi.ArgumentList.Add(command);
+
+        var dotnetPath = await DotNetSdkHelpers.Get(_sdkVersion);
+        var arguments = new List<string> { command };
         if (buildArguments != null)
         {
-            foreach (var arg in buildArguments)
-            {
-                psi.ArgumentList.Add(arg);
-            }
+            arguments.AddRange(buildArguments);
         }
 
-        psi.ArgumentList.Add("/bl");
+        arguments.Add("/bl");
 
-        // Remove parent environment variables
-        psi.Environment.Remove("CI");
-        foreach (var kvp in psi.Environment.ToArray())
+        var environmentChanges = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            if (kvp.Key.StartsWith("GITHUB", StringComparison.Ordinal) || kvp.Key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || kvp.Key.StartsWith("GITHUB_", StringComparison.Ordinal) || kvp.Key.StartsWith("RUNNER_", StringComparison.Ordinal))
-            {
-                psi.Environment.Remove(kvp.Key);
-            }
+            ["CI"] = null,
+            ["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true",
+            ["MSBUILDDISABLENODEREUSE"] = "1",
+            ["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1",
+            ["DOTNET_HOST_PATH"] = dotnetPath,
+            ["DOTNET_ROLL_FORWARD"] = "LatestMajor",
+            ["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1",
+            ["NUGET_HTTP_CACHE_PATH"] = _fixture.PackageDirectory / "http-cache",
+            ["NUGET_PACKAGES"] = _fixture.PackageDirectory,
+            ["NUGET_SCRATCH"] = _fixture.PackageDirectory / "nuget-scratch",
+            ["NUGET_PLUGINS_CACHE_PATH"] = _fixture.PackageDirectory / "nuget-plugins-cache",
+        };
+
+        foreach (var key in Environment.GetEnvironmentVariables().Keys.OfType<string>().Where(ShouldRemoveEnvironmentVariable))
+        {
+            environmentChanges[key] = null;
         }
 
-        psi.Environment["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true";
-        psi.Environment["MSBUILDDISABLENODEREUSE"] = "1";
-        psi.Environment["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1";
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
-        psi.Environment["VSTestDiag"] = vstestdiagPath;
-        var dotnetRoot = Path.GetDirectoryName(psi.FileName);
-        psi.Environment["DOTNET_ROOT"] = dotnetRoot;
+        environmentChanges["VSTestDiag"] = vstestdiagPath;
+        var dotnetRoot = Path.GetDirectoryName(dotnetPath);
+        environmentChanges["DOTNET_ROOT"] = dotnetRoot;
         if (RuntimeInformation.ProcessArchitecture is Architecture.X64)
         {
-            psi.Environment["DOTNET_ROOT_X64"] = dotnetRoot;
+            environmentChanges["DOTNET_ROOT_X64"] = dotnetRoot;
         }
         else if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64)
         {
-            psi.Environment["DOTNET_ROOT_ARM64"] = dotnetRoot;
+            environmentChanges["DOTNET_ROOT_ARM64"] = dotnetRoot;
         }
-        psi.Environment["DOTNET_HOST_PATH"] = psi.FileName;
-        psi.Environment["DOTNET_ROLL_FORWARD"] = "LatestMajor";
-        psi.Environment["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1";
-        psi.Environment["NUGET_HTTP_CACHE_PATH"] = _fixture.PackageDirectory / "http-cache";
-        psi.Environment["NUGET_PACKAGES"] = _fixture.PackageDirectory;
-        psi.Environment["NUGET_SCRATCH"] = _fixture.PackageDirectory / "nuget-scratch";
-        psi.Environment["NUGET_PLUGINS_CACHE_PATH"] = _fixture.PackageDirectory / "nuget-plugins-cache";
 
         if (environmentVariables != null)
         {
             foreach (var env in environmentVariables)
             {
-                psi.Environment[env.Name] = env.Value;
+                environmentChanges[env.Name] = env.Value;
             }
         }
 
-        TestContext.Current.TestOutputHelper?.WriteLine("Executing: " + psi.FileName + " " + string.Join(' ', psi.ArgumentList));
-        foreach (var env in psi.Environment.OrderBy(kvp => kvp.Key, StringComparer.Ordinal))
+        var environmentForLog = Environment.GetEnvironmentVariables()
+            .Cast<System.Collections.DictionaryEntry>()
+            .Where(entry => entry.Key is string key && !ShouldRemoveEnvironmentVariable(key))
+            .ToDictionary(entry => (string)entry.Key, entry => entry.Value?.ToString() ?? string.Empty, StringComparer.Ordinal);
+        foreach (var env in environmentChanges)
+        {
+            if (env.Value is null)
+            {
+                environmentForLog.Remove(env.Key);
+            }
+            else
+            {
+                environmentForLog[env.Key] = env.Value;
+            }
+        }
+
+        TestContext.Current.TestOutputHelper?.WriteLine("Executing: " + dotnetPath + " " + string.Join(' ', arguments));
+        foreach (var env in environmentForLog.OrderBy(kvp => kvp.Key, StringComparer.Ordinal))
         {
             TestContext.Current.TestOutputHelper?.WriteLine($"  {env.Key}={env.Value}");
         }
@@ -282,8 +291,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, TestContext.Current.CancellationToken);
         var cancellationToken = linkedCts.Token;
-
-        var result = await psi.RunAsTaskAsync(cancellationToken);
+        async Task<BufferedProcessResult> ExecuteProcessAsync()
+        {
+            return await ProcessWrapper.Create(dotnetPath)
+                .WithWorkingDirectory(_directory.FullPath)
+                .WithArguments(arguments)
+                .WithEnvironmentVariables(environmentChanges)
+                .WithValidation(ProcessValidationMode.None)
+                .ExecuteBufferedAsync(cancellationToken);
+        }
+        var result = await ExecuteProcessAsync();
 
         // Retry up to 5 times if MSB4236 or NETSDK1004 error occurs (SDK resolution or assets file issue)
         const int maxRetries = 5;
@@ -300,7 +317,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                 // Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
                 await Task.Delay(100 * (1 << retry), cancellationToken);
 
-                result = await psi.RunAsTaskAsync(cancellationToken);
+                result = await ExecuteProcessAsync();
             }
             else
             {
@@ -339,20 +356,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             Assert.Fail("The SDK cannot be found, expected version: " + _fixture.Version);
         }
 
-        return new BuildResult(result.ExitCode, result.Output, sarif, binlogContent, vstestDiagContent);
+        return new BuildResult(result.ExitCode, [.. result.Output.Select(line => line.Text)], sarif, binlogContent, vstestDiagContent);
     }
 
-    public Task ExecuteGitCommand(params string[]? arguments)
+    public async Task ExecuteGitCommand(params string[]? arguments)
     {
-        var psi = new ProcessStartInfo("git")
-        {
-            WorkingDirectory = _directory.FullPath,
-            RedirectStandardInput = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-
         ICollection<KeyValuePair<string, string>> gitParameters =
         [
             KeyValuePair.Create("user.name", "sample"),
@@ -368,21 +376,26 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             KeyValuePair.Create("init.defaultBranch", "main"),
         ];
 
+        var gitArguments = new List<string>();
         foreach (var param in gitParameters)
         {
-            psi.ArgumentList.Add("-c");
-            psi.ArgumentList.Add($"{param.Key}={param.Value}");
+            gitArguments.Add("-c");
+            gitArguments.Add($"{param.Key}={param.Value}");
         }
 
         if (arguments != null)
         {
             foreach (var arg in arguments)
             {
-                psi.ArgumentList.Add(arg);
+                gitArguments.Add(arg);
             }
         }
 
-        return psi.RunAsTaskAsync(TestContext.Current.CancellationToken);
+        await ProcessWrapper.Create("git")
+            .WithWorkingDirectory(_directory.FullPath)
+            .WithArguments(gitArguments)
+            .WithValidation(ProcessValidationMode.None)
+            .ExecuteBufferedAsync(TestContext.Current.CancellationToken);
     }
 
     public async ValueTask DisposeAsync()

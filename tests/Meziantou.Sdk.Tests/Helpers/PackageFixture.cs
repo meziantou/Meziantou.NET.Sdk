@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Meziantou.Framework;
 using Meziantou.Sdk.Tests.Helpers;
 
@@ -46,18 +45,16 @@ public sealed class PackageFixture : IAsyncLifetime
         Assert.NotEmpty(buildFiles);
         await Parallel.ForEachAsync(buildFiles, async (nuspecPath, ct) =>
         {
-            var psi = new ProcessStartInfo("dotnet");
-            psi.RedirectStandardError = true;
-            psi.RedirectStandardOutput = true;
-            psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
-            psi.ArgumentList.AddRange(["pack", "--disable-build-servers", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath]);
-            psi.Environment["MSBUILDDISABLENODEREUSE"] = "1";
-            psi.Environment["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1";
             using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, ct);
-            var result = await psi.RunAsTaskAsync(linkedCts.Token);
-            if (result.ExitCode != 0)
+            var result = await ProcessWrapper.Create("dotnet")
+                .WithArguments("pack", "--disable-build-servers", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath)
+                .WithEnvironmentVariables(env => env
+                    .Set("MSBUILDDISABLENODEREUSE", "1")
+                    .Set("DOTNET_CLI_USE_MSBUILDNOINPROCNODE", "1"))
+                .WithValidation(ProcessValidationMode.None)
+                .ExecuteBufferedAsync(linkedCts.Token);
+            if (!result.ExitCode.IsSuccess)
             {
                 Assert.Fail($"NuGet pack failed with exit code {result.ExitCode}. Output: {result.Output}");
             }

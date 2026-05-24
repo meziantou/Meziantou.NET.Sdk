@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Meziantou.Framework.DependencyScanning;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 
 var rootFolder = GetRootFolderPath();
@@ -28,7 +27,10 @@ await GenerateBanSymbolsForNewtonsoftJson();
 Console.WriteLine($"{writtenFiles} configuration files written");
 if (writtenFiles > 0)
 {
-    Process.Start("git", "--no-pager diff --color").WaitForExit();
+    await ProcessWrapper.Create("git")
+        .WithArguments("--no-pager", "diff", "--color")
+        .WithValidation(ProcessValidationMode.None)
+        .ExecuteAsync();
 }
 
 // The CI fails if there are changes, so we always return 0 instead of the number of written files
@@ -529,24 +531,17 @@ static async Task<FullPath> GetDotNetSdkPath()
 
 static async Task<string> RunProcess(string fileName, string arguments)
 {
-    var startInfo = new ProcessStartInfo(fileName, arguments)
+    var processResult = await ProcessWrapper.Create(fileName)
+        .WithArguments(arguments)
+        .WithValidation(ProcessValidationMode.None)
+        .ExecuteBufferedAsync();
+    if (!processResult.ExitCode.IsSuccess)
     {
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        UseShellExecute = false,
-    };
+        var standardError = string.Join(Environment.NewLine, processResult.Output.StandardError.Select(line => line.Text));
+        throw new InvalidOperationException($"Command '{fileName} {arguments}' failed with exit code {processResult.ExitCode}:{Environment.NewLine}{standardError}");
+    }
 
-    using var process = Process.Start(startInfo) ?? throw new InvalidOperationException($"Cannot start '{fileName} {arguments}'");
-    var standardOutputTask = process.StandardOutput.ReadToEndAsync();
-    var standardErrorTask = process.StandardError.ReadToEndAsync();
-    await process.WaitForExitAsync();
-
-    var standardOutput = await standardOutputTask;
-    var standardError = await standardErrorTask;
-    if (process.ExitCode != 0)
-        throw new InvalidOperationException($"Command '{fileName} {arguments}' failed with exit code {process.ExitCode}:{Environment.NewLine}{standardError}");
-
-    return standardOutput;
+    return string.Join(Environment.NewLine, processResult.Output.StandardOutput.Select(line => line.Text));
 }
 
 static (AnalyzerConfiguration[] Rules, string[] Unknowns) GetConfiguration(FullPath editorconfig)
