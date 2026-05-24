@@ -1012,3 +1012,4 @@ dotnet_diagnostic.MA0201.severity = warning
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0202.md
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0202.severity = warning
+
