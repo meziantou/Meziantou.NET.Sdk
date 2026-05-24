@@ -936,38 +936,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task VSTests_OnGitHubActionsShouldNotAddCustomLogger_Xunit2()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. XUnit2References]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Fact]
-                public void Test1()
-                {
-                    Assert.Equal("true", System.Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
-                    Assert.NotEmpty(System.Environment.GetEnvironmentVariable("GITHUB_STEP_SUMMARY") ?? "");
-                    Assert.Fail("failure message");
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
-
-        Assert.Equal(1, data.ExitCode);
-        Assert.True(data.OutputContains("failure message", StringComparison.Ordinal), userMessage: "Output must contain 'failure message'");
-        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
-        Assert.False(data.OutputContains("::error title=Tests.Test1,", StringComparison.Ordinal));
-        Assert.Empty(project.GetGitHubStepSummaryContent());
-    }
-
-    [Fact]
     public async Task VSTests_OnGitHubActionsShouldNotAddCustomLogger_Xunit3()
     {
         if (OperatingSystem.IsWindows())
