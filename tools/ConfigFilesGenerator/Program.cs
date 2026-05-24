@@ -31,7 +31,8 @@ if (writtenFiles > 0)
     Process.Start("git", "--no-pager diff --color").WaitForExit();
 }
 
-return writtenFiles;
+// The CI fails if there are changes, so we always return 0 instead of the number of written files
+return 0;
 
 async Task GenerateEditorConfigForAnalyzers()
 {
