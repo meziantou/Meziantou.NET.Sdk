@@ -205,7 +205,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         static bool ShouldRemoveEnvironmentVariable(string key) =>
             key.StartsWith("GITHUB", StringComparison.Ordinal) ||
-            key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) ||
             key.StartsWith("GITHUB_", StringComparison.Ordinal) ||
             key.StartsWith("RUNNER_", StringComparison.Ordinal) ||
             key.StartsWith("VSTEST_", StringComparison.OrdinalIgnoreCase);
