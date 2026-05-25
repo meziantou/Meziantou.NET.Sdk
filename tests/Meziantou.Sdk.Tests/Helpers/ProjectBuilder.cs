@@ -203,7 +203,11 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
-        static bool ShouldRemoveEnvironmentVariable(string key) => key.StartsWith("GITHUB", StringComparison.Ordinal) || key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || key.StartsWith("GITHUB_", StringComparison.Ordinal) || key.StartsWith("RUNNER_", StringComparison.Ordinal);
+        static bool ShouldRemoveEnvironmentVariable(string key) =>
+            key.StartsWith("GITHUB", StringComparison.Ordinal) ||
+            key.StartsWith("GITHUB_", StringComparison.Ordinal) ||
+            key.StartsWith("RUNNER_", StringComparison.Ordinal) ||
+            key.StartsWith("VSTEST_", StringComparison.OrdinalIgnoreCase);
 
         _buildCount++;
 
@@ -227,7 +231,24 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         var environmentChanges = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["CI"] = null,
+            ["CI"] = string.Empty,
+            ["TF_BUILD"] = string.Empty,
+            ["APPVEYOR"] = string.Empty,
+            ["GITLAB_CI"] = string.Empty,
+            ["TRAVIS"] = string.Empty,
+            ["CIRCLECI"] = string.Empty,
+            ["CODEBUILD_BUILD_ID"] = string.Empty,
+            ["AWS_REGION"] = string.Empty,
+            ["BUILD_ID"] = string.Empty,
+            ["BUILD_URL"] = string.Empty,
+            ["PROJECT_ID"] = string.Empty,
+            ["TEAMCITY_VERSION"] = string.Empty,
+            ["JB_SPACE_API_URL"] = string.Empty,
+            ["GITHUB_COPILOT_RUNTIME"] = string.Empty,
+            ["CLAUDECODE"] = string.Empty,
+            ["CLAUDE_CODE_ENTRYPOINT"] = string.Empty,
+            ["GEMINI_CLI"] = string.Empty,
+            ["CODEX_SANDBOX"] = string.Empty,
             ["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true",
             ["MSBUILDDISABLENODEREUSE"] = "1",
             ["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1",
@@ -242,12 +263,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         foreach (var key in Environment.GetEnvironmentVariables().Keys.OfType<string>().Where(ShouldRemoveEnvironmentVariable))
         {
-            environmentChanges[key] = null;
+            environmentChanges[key] = string.Empty;
         }
 
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
         environmentChanges["VSTestDiag"] = vstestdiagPath;
-        var dotnetRoot = Path.GetDirectoryName(dotnetPath);
+        var dotnetRoot = Path.GetDirectoryName(dotnetPath) ?? throw new InvalidOperationException("Cannot get dotnet root path");
         environmentChanges["DOTNET_ROOT"] = dotnetRoot;
         if (RuntimeInformation.ProcessArchitecture is Architecture.X64)
         {
@@ -256,6 +277,26 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         else if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64)
         {
             environmentChanges["DOTNET_ROOT_ARM64"] = dotnetRoot;
+        }
+
+        var sdkRoot = Path.Combine(dotnetRoot, "sdk");
+        if (Directory.Exists(sdkRoot))
+        {
+            var preferredSdkPath = Path.Combine(sdkRoot, Path.GetFileName(dotnetRoot));
+            string? sdkPath = Directory.Exists(preferredSdkPath)
+                ? preferredSdkPath
+                : Directory.GetDirectories(sdkRoot)
+                    .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
+                    .FirstOrDefault();
+
+            if (sdkPath is not null)
+            {
+                var msbuildSdksPath = Path.Combine(sdkPath, "Sdks");
+                if (Directory.Exists(msbuildSdksPath))
+                {
+                    environmentChanges["MSBuildSDKsPath"] = msbuildSdksPath;
+                }
+            }
         }
 
         if (environmentVariables != null)
@@ -296,7 +337,20 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             return await ProcessWrapper.Create(dotnetPath)
                 .WithWorkingDirectory(_directory.FullPath)
                 .WithArguments(arguments)
-                .WithEnvironmentVariables(environmentChanges)
+                .WithEnvironmentVariables(env =>
+                {
+                    foreach (var environmentChange in environmentChanges)
+                    {
+                        if (environmentChange.Value is null)
+                        {
+                            env.Remove(environmentChange.Key);
+                        }
+                        else
+                        {
+                            env.Set(environmentChange.Key, environmentChange.Value);
+                        }
+                    }
+                })
                 .WithValidation(ProcessValidationMode.None)
                 .ExecuteBufferedAsync(cancellationToken);
         }
