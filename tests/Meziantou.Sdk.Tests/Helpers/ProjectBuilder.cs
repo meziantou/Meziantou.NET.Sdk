@@ -203,7 +203,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public async Task<BuildResult> ExecuteDotnetCommandAndGetOutput(string command, string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
-        static bool ShouldRemoveEnvironmentVariable(string key) => key.StartsWith("GITHUB", StringComparison.Ordinal) || key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) || key.StartsWith("GITHUB_", StringComparison.Ordinal) || key.StartsWith("RUNNER_", StringComparison.Ordinal);
+        static bool ShouldRemoveEnvironmentVariable(string key) =>
+            key.StartsWith("GITHUB", StringComparison.Ordinal) ||
+            key.StartsWith("MSBuild", StringComparison.OrdinalIgnoreCase) ||
+            key.StartsWith("GITHUB_", StringComparison.Ordinal) ||
+            key.StartsWith("RUNNER_", StringComparison.Ordinal) ||
+            key.StartsWith("VSTEST_", StringComparison.OrdinalIgnoreCase);
 
         _buildCount++;
 
@@ -227,7 +232,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         var environmentChanges = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["CI"] = null,
+            ["CI"] = string.Empty,
             ["MSBUILDLOGALLENVIRONMENTVARIABLES"] = "true",
             ["MSBUILDDISABLENODEREUSE"] = "1",
             ["DOTNET_CLI_USE_MSBUILDNOINPROCNODE"] = "1",
@@ -242,7 +247,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         foreach (var key in Environment.GetEnvironmentVariables().Keys.OfType<string>().Where(ShouldRemoveEnvironmentVariable))
         {
-            environmentChanges[key] = null;
+            environmentChanges[key] = string.Empty;
         }
 
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
