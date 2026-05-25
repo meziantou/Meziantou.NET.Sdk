@@ -247,7 +247,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         foreach (var key in Environment.GetEnvironmentVariables().Keys.OfType<string>().Where(ShouldRemoveEnvironmentVariable))
         {
-            environmentChanges[key] = string.Empty;
+            environmentChanges[key] = null;
         }
 
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
