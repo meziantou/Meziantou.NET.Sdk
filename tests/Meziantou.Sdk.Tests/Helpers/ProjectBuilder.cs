@@ -252,7 +252,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         var vstestdiagPath = RootFolder / "vstestdiag.txt";
         environmentChanges["VSTestDiag"] = vstestdiagPath;
-        var dotnetRoot = Path.GetDirectoryName(dotnetPath);
+        var dotnetRoot = Path.GetDirectoryName(dotnetPath) ?? throw new InvalidOperationException("Cannot get dotnet root path");
         environmentChanges["DOTNET_ROOT"] = dotnetRoot;
         if (RuntimeInformation.ProcessArchitecture is Architecture.X64)
         {
@@ -261,6 +261,26 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         else if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64)
         {
             environmentChanges["DOTNET_ROOT_ARM64"] = dotnetRoot;
+        }
+
+        var sdkRoot = Path.Combine(dotnetRoot, "sdk");
+        if (Directory.Exists(sdkRoot))
+        {
+            var preferredSdkPath = Path.Combine(sdkRoot, Path.GetFileName(dotnetRoot));
+            string? sdkPath = Directory.Exists(preferredSdkPath)
+                ? preferredSdkPath
+                : Directory.GetDirectories(sdkRoot)
+                    .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
+                    .FirstOrDefault();
+
+            if (sdkPath is not null)
+            {
+                var msbuildSdksPath = Path.Combine(sdkPath, "Sdks");
+                if (Directory.Exists(msbuildSdksPath))
+                {
+                    environmentChanges["MSBuildSDKsPath"] = msbuildSdksPath;
+                }
+            }
         }
 
         if (environmentVariables != null)
