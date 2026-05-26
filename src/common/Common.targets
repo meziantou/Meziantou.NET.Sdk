@@ -59,6 +59,10 @@
 		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe' AND '$(IsTestProject)' != 'true'">true</PackAsTool>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<EnablePackageReferenceHardening Condition="'$(EnablePackageReferenceHardening)' == ''">true</EnablePackageReferenceHardening>
+	</PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>
@@ -108,6 +112,29 @@
 			<_RunnerOs>$(RUNNER_OS)</_RunnerOs>
 			<_RunnerArch>$(RUNNER_ARCH)</_RunnerArch>
 		</PropertyGroup>
+	</Target>
+
+	<Target Name="MeziantouHardenPackageReferenceAssets" BeforeTargets="CollectPackageReferences" Condition="'$(EnablePackageReferenceHardening)' == 'true'">
+		<ItemGroup>
+			<_UntrustedPackageReference Include="@(PackageReference)"
+			                          Condition="'$([System.String]::Copy('%(PackageReference.MeziantouSafePackage)').ToLowerInvariant())' != 'true'
+			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Identity)', '^(?:(?:Microsoft|System|Meziantou)\.|xunit(?:\.|$))', System.Text.RegularExpressions.RegexOptions.IgnoreCase))" />
+
+			<PackageReference Update="@(_UntrustedPackageReference)"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';build;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+				<ExcludeAssets>%(PackageReference.ExcludeAssets);build</ExcludeAssets>
+			</PackageReference>
+
+			<PackageReference Update="@(_UntrustedPackageReference)"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';buildTransitive;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+				<ExcludeAssets>%(PackageReference.ExcludeAssets);buildTransitive</ExcludeAssets>
+			</PackageReference>
+
+			<PackageReference Update="@(_UntrustedPackageReference)"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';analyzers;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+				<ExcludeAssets>%(PackageReference.ExcludeAssets);analyzers</ExcludeAssets>
+			</PackageReference>
+		</ItemGroup>
 	</Target>
 
 	<!-- Disable packages -->
