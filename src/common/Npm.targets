@@ -7,6 +7,7 @@
   <!-- Compute additional metadata for the NpmPackageFile items -->
   <Target Name="ComputeNpmPackageMetadata">
     <PropertyGroup>
+      <NpmIgnoreScripts Condition="'$(NpmIgnoreScripts)' == ''">true</NpmIgnoreScripts>
       <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND ('$(RestoreLockedMode)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true')">true</NpmRestoreLockedMode>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' != 'true'">install</_NpmRestoreCommand>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' == 'true'">ci</_NpmRestoreCommand>
@@ -18,6 +19,7 @@
         <LockFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'package-lock.json'))</LockFile>
         <WorkingDirectory>%(RootDir)%(Directory)</WorkingDirectory>
         <_NpmInstallOptions>--no-fund --no-audit</_NpmInstallOptions>
+        <_NpmInstallOptions Condition="'$(NpmIgnoreScripts)' == 'true'">$(_NpmInstallOptions) --ignore-scripts</_NpmInstallOptions>
 
         <InstallCommand>npm install $(_NpmInstallOptions)</InstallCommand>
         <RestoreCommand>npm $(_NpmRestoreCommand) $(_NpmInstallOptions)</RestoreCommand>
