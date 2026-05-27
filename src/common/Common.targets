@@ -117,24 +117,24 @@
 	<Target Name="MeziantouHardenPackageReferenceAssets" BeforeTargets="CollectPackageReferences" Condition="'$(EnablePackageReferenceHardening)' == 'true'">
 		<ItemGroup>
 			<_UntrustedPackageReference Include="@(PackageReference)"
-			                          Condition="'$([System.String]::Copy('%(PackageReference.MeziantouSafePackage)').ToLowerInvariant())' != 'true'
-			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy('%(PackageReference.Identity)').ToLowerInvariant())', '^(?:(?:microsoft|system|meziantou)\.|xunit(?:\.|$))'))" />
+			                          Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.MeziantouSafePackage)', '(?i)^true$'))
+			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Identity)', '(?i)^(?:(?:microsoft|system|meziantou)\.|xunit(?:\.|$))'))" />
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
 			                  IsImplicitlyDefined="true"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';build;'))">
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', '(?i);build;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);build</ExcludeAssets>
 			</PackageReference>
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
 			                  IsImplicitlyDefined="true"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';buildtransitive;'))">
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', '(?i);buildtransitive;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);buildTransitive</ExcludeAssets>
 			</PackageReference>
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
 			                  IsImplicitlyDefined="true"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';analyzers;'))">
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', '(?i);analyzers;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);analyzers</ExcludeAssets>
 			</PackageReference>
 		</ItemGroup>
