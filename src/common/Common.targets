@@ -47,7 +47,7 @@
 
 	<ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
 		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults" Version="1.0.38" IsImplicitlyDefined="true" />
-		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.3" IsImplicitlyDefined="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
+		<PackageReference Include="Meziantou.AspNetCore.ServiceDefaults.AutoRegister" Version="1.0.3" IsImplicitlyDefined="true" MeziantouSafePackage="true" Condition="'$(AutoRegisterServiceDefaults)' != 'false'" />
 	</ItemGroup>
 
 	<!-- Ensure application can run with newer frameworks -->
@@ -117,21 +117,24 @@
 	<Target Name="MeziantouHardenPackageReferenceAssets" BeforeTargets="CollectPackageReferences" Condition="'$(EnablePackageReferenceHardening)' == 'true'">
 		<ItemGroup>
 			<_UntrustedPackageReference Include="@(PackageReference)"
-			                          Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.MeziantouSafePackage)', '^true$', System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Identity)', '^(?:(?:Microsoft|System|Meziantou)\.|xunit(?:\.|$))', System.Text.RegularExpressions.RegexOptions.IgnoreCase))" />
+			                          Condition="'$([System.String]::Copy('%(PackageReference.MeziantouSafePackage)').ToLowerInvariant())' != 'true'
+			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy('%(PackageReference.Identity)').ToLowerInvariant())', '^(?:(?:microsoft|system|meziantou)\.|xunit(?:\.|$))'))" />
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';build;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+			                  IsImplicitlyDefined="true"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';build;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);build</ExcludeAssets>
 			</PackageReference>
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';buildTransitive;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+			                  IsImplicitlyDefined="true"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';buildtransitive;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);buildTransitive</ExcludeAssets>
 			</PackageReference>
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
-			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch(';%(PackageReference.ExcludeAssets);', ';analyzers;', System.Text.RegularExpressions.RegexOptions.IgnoreCase))">
+			                  IsImplicitlyDefined="true"
+			                  Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('$([System.String]::Copy(';%(PackageReference.ExcludeAssets);').ToLowerInvariant())', ';analyzers;'))">
 				<ExcludeAssets>%(PackageReference.ExcludeAssets);analyzers</ExcludeAssets>
 			</PackageReference>
 		</ItemGroup>
