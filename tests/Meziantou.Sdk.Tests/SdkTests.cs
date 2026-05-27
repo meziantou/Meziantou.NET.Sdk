@@ -140,6 +140,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
     [Theory]
     [InlineData("System.Text.Json", "9.0.0")]
+    [InlineData("TUnit", "1.22.19")]
     [InlineData("xunit", "2.9.3")]
     [InlineData("xunit.runner.visualstudio", "3.1.5")]
     public async Task PackageReferenceHardening_DoesNotChangeTrustedPackages(string packageId, string packageVersion)

@@ -138,8 +138,10 @@ By default, package references are considered trusted when their package ID matc
 - `Meziantou.*`
 - `xunit`
 - `xunit.*`
+- `TUnit`
+- `TUnit.*`
 
-For package references outside this allowlist, the SDK appends `build;buildTransitive;analyzers` to `ExcludeAssets` before `CollectPackageReferences`.
+For package references outside this allowlist, the SDK appends `build;buildTransitive;analyzers` to `ExcludeAssets` during restore.
 
 You can mark a specific package as trusted using `MeziantouSafePackage="true"`:
 

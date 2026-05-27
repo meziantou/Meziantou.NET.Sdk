@@ -114,11 +114,11 @@
 		</PropertyGroup>
 	</Target>
 
-	<Target Name="MeziantouHardenPackageReferenceAssets" BeforeTargets="CollectPackageReferences" Condition="'$(EnablePackageReferenceHardening)' == 'true'">
+	<Target Name="MeziantouHardenPackageReferenceAssets" BeforeTargets="Restore" Condition="'$(EnablePackageReferenceHardening)' == 'true'">
 		<ItemGroup>
 			<_UntrustedPackageReference Include="@(PackageReference)"
 			                          Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.MeziantouSafePackage)', '(?i)^true$'))
-			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Identity)', '(?i)^(?:(?:microsoft|system|meziantou)\.|xunit(?:\.|$))'))" />
+			                                   AND !$([System.Text.RegularExpressions.Regex]::IsMatch('%(PackageReference.Identity)', '(?i)^(?:(?:microsoft|system|meziantou|xunit|tunit)(?:\.|$))'))" />
 
 			<PackageReference Update="@(_UntrustedPackageReference)"
 			                  IsImplicitlyDefined="true"
