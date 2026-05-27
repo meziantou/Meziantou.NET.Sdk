@@ -164,6 +164,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultNpmPackageFile` | Enabled when unset | Enables automatic package.json inclusion as `NpmPackageFile` (set to `false` to disable). |
+| `NpmIgnoreScripts` | `true` | Adds `--ignore-scripts` to `npm install` / `npm ci` when `true` (set to `false` to allow lifecycle scripts). |
 | `NpmRestoreLockedMode` | `true` on CI or when `RestoreLockedMode` is `true` | Uses `npm ci` when `true`, otherwise `npm install`. |
 
 ## Testing
