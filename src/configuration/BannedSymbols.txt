@@ -1,5 +1,4 @@
 T:System.Collections.ArrayList;Use System.Collections.Generic.List<T> instead
-T:System.Collections.Hashtable;Use System.Collections.Generic.Dictionary<TKey, TValue> instead
 
 P:System.DateTime.Now;Use System.DateTime.UtcNow instead
 P:System.DateTimeOffset.Now;Use System.DateTimeOffset.UtcNow instead
