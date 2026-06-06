@@ -1,0 +1,48 @@
+# global_level must be higher than the NET Analyzer files
+is_global = true
+global_level = 0
+
+# MFFP0001: Path.GetFullPath is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0001.severity = warning
+
+# MFFP0002: Combining with a FullPath right operand is redundant
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0002.severity = warning
+
+# MFFP0003: Path.GetFullPath with FullPath base is redundant
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0003.severity = warning
+
+# MFFP0004: Path.Combine is redundant with FullPath arguments
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0004.severity = warning
+
+# MFFP0005: Path.GetFileName is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0005.severity = warning
+
+# MFFP0006: Path.GetFileNameWithoutExtension is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0006.severity = warning
+
+# MFFP0007: Path.GetExtension is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0007.severity = warning
+
+# MFFP0008: Path.GetDirectoryName is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0008.severity = warning
+
+# MFFP0009: Path.ChangeExtension is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0009.severity = warning
+
+# MFFP0010: Path.GetRelativePath is redundant on FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0010.severity = warning
+
+# MFFP0011: Method should return FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0011.severity = warning
+

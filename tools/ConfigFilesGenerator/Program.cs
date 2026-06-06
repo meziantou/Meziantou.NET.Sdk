@@ -19,6 +19,12 @@ using Microsoft.CodeAnalysis.CSharp;
 
 var rootFolder = GetRootFolderPath();
 
+var additionalAnalyzerPackages = new[]
+{
+    "Microsoft.CodeAnalysis.NetAnalyzers",
+    "Meziantou.Framework.FullPath",
+};
+
 var writtenFiles = 0;
 await GenerateEditorConfigForCompilerAnalyzers();
 await GenerateEditorConfigForAnalyzers();
@@ -349,7 +355,7 @@ async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages(
     }
 
     // Add analyzers from the .NET SDK
-    foreach (var package in new[] { "Microsoft.CodeAnalysis.NetAnalyzers" })
+    foreach (var package in additionalAnalyzerPackages)
     {
         yield return (package, null);
     }
