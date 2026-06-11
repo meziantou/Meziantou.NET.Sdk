@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Formats.Tar;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Meziantou.Framework;
 using Meziantou.Framework.Threading;
 
@@ -54,6 +55,13 @@ public static class DotNetSdkHelpers
             Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
+            var hash = SHA512.HashData(bytes);
+            var hashString = Convert.ToHexString(hash);
+            if (!string.Equals(hashString, file.Hash, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Hash mismatch for downloaded file. Expected: {file.Hash}, Actual: {hashString}");
+            }
+
             if (Path.GetExtension(file.Name) is ".zip")
             {
                 using var ms = new MemoryStream(bytes);
