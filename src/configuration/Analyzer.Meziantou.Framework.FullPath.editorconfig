@@ -2,47 +2,47 @@
 is_global = true
 global_level = 0
 
-# MFFP0001: Path.GetFullPath is redundant on FullPath
+# MFFP0001: Use FullPath directly instead of Path.GetFullPath
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0001.severity = warning
 
-# MFFP0002: Combining with a FullPath right operand is redundant
+# MFFP0002: Use the right FullPath operand directly
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0002.severity = warning
 
-# MFFP0003: Path.GetFullPath with FullPath base is redundant
+# MFFP0003: Use '/' with a FullPath base instead of Path.GetFullPath
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0003.severity = warning
 
-# MFFP0004: Path.Combine is redundant with FullPath arguments
+# MFFP0004: Use '/' operator instead of Path.Combine
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0004.severity = warning
 
-# MFFP0005: Path.GetFileName is redundant on FullPath
+# MFFP0005: Use FullPath.Name instead of Path.GetFileName
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0005.severity = warning
 
-# MFFP0006: Path.GetFileNameWithoutExtension is redundant on FullPath
+# MFFP0006: Use FullPath.NameWithoutExtension instead of Path.GetFileNameWithoutExtension
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0006.severity = warning
 
-# MFFP0007: Path.GetExtension is redundant on FullPath
+# MFFP0007: Use FullPath.Extension instead of Path.GetExtension
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0007.severity = warning
 
-# MFFP0008: Path.GetDirectoryName is redundant on FullPath
+# MFFP0008: Use FullPath.Parent instead of Path.GetDirectoryName
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0008.severity = warning
 
-# MFFP0009: Path.ChangeExtension is redundant on FullPath
+# MFFP0009: Use FullPath.ChangeExtension instead of Path.ChangeExtension
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0009.severity = warning
 
-# MFFP0010: Path.GetRelativePath is redundant on FullPath
+# MFFP0010: Use FullPath.MakePathRelativeTo instead of Path.GetRelativePath
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0010.severity = warning
 
-# MFFP0011: Method should return FullPath
+# MFFP0011: Return FullPath instead of string
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0011.severity = warning
 
