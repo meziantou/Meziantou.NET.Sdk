@@ -127,6 +127,27 @@ Set these properties in your project file or a directory-level props file. Unles
 | `NuGetAuditMode` | `all` | Audits all dependency types. |
 | `NuGetAuditLevel` | `low` | Minimum severity level to report. |
 | `WarningsAsErrors` | Adds `NU1900`–`NU1904` on CI, Release, or AI agent runtime | Promotes NuGet audit warnings to errors. |
+| `EnablePackageReferenceHardening` | `true` | Excludes `build`, `buildTransitive`, and `analyzers` assets for non-trusted packages before restore. |
+
+## Package reference hardening
+
+By default, package references are considered trusted when their package ID matches one of these patterns:
+
+- `Microsoft.*`
+- `System.*`
+- `Meziantou.*`
+- `xunit`
+- `xunit.*`
+- `TUnit`
+- `TUnit.*`
+
+For package references outside this allowlist, the SDK appends `build;buildTransitive;analyzers` to `ExcludeAssets` during restore.
+
+You can mark a specific package as trusted using `MeziantouSafePackage="true"`:
+
+```xml
+<PackageReference Include="Some.Package" Version="1.2.3" MeziantouSafePackage="true" />
+```
 
 ## Banned symbols and analyzers
 

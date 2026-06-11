@@ -53,6 +53,25 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         return builder;
     }
 
+    private static XElement CreateReportPackageReferenceExcludeAssetsTarget()
+    {
+        return new XElement("Target",
+            new XAttribute("Name", "ReportPackageReferenceExcludeAssets"),
+            new XAttribute("AfterTargets", "MeziantouHardenPackageReferenceAssets"),
+            new XAttribute("BeforeTargets", "CollectPackageReferences"),
+            new XElement("Message",
+                new XAttribute("Importance", "high"),
+                new XAttribute("Text", "MEZIANTOU_PACKAGE_REFERENCE:%(PackageReference.Identity)|%(PackageReference.ExcludeAssets)")));
+    }
+
+    private static string GetPackageReferenceExcludeAssets(BuildResult buildResult, string packageId)
+    {
+        var prefix = $"MEZIANTOU_PACKAGE_REFERENCE:{packageId}|";
+        var line = Assert.Single(buildResult.OutputLines.Where(line => line.Contains(prefix, StringComparison.Ordinal)));
+        var startIndex = line.IndexOf(prefix, StringComparison.Ordinal);
+        return line[(startIndex + prefix.Length)..];
+    }
+
     [Fact]
     public void PackageReferenceAreValid()
     {
@@ -100,6 +119,65 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile();
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("RollForward", expectedValue: null);
+    }
+
+    [Fact]
+    public async Task PackageReferenceHardening_AddsExcludedAssetsForUntrustedPackages()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")],
+            additionalProjectElements: [CreateReportPackageReferenceExcludeAssetsTarget()]);
+
+        var data = await project.RestoreAndGetOutput();
+
+        Assert.True(data.IsMSBuildTargetExecuted("MeziantouHardenPackageReferenceAssets"));
+        var excludeAssets = GetPackageReferenceExcludeAssets(data, "Newtonsoft.Json");
+        Assert.Contains("build", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("buildTransitive", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("analyzers", excludeAssets, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("System.Text.Json", "9.0.0")]
+    [InlineData("TUnit", "1.22.19")]
+    [InlineData("xunit", "2.9.3")]
+    [InlineData("xunit.runner.visualstudio", "3.1.5")]
+    public async Task PackageReferenceHardening_DoesNotChangeTrustedPackages(string packageId, string packageVersion)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(
+            nuGetPackages: [new NuGetReference(packageId, packageVersion)],
+            additionalProjectElements: [CreateReportPackageReferenceExcludeAssetsTarget()]);
+
+        var data = await project.RestoreAndGetOutput();
+
+        var excludeAssets = GetPackageReferenceExcludeAssets(data, packageId);
+        Assert.DoesNotContain("build", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("buildTransitive", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("analyzers", excludeAssets, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PackageReferenceHardening_CanBeBypassedUsingSafePackageMetadata()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(additionalProjectElements:
+        [
+            new XElement("ItemGroup",
+                new XElement("PackageReference",
+                    new XAttribute("Include", "Newtonsoft.Json"),
+                    new XAttribute("Version", "13.0.4"),
+                    new XAttribute("MeziantouSafePackage", "true"))),
+            CreateReportPackageReferenceExcludeAssetsTarget(),
+        ]);
+
+        var data = await project.RestoreAndGetOutput();
+
+        var excludeAssets = GetPackageReferenceExcludeAssets(data, "Newtonsoft.Json");
+        Assert.DoesNotContain("build", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("buildTransitive", excludeAssets, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("analyzers", excludeAssets, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
