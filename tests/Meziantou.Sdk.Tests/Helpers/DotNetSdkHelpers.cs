@@ -1,6 +1,6 @@
 #nullable enable
 using System.Collections.Concurrent;
-using System.Formats.Tar;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -49,9 +49,8 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{finalDotnetPath}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
-
-            var tempFolder = FullPath.GetTempPath() / Guid.NewGuid().ToString("N");
+            var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
             Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
@@ -73,10 +72,34 @@ public static class DotNetSdkHelpers
                 // .tar.gz
                 try
                 {
-                    using var ms = new MemoryStream(bytes);
-                    using var gzipStream = new GZipStream(ms, CompressionMode.Decompress);
-                    TestContext.Current.TestOutputHelper?.WriteLine($"Extracting .NET SDK {versionString} to temp folder '{tempFolder}'");
-                    TarFile.ExtractToDirectory(gzipStream, tempFolder, overwriteFiles: true);
+                    var tempArchivePath = tempFolder / "sdk.tar.gz";
+                    await File.WriteAllBytesAsync(tempArchivePath, bytes);
+
+                    using var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo("tar")
+                        {
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                        },
+                    };
+                    process.StartInfo.ArgumentList.Add("-xzf");
+                    process.StartInfo.ArgumentList.Add(tempArchivePath);
+                    process.StartInfo.ArgumentList.Add("-C");
+                    process.StartInfo.ArgumentList.Add(tempFolder);
+
+                    process.Start();
+                    var standardOutput = process.StandardOutput.ReadToEndAsync();
+                    var standardError = process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+                    var standardOutputText = await standardOutput;
+                    var standardErrorText = await standardError;
+                    if (process.ExitCode != 0)
+                    {
+                        throw new InvalidOperationException($"Failed to extract SDK archive using tar (exit code {process.ExitCode}){Environment.NewLine}stdout: {standardOutputText}{Environment.NewLine}stderr: {standardErrorText}");
+                    }
+
+                    File.Delete(tempArchivePath);
                 }
                 catch (Exception ex)
                 {
