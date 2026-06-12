@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
@@ -18,7 +18,7 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                         ))">
     <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.2.3" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.7.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.8.0" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.2.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.2.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.2.3" IsImplicitlyDefined="true" />
