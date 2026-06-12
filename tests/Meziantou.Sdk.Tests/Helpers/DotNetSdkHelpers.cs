@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Meziantou.Framework;
 using Meziantou.Framework.Threading;
 
@@ -48,12 +49,18 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            // TODO log URL, runtimeIdentifier, files, etc. to help debugging issues in CI
-
             var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
             Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
+            var hash = SHA512.HashData(bytes);
+            var hashString = Convert.ToHexString(hash);
+            if (!string.Equals(hashString, file.Hash, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Hash mismatch for downloaded file. Expected: {file.Hash}, Actual: {hashString}");
+            }
+
             if (Path.GetExtension(file.Name) is ".zip")
             {
                 using var ms = new MemoryStream(bytes);
