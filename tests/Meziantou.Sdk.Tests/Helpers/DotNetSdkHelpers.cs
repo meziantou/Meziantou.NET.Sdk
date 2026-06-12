@@ -49,7 +49,7 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
+            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{finalDotnetPath}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
 
             var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
             Directory.CreateDirectory(tempFolder);
