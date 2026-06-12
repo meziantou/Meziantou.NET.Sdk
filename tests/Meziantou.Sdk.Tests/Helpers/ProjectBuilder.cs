@@ -147,6 +147,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
                 <PropertyGroup>
                     <OutputType>exe</OutputType>
                     <ErrorLog>{SarifFileName},version=2.1</ErrorLog>
+                    <EnablePreviewFeatures>true</EnablePreviewFeatures>
                 </PropertyGroup>
                 {propertiesElement}
                 {packagesElement}
