@@ -82,7 +82,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
-        data.AssertMSBuildPropertyValue("LangVersion", "latest");
+        data.AssertMSBuildPropertyValue("LangVersion", sdkImportStyle is SdkImportStyle.Default ? "preview" : "latest");
         data.AssertMSBuildPropertyValue("PublishRepositoryUrl", "true");
         data.AssertMSBuildPropertyValue("DebugType", "embedded");
         data.AssertMSBuildPropertyValue("EmbedUntrackedSources", "true");
