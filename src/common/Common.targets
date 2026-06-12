@@ -8,6 +8,7 @@
 
 	<PropertyGroup>
     <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
+    <EnablePreviewFeatures Condition="'$(EnablePreviewFeatures)' == ''">true</EnablePreviewFeatures>
 	</PropertyGroup>
 
 	<PropertyGroup>
