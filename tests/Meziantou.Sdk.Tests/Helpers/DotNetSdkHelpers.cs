@@ -51,7 +51,7 @@ public static class DotNetSdkHelpers
 
             TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{finalDotnetPath}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
 
-            var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            var tempFolder = FullPath.GetTempPath() / Guid.NewGuid().ToString("N");
             Directory.CreateDirectory(tempFolder);
 
             var bytes = await HttpClient.GetByteArrayAsync(file.Address);
@@ -75,6 +75,7 @@ public static class DotNetSdkHelpers
                 {
                     using var ms = new MemoryStream(bytes);
                     using var gzipStream = new GZipStream(ms, CompressionMode.Decompress);
+                    TestContext.Current.TestOutputHelper?.WriteLine($"Extracting .NET SDK {versionString} to temp folder '{tempFolder}'");
                     TarFile.ExtractToDirectory(gzipStream, tempFolder, overwriteFiles: true);
                 }
                 catch (Exception ex)
