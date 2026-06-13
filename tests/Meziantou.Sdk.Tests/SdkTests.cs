@@ -1926,9 +1926,8 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", $$"""
             {{GetSdkDirectives()}}
-            #:package Humanizer.Core@2.14.1
-            using Humanizer;
-            Console.WriteLine("truncated: " + "Hello from file-based app".Truncate(10));
+            #:package Meziantou.Framework.FullPath@2.1.2
+            Console.WriteLine(Meziantou.Framework.FullPath.Empty);
             """);
 
         var data = await project.RunFileAndGetOutput("Program.cs");
