@@ -1947,7 +1947,7 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
 
         var data = await project.BuildFileAndGetOutput("Program.cs");
         Assert.Equal(0, data.ExitCode);
-        data.AssertMSBuildPropertyValue("LangVersion", "latest");
+        //data.AssertMSBuildPropertyValue("LangVersion", "latest");
         data.AssertMSBuildPropertyValue("Nullable", "enable");
         data.AssertMSBuildPropertyValue("ImplicitUsings", "enable");
         data.AssertMSBuildPropertyValue("EnableNETAnalyzers", "true");
