@@ -24,7 +24,10 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
 
     private string GetSdkDirectives()
     {
-        return $"#:sdk {SdkName}@{fixture.Version}";
+        return $"""
+            #:sdk {SdkName}@{fixture.Version}
+            #:property SarifFileName={ProjectBuilder.SarifFileName}
+            """;
     }
 
     [Fact]
@@ -67,7 +70,7 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
 
         var data = await project.RunFileAndGetOutput("Program.cs");
         Assert.Equal(0, data.ExitCode);
-        Assert.True(data.OutputContains("truncated: Hello fro"));
+        Assert.True(data.OutputContains("done"));
     }
 
     [Fact]

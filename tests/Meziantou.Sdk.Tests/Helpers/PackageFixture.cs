@@ -43,12 +43,12 @@ public sealed class PackageFixture : IAsyncLifetime
         // Build NuGet packages
         var buildFiles = Directory.GetFiles(PathHelpers.GetRootDirectory() / "src", "*.csproj").Select(FullPath.FromPath);
         Assert.NotEmpty(buildFiles);
-        await Parallel.ForEachAsync(buildFiles, async (nuspecPath, ct) =>
+        await Parallel.ForEachAsync(buildFiles, async (projectPath, ct) =>
         {
             using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, ct);
             var result = await ProcessWrapper.Create("dotnet")
-                .WithArguments("pack", "--disable-build-servers", nuspecPath, "-p:NuspecProperties=version=" + Version, "--output", _packageDirectory.FullPath)
+                .WithArguments("pack", "--disable-build-servers", projectPath, "-p:Version=" + Version, "--output", _packageDirectory.FullPath)
                 .WithEnvironmentVariables(env => env
                     .Set("MSBUILDDISABLENODEREUSE", "1")
                     .Set("DOTNET_CLI_USE_MSBUILDNOINPROCNODE", "1"))

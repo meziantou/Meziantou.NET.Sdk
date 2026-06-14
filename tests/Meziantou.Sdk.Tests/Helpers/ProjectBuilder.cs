@@ -8,7 +8,7 @@ namespace Meziantou.Sdk.Tests.Helpers;
 
 internal sealed class ProjectBuilder : IAsyncDisposable
 {
-    private const string SarifFileName = "BuildOutput.sarif";
+    internal const string SarifFileName = "BuildOutput.sarif";
 
     private readonly TemporaryDirectory _directory;
     private readonly PackageFixture _fixture;
@@ -89,11 +89,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
     public void SetDotnetSdkVersion(NetSdkVersion dotnetSdkVersion) => _sdkVersion = dotnetSdkVersion;
 
-    private string GetSdkElementContent(string sdkName)
-    {
-        return $"""<Sdk Name="{sdkName}" Version="{_fixture.Version}" />""";
-    }
-
     public void AddDirectoryBuildPropsFile(string postSdkContent, string preSdkContent = "")
     {
         var fileContent = $"""
@@ -150,7 +145,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
     {
         return ExecuteDotnetCommandAndGetOutput("build", buildArguments, environmentVariables);
     }
-
 
     public Task<BuildResult> RestoreAndGetOutput(string[]? buildArguments = null, (string Name, string Value)[]? environmentVariables = null)
     {
