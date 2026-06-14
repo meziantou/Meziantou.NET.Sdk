@@ -24,7 +24,10 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
 
     private string GetSdkDirectives()
     {
-        return $"#:sdk {SdkName}@{fixture.Version}";
+        return $"""
+            #:sdk {SdkName}@{fixture.Version}
+            #:property SarifFileName={ProjectBuilder.SarifFileName}
+            """;
     }
 
     [Fact]
@@ -60,14 +63,14 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", $$"""
             {{GetSdkDirectives()}}
-            #:package Humanizer.Core@2.14.1
-            using Humanizer;
-            Console.WriteLine("truncated: " + "Hello from file-based app".Truncate(10));
+            #:package Meziantou.Framework.FullPath@2.1.4
+            _ = Meziantou.Framework.FullPath.Empty;
+            Console.WriteLine("done");
             """);
 
         var data = await project.RunFileAndGetOutput("Program.cs");
         Assert.Equal(0, data.ExitCode);
-        Assert.True(data.OutputContains("truncated: Hello fro"));
+        Assert.True(data.OutputContains("done"));
     }
 
     [Fact]
