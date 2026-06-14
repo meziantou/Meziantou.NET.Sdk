@@ -11,7 +11,6 @@ namespace Meziantou.Sdk.Tests.Helpers;
 
 public static class DotNetSdkHelpers
 {
-    private static readonly HttpClient HttpClient = new();
     private static readonly ConcurrentDictionary<NetSdkVersion, FullPath> Values = new();
     private static readonly KeyedAsyncLock<NetSdkVersion> KeyedAsyncLock = new();
 
@@ -32,9 +31,9 @@ public static class DotNetSdkHelpers
                 _ => throw new NotSupportedException(),
             };
 
-            var products = await Microsoft.Deployment.DotNet.Releases.ProductCollection.GetAsync();
+            var products = await ExecuteWithRetry(Microsoft.Deployment.DotNet.Releases.ProductCollection.GetAsync);
             var product = products.Single(a => a.ProductName == ".NET" && a.ProductVersion == versionString);
-            var releases = await product.GetReleasesAsync();
+            var releases = await ExecuteWithRetry(product.GetReleasesAsync);
             var latestRelease = releases.Single(r => r.Version == product.LatestReleaseVersion);
             var latestSdk = latestRelease.Sdks.MaxBy(sdk => sdk.Version);
 
@@ -53,7 +52,7 @@ public static class DotNetSdkHelpers
             TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
             Directory.CreateDirectory(tempFolder);
 
-            var bytes = await HttpClient.GetByteArrayAsync(file.Address);
+            var bytes = await SharedHttpClient.Instance.GetByteArrayAsync(file.Address);
             var hash = SHA512.HashData(bytes);
             var hashString = Convert.ToHexString(hash);
             if (!string.Equals(hashString, file.Hash, StringComparison.OrdinalIgnoreCase))
@@ -139,6 +138,28 @@ public static class DotNetSdkHelpers
             Assert.True(File.Exists(finalDotnetPath));
             Values[version] = finalDotnetPath;
             return finalDotnetPath;
+        }
+    }
+
+    private static async Task<T> ExecuteWithRetry<T>(Func<Task<T>> action)
+    {
+        const int MaxAttempts = 5;
+        var delay = TimeSpan.FromMilliseconds(200);
+
+        for (var attempt = 1; ; attempt++, delay *= 2)
+        {
+            try
+            {
+                return await action();
+            }
+            catch (HttpRequestException) when (attempt < MaxAttempts)
+            {
+            }
+            catch (TaskCanceledException) when (attempt < MaxAttempts)
+            {
+            }
+
+            await Task.Delay(delay);
         }
     }
 }
