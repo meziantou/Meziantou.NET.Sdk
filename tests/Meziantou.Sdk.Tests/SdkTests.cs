@@ -71,6 +71,23 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public void PackageLayoutIsValid()
+    {
+        var packages = Directory.GetFiles(fixture.PackageDirectory, "*.nupkg");
+        Assert.NotEmpty(packages);
+
+        foreach (var package in packages)
+        {
+            using var packageReader = new PackageArchiveReader(package);
+            var files = packageReader.GetFiles();
+            Assert.Contains("common/Common.props", files);
+            Assert.Contains("configuration/CodingStyle.editorconfig", files);
+            Assert.DoesNotContain("Common.props", files);
+            Assert.DoesNotContain("CodingStyle.editorconfig", files);
+        }
+    }
+
+    [Fact]
     public async Task ValidateDefaultProperties()
     {
         await using var project = CreateProjectBuilder();
