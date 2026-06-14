@@ -69,7 +69,8 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         project.AddFile("Program.cs", $$"""
             {{GetSdkDirectives()}}
             #:package Meziantou.Framework.FullPath@2.1.4
-            Console.WriteLine(Meziantou.Framework.FullPath.Empty);
+            _ = Meziantou.Framework.FullPath.Empty;
+            Console.WriteLine("done");
             """);
 
         var data = await project.RunFileAndGetOutput("Program.cs");
