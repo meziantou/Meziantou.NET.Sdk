@@ -100,6 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        shard-index: [1, 2, 3]
     runs-on: ${{ matrix.runs-on }}
     needs: [create_nuget, compute_version]
     steps:
@@ -111,14 +112,15 @@ jobs:
       - uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5
       - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet test tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results
+      - run: dotnet tool install --global Meziantou.ShardedTest
+      - run: sharded-test --shard-index ${{ matrix.shard-index }} --total-shards 3 tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results --settings .github/sharded-tests.runsettings
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:
-          name: test_results_${{ matrix.runs-on }}
+          name: test_results_${{ matrix.runs-on }}_${{ matrix.shard-index }}
           path: test_results
 
   deploy:
