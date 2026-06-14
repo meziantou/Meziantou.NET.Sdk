@@ -5,15 +5,15 @@ using Meziantou.Sdk.Tests.Helpers;
 namespace Meziantou.Sdk.Tests;
 
 public sealed class FileBasedApp10_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net10_0, useAsRootSdk: true);
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net10_0);
 
 public sealed class FileBasedApp11_0_Root_Tests(PackageFixture fixture, ITestOutputHelper testOutputHelper)
-    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net11_0, useAsRootSdk: true);
+    : FileBasedAppTests(fixture, testOutputHelper, NetSdkVersion.Net11_0);
 
 /// <summary>
 /// Tests for file-based apps using the <c>#:sdk</c> directive.
 /// </summary>
-public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion, bool useAsRootSdk)
+public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion)
 {
     private ProjectBuilder CreateProjectBuilder()
     {
@@ -24,15 +24,7 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
 
     private string GetSdkDirectives()
     {
-        if (useAsRootSdk)
-        {
-            return $"#:sdk {SdkName}@{fixture.Version}";
-        }
-
-        return $$"""
-            #:sdk Microsoft.NET.Sdk
-            #:sdk {{SdkName}}@{{fixture.Version}}
-            """;
+        return $"#:sdk {SdkName}@{fixture.Version}";
     }
 
     [Fact]
