@@ -336,7 +336,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task WarningsAsErrorOnAiAgent()
+    public async Task WarningsAsErrorInLLMContext()
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
@@ -347,24 +347,68 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("GITHUB_COPILOT_RUNTIME")]
-    [InlineData("CLAUDECODE")]
-    [InlineData("CLAUDE_CODE_ENTRYPOINT")]
-    [InlineData("GEMINI_CLI")]
-    [InlineData("CODEX_SANDBOX")]
-    public async Task AiAgentEnvironmentVariables_EnableWarningsAsErrors(string environmentVariableName)
+    [InlineData("CLAUDECODE", "1")]
+    [InlineData("CLAUDE_CODE_ENTRYPOINT", "1")]
+    [InlineData("CURSOR_EDITOR", "1")]
+    [InlineData("CURSOR_AI", "1")]
+    [InlineData("GEMINI_CLI", "true")]
+    [InlineData("GITHUB_COPILOT_CLI_MODE", "yes")]
+    [InlineData("GH_COPILOT_WORKING_DIRECTORY", "1")]
+    [InlineData("COPILOT_CLI", "1")]
+    [InlineData("COPILOT_AGENT", "1")]
+    [InlineData("CODEX_CLI", "1")]
+    [InlineData("CODEX_SANDBOX", "1")]
+    [InlineData("OR_APP_NAME", "Aider")]
+    [InlineData("OR_APP_NAME", "plandex")]
+    [InlineData("AMP_HOME", "1")]
+    [InlineData("QWEN_CODE", "1")]
+    [InlineData("DROID_CLI", "on")]
+    [InlineData("OPENCODE_AI", "1")]
+    [InlineData("ZED_ENVIRONMENT", "1")]
+    [InlineData("ZED_TERM", "1")]
+    [InlineData("KIMI_CLI", "TRUE")]
+    [InlineData("OR_APP_NAME", "OpenHands")]
+    [InlineData("GOOSE_TERMINAL", "1")]
+    [InlineData("CLINE_TASK_ID", "1")]
+    [InlineData("ROO_CODE_TASK_ID", "1")]
+    [InlineData("WINDSURF_SESSION", "1")]
+    [InlineData("AGENT_CLI", "1")]
+    public async Task LLMContextEnvironmentVariables_EnableWarningsAsErrors(string environmentVariableName, string environmentVariableValue)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
         project.AddFile("sample.cs", "Console.WriteLine();");
 
-        var data = await project.BuildAndGetOutput(environmentVariables: [(environmentVariableName, "1")]);
+        var data = await project.BuildAndGetOutput(environmentVariables: [(environmentVariableName, environmentVariableValue)]);
 
-        data.AssertMSBuildPropertyValue("_IsAiAgentBuild", "true");
+        data.AssertMSBuildPropertyValue("IsLLMContext", "true");
         data.AssertMSBuildPropertyValue("_EnableWarningsAsErrors", "true");
         data.AssertMSBuildPropertyValue("MSBuildTreatWarningsAsErrors", "true");
         data.AssertMSBuildPropertyValue("TreatWarningsAsErrors", "true");
         Assert.Contains("NU1903", data.GetMSBuildPropertyValue("WarningsAsErrors"), StringComparison.Ordinal);
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("ContinuousIntegrationBuild"));
+    }
+
+    [Theory]
+    [InlineData("GEMINI_CLI", "false")]
+    [InlineData("GITHUB_COPILOT_CLI_MODE", "0")]
+    [InlineData("DROID_CLI", "disabled")]
+    [InlineData("KIMI_CLI", "no")]
+    [InlineData("AGENT_CLI", "false")]
+    [InlineData("OR_APP_NAME", "Unknown")]
+    public async Task UnknownLLMContextEnvironmentVariableValues_DoNotEnableWarningsAsErrors(string environmentVariableName, string environmentVariableValue)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables: [(environmentVariableName, environmentVariableValue)]);
+
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("IsLLMContext"));
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("_EnableWarningsAsErrors"));
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("MSBuildTreatWarningsAsErrors"));
+        Assert.NotEqual("true", data.GetMSBuildPropertyValue("TreatWarningsAsErrors"));
+        Assert.DoesNotContain("NU1903", data.GetMSBuildPropertyValue("WarningsAsErrors"), StringComparison.Ordinal);
         Assert.NotEqual("true", data.GetMSBuildPropertyValue("ContinuousIntegrationBuild"));
     }
 

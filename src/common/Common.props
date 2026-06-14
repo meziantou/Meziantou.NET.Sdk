@@ -41,8 +41,34 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <NoWarn>$(NoWarn);CA1014</NoWarn>
-    <_IsAiAgentBuild Condition="'$(GITHUB_COPILOT_RUNTIME)' != '' OR '$(CLAUDECODE)' != '' OR '$(CLAUDE_CODE_ENTRYPOINT)' != '' OR '$(GEMINI_CLI)' != '' OR '$(CODEX_SANDBOX)' != ''">true</_IsAiAgentBuild>
-    <_EnableWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release' OR '$(_IsAiAgentBuild)' == 'true'">true</_EnableWarningsAsErrors>
+    <IsLLMContext Condition="
+      '$(CLAUDECODE)' != '' OR
+      '$(CLAUDE_CODE_ENTRYPOINT)' != '' OR
+      '$(CURSOR_EDITOR)' != '' OR
+      '$(CURSOR_AI)' != '' OR
+      '$(GEMINI_CLI)' == '1' OR '$(GEMINI_CLI)' == 'true' OR '$(GEMINI_CLI)' == 'yes' OR '$(GEMINI_CLI)' == 'on' OR
+      '$(GITHUB_COPILOT_CLI_MODE)' == '1' OR '$(GITHUB_COPILOT_CLI_MODE)' == 'true' OR '$(GITHUB_COPILOT_CLI_MODE)' == 'yes' OR '$(GITHUB_COPILOT_CLI_MODE)' == 'on' OR
+      '$(GH_COPILOT_WORKING_DIRECTORY)' != '' OR
+      '$(COPILOT_CLI)' != '' OR
+      '$(COPILOT_AGENT)' != '' OR
+      '$(CODEX_CLI)' != '' OR
+      '$(CODEX_SANDBOX)' != '' OR
+      '$(OR_APP_NAME)' == 'Aider' OR
+      '$(OR_APP_NAME)' == 'plandex' OR
+      '$(AMP_HOME)' != '' OR
+      '$(QWEN_CODE)' != '' OR
+      '$(DROID_CLI)' == '1' OR '$(DROID_CLI)' == 'true' OR '$(DROID_CLI)' == 'yes' OR '$(DROID_CLI)' == 'on' OR
+      '$(OPENCODE_AI)' != '' OR
+      '$(ZED_ENVIRONMENT)' != '' OR
+      '$(ZED_TERM)' != '' OR
+      '$(KIMI_CLI)' == '1' OR '$(KIMI_CLI)' == 'true' OR '$(KIMI_CLI)' == 'yes' OR '$(KIMI_CLI)' == 'on' OR
+      '$(OR_APP_NAME)' == 'OpenHands' OR
+      '$(GOOSE_TERMINAL)' != '' OR
+      '$(CLINE_TASK_ID)' != '' OR
+      '$(ROO_CODE_TASK_ID)' != '' OR
+      '$(WINDSURF_SESSION)' != '' OR
+      '$(AGENT_CLI)' == '1' OR '$(AGENT_CLI)' == 'true' OR '$(AGENT_CLI)' == 'yes' OR '$(AGENT_CLI)' == 'on'">true</IsLLMContext>
+    <_EnableWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release' OR '$(IsLLMContext)' == 'true'">true</_EnableWarningsAsErrors>
     <MSBuildTreatWarningsAsErrors Condition="'$(_EnableWarningsAsErrors)' == 'true'">true</MSBuildTreatWarningsAsErrors>
     <TreatWarningsAsErrors Condition="'$(_EnableWarningsAsErrors)' == 'true'">true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild Condition="'$(ContinuousIntegrationBuild)' == 'true' OR '$(Configuration)' == 'Release'">true</EnforceCodeStyleInBuild>
