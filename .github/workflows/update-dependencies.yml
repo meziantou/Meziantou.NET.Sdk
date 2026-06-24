@@ -1,0 +1,56 @@
+name: Update dependencies
+on:
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5
+      - name: Create update branch
+        run: git switch -c automation/update-dependencies
+      - name: Run dependency updater
+        run: ./Update-dependencies.ps1
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --quiet
+          if ($LASTEXITCODE -eq 0) {
+            echo "has_changes=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          if ($LASTEXITCODE -eq 1) {
+            echo "has_changes=true" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          Write-Error "git diff failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update dependencies"
+          git push --force --set-upstream origin automation/update-dependencies
+      - name: Create or update pull request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $baseBranch = "${{ github.ref_name }}"
+          $prNumber = gh pr list --head automation/update-dependencies --base $baseBranch --json number --jq ".[0].number"
+          if ($prNumber) {
+            gh pr edit $prNumber --title "Update dependencies" --body "This PR was created automatically by the dependency update workflow."
+          } else {
+            gh pr create --head automation/update-dependencies --base $baseBranch --title "Update dependencies" --body "This PR was created automatically by the dependency update workflow." --label dependencies
+          }
