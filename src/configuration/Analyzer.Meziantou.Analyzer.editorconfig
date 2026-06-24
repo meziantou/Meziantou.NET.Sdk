@@ -1013,3 +1013,8 @@ dotnet_diagnostic.MA0201.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0202.severity = warning
 
+# MA0203: Do not use return tag for void method
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0203.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0203.severity = warning
+
