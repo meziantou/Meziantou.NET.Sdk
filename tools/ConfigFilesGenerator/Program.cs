@@ -48,8 +48,6 @@ async Task GenerateEditorConfigForAnalyzers()
     await Parallel.ForEachAsync(packages, async (item, cancellationToken) =>
     {
         var (packageId, packageVersion) = item;
-
-        Console.WriteLine(packageId + "@" + packageVersion);
         var configurationFilePath = rootFolder / "src" / "configuration" / ("Analyzer." + packageId + ".editorconfig");
 
         var rules = new HashSet<AnalyzerRule>();
@@ -58,6 +56,7 @@ async Task GenerateEditorConfigForAnalyzers()
             AddAnalyzerRules(rules, assembly);
         }
 
+        Console.WriteLine($"Found {rules.Count} rules for {packageId}");
         if (await WriteConfigurationFile(configurationFilePath, rules, cancellationToken))
         {
             Interlocked.Increment(ref writtenFiles);
@@ -281,7 +280,7 @@ async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
 {
     var foundPackages = new HashSet<SourcePackageDependencyInfo>();
 
-    var cache = new SourceCacheContext();
+    var cache = new SourceCacheContext() { NoCache = true };
     var repository = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
     var resource = await repository.GetResourceAsync<PackageMetadataResource>();
 
@@ -295,11 +294,15 @@ async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
             version = metadata.MaxBy(metadata => metadata.Identity.Version)!.Identity.Version;
         }
 
+if(package.Id is "Meziantou.Analyzer")
+        {
+
+        }
         var packageIdentity = new PackageIdentity(package.Id, version);
         await ListAllPackageDependencies(packageIdentity, [repository], NuGetFramework.AnyFramework, cache, NullLogger.Instance, foundPackages, CancellationToken.None);
     }
 
-    return [.. foundPackages.Select(p => (p.Id, p.Version))];
+    return [.. foundPackages.Select(p => (p.Id, p.Version)).OrderBy(p => p.Id, StringComparer.Ordinal)];
 
     static async Task ListAllPackageDependencies(
         PackageIdentity package,
@@ -363,19 +366,7 @@ async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages(
 
 static FullPath GetRootFolderPath()
 {
-    var path = FullPath.CurrentDirectory();
-    while (!path.IsEmpty)
-    {
-        if (Directory.Exists(path / ".git") || File.Exists(path / ".git"))
-            return path;
-
-        path = path.Parent;
-    }
-
-    if (path.IsEmpty)
-        throw new InvalidOperationException("Cannot find the root folder");
-
-    return path;
+    return FullPath.CurrentDirectory().FindRequiredGitRepositoryRoot();
 }
 
 static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersion version)
@@ -641,7 +632,7 @@ static async Task<DownloadResourceResult> DownloadNuGetPackage(string packageId,
     var globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(settings);
     var source = "https://api.nuget.org/v3/index.json";
 
-    var cache = new SourceCacheContext();
+    var cache = new SourceCacheContext() { NoCache = true };
     var repository = Repository.Factory.GetCoreV3(source);
     var resource = await repository.GetResourceAsync<FindPackageByIdResource>();
 
