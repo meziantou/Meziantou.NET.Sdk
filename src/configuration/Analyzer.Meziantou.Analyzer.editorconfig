@@ -1043,3 +1043,13 @@ dotnet_diagnostic.MA0207.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0208.severity = warning
 
+# MA0209: Use in keyword for in parameter
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0209.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0209.severity = none
+
+# MA0210: Use in keyword to call the in overload
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0210.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0210.severity = none
+
