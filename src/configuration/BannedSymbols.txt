@@ -1,4 +1,5 @@
 T:System.Collections.ArrayList;Use System.Collections.Generic.List<T> instead
+M:System.Reflection.Assembly.GetAssembly(System.Type);Use Type.Assembly instead
 
 P:System.DateTime.Now;Use System.DateTime.UtcNow instead
 P:System.DateTimeOffset.Now;Use System.DateTimeOffset.UtcNow instead
