@@ -361,8 +361,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             ("TargetFrameworks", "net10.0;netstandard2.0"),
             ("OutputType", "Library"));
 
-        var multiTargetData = await project.BuildAndGetOutput();
-        var editorConfigFiles = multiTargetData.GetMSBuildItems("EditorConfigFiles");
+        var multiTargetData = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"]);
+        var editorConfigFiles = multiTargetData.GetBinLogFiles();
 
         Assert.Contains(editorConfigFiles, f => f.EndsWith("Meziantou.NET.Sdk.NetStandard2_0.MultiTarget.editorconfig", StringComparison.Ordinal));
         Assert.False(multiTargetData.HasNote("MA0110"));
