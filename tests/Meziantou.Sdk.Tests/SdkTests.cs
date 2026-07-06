@@ -326,6 +326,49 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task NetStandard20MultiTargetEditorConfig_IncludedAndDisablesMA0110()
+    {
+        var commonPropsPath = PathHelpers.GetRootDirectory() / "src" / "common" / "Common.props";
+        var commonTargetsPath = PathHelpers.GetRootDirectory() / "src" / "common" / "Common.targets";
+
+        await using var project = CreateProjectBuilder("Microsoft.NET.Sdk");
+        project.AddDirectoryBuildPropsFile($"""<Import Project="{commonPropsPath}" />""");
+        project.AddFile("Sample.cs", """
+            using System.Text.RegularExpressions;
+
+            public static class Sample
+            {
+                public static Regex Create() => new("sample", RegexOptions.Compiled);
+            }
+            """);
+
+        void AddProjectFile(params (string Name, string Value)[] properties)
+        {
+            project.AddCsprojFile(properties: properties, additionalProjectElements:
+            [
+                new XElement("Import", new XAttribute("Project", commonTargetsPath)),
+            ]);
+        }
+
+        AddProjectFile(
+            ("TargetFramework", "net10.0"),
+            ("OutputType", "Library"));
+
+        var singleTargetData = await project.BuildAndGetOutput();
+        Assert.True(singleTargetData.HasNote("MA0110"));
+
+        AddProjectFile(
+            ("TargetFrameworks", "net10.0;netstandard2.0"),
+            ("OutputType", "Library"));
+
+        var multiTargetData = await project.BuildAndGetOutput();
+        var editorConfigFiles = multiTargetData.GetMSBuildItems("EditorConfigFiles");
+
+        Assert.Contains(editorConfigFiles, f => f.EndsWith("Meziantou.NET.Sdk.NetStandard2_0.MultiTarget.editorconfig", StringComparison.Ordinal));
+        Assert.False(multiTargetData.HasNote("MA0110"));
+    }
+
+    [Fact]
     public async Task WarningsAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
