@@ -71,6 +71,11 @@
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)../configuration/BannedSymbols.NewtonsoftJson.txt" Condition="'$(BannedNewtonsoftJsonSymbols)' != 'false'" Visible="false" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<EditorConfigFiles Include="$(MSBuildThisFileDirectory)../configuration/Meziantou.NET.Sdk.NetStandard2_0.MultiTarget.editorconfig"
+		                   Condition="'$(TargetFrameworks)' != '' AND $([System.Text.RegularExpressions.Regex]::IsMatch($([System.Text.RegularExpressions.Regex]::Replace('$(TargetFrameworks)', '\s+', '')), '^(?=.*;)(?=.*(?:^|;)netstandard2\.0(?:$|;)).+$'))" />
+	</ItemGroup>
+
 	<ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
 		<Using Include="System.Diagnostics.CodeAnalysis" />
 		<Using Include="System.Globalization" />

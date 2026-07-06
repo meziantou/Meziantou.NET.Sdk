@@ -191,6 +191,25 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
         _buildCount++;
 
+        FullPath sarifPath = _directory.FullPath / SarifFileName;
+        FullPath binlogPath = _directory.FullPath / "msbuild.binlog";
+        FullPath vstestdiagPath = RootFolder / "vstestdiag.txt";
+
+        if (File.Exists(sarifPath))
+        {
+            File.Delete(sarifPath);
+        }
+
+        if (File.Exists(binlogPath))
+        {
+            File.Delete(binlogPath);
+        }
+
+        if (File.Exists(vstestdiagPath))
+        {
+            File.Delete(vstestdiagPath);
+        }
+
         foreach (var file in Directory.GetFiles(_directory.FullPath, "*", SearchOption.AllDirectories))
         {
             _testOutputHelper.WriteLine("File: " + file);
@@ -265,7 +284,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             environmentChanges[key] = string.Empty;
         }
 
-        var vstestdiagPath = RootFolder / "vstestdiag.txt";
         environmentChanges["VSTestDiag"] = vstestdiagPath;
         var dotnetRoot = Path.GetDirectoryName(dotnetPath) ?? throw new InvalidOperationException("Cannot get dotnet root path");
         environmentChanges["DOTNET_ROOT"] = dotnetRoot;
@@ -381,7 +399,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         _testOutputHelper.WriteLine("Process exit code: " + result.ExitCode);
         _testOutputHelper.WriteLine(result.Output.ToString());
 
-        FullPath sarifPath = _directory.FullPath / SarifFileName;
         SarifFile? sarif = null;
         if (File.Exists(sarifPath))
         {
@@ -394,7 +411,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             _testOutputHelper.WriteLine("Sarif file not found: " + sarifPath);
         }
 
-        var binlogContent = File.ReadAllBytes(_directory.FullPath / "msbuild.binlog");
+        var binlogContent = File.ReadAllBytes(binlogPath);
         TestContext.Current.AddAttachment($"msbuild{_buildCount}.binlog", binlogContent);
 
         string? vstestDiagContent = null;
