@@ -4,3 +4,6 @@ global_level = 1
 
 # MA0110: Use the Regex source generator
 dotnet_diagnostic.MA0110.severity = none
+
+# RS1041: Compiler extensions should be implemented in assemblies targeting netstandard2.0
+dotnet_diagnostic.RS1041.severity = none
