@@ -690,6 +690,65 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
     }
 
+    [Theory]
+    [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
+    [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
+    public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("TargetFramework", "net10.0")], nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains($"Package '{packageName}' is not allowed.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"Use '{suggestedPackage}' instead.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"{allowProperty}=true", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
+    [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
+    public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Dependency/Dependency.csproj", $$"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>net10.0</TargetFramework>
+              </PropertyGroup>
+              <ItemGroup>
+                <PackageReference Include="{{packageName}}" Version="{{packageVersion}}" />
+              </ItemGroup>
+            </Project>
+            """);
+        project.AddFile("Dependency/Class1.cs", "public sealed class Class1 {}\n");
+        project.AddCsprojFile(properties: [("TargetFramework", "net10.0")], additionalProjectElements:
+        [
+            new XElement("ItemGroup", new XElement("ProjectReference", new XAttribute("Include", "Dependency/Dependency.csproj"))),
+        ]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains($"Package '{packageName}' is not allowed.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"Use '{suggestedPackage}' instead.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"{allowProperty}=true", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("YamlDotNet", "16.3.0", "AllowPackage_YamlDotNet")]
+    [InlineData("CliWrap", "3.7.0", "AllowPackage_CliWrap")]
+    public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string packageVersion, string allowProperty)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("TargetFramework", "net10.0"), (allowProperty, "true")], nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+    }
+
     [Fact]
     public async Task MSBuildWarningsAsError()
     {
