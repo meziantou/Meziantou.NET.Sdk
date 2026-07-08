@@ -123,23 +123,11 @@
 		</ItemGroup>
 	</Target>
 
-	<ItemGroup>
-		<BannedPackageReference Include="YamlDotNet" SuggestedPackage="Meziantou.Framework.Yaml" AllowPropertyName="AllowPackage_YamlDotNet" Condition="'$(AllowPackage_YamlDotNet)' != 'true'" />
-		<BannedPackageReference Include="CliWrap" SuggestedPackage="Meziantou.Framework.ProcessWrapper" AllowPropertyName="AllowPackage_CliWrap" Condition="'$(AllowPackage_CliWrap)' != 'true'" />
-	</ItemGroup>
-
 	<Target Name="FailOnBannedPackageReferences" AfterTargets="ResolveReferences" BeforeTargets="CoreCompile">
-		<ItemGroup>
-			<_DetectedBannedPackageReference Include="@(BannedPackageReference)" Condition="@(PackageReference->AnyHaveMetadataValue('Identity', '%(BannedPackageReference.Identity)')) == 'true'" />
-			<_DetectedBannedPackageReference Include="@(BannedPackageReference)" Condition="@(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', '%(BannedPackageReference.Identity)')) == 'true'" />
-		</ItemGroup>
-
-		<RemoveDuplicates Inputs="@(_DetectedBannedPackageReference)">
-			<Output TaskParameter="Filtered" ItemName="_UniqueDetectedBannedPackageReference" />
-		</RemoveDuplicates>
-
-		<Error Text="Package '%(_UniqueDetectedBannedPackageReference.Identity)' is not allowed. Use '%(_UniqueDetectedBannedPackageReference.SuggestedPackage)' instead. To allow this package, set '%(_UniqueDetectedBannedPackageReference.AllowPropertyName)=true'."
-		       Condition="'@(_UniqueDetectedBannedPackageReference)' != ''" />
+		<Error Text="Package 'YamlDotNet' is not allowed. Use 'Meziantou.Framework.Yaml' instead. To allow this package, set 'AllowPackage_YamlDotNet=true'."
+		       Condition="'$(AllowPackage_YamlDotNet)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'YamlDotNet')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'YamlDotNet')) == 'true')" />
+		<Error Text="Package 'CliWrap' is not allowed. Use 'Meziantou.Framework.ProcessWrapper' instead. To allow this package, set 'AllowPackage_CliWrap=true'."
+		       Condition="'$(AllowPackage_CliWrap)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'CliWrap')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'CliWrap')) == 'true')" />
 	</Target>
 
 	<!-- NuGet Package -->
