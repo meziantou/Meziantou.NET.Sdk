@@ -130,10 +130,16 @@ Set these properties in your project file or a directory-level props file. Unles
 
 ## Banned symbols and analyzers
 
+The SDK also blocks selected NuGet packages by default:
+- `YamlDotNet` (use `Meziantou.Framework.Yaml`)
+- `CliWrap` (use `Meziantou.Framework.ProcessWrapper`)
+
 | Property | Default | Description |
 | --- | --- | --- |
 | `IncludeDefaultBannedSymbols` | `true` | Includes the default banned API list. |
 | `BannedNewtonsoftJsonSymbols` | `true` | Includes banned Newtonsoft.Json APIs. |
+| `AllowPackage_YamlDotNet` | unset (`false`) | Allows `YamlDotNet` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.Yaml`. |
+| `AllowPackage_CliWrap` | unset (`false`) | Allows `CliWrap` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.ProcessWrapper`. |
 | `Disable_SponsorLink` | `true` | Removes SponsorLink and Moq analyzers when not set to `false`. |
 
 ## Web SDK and containers
