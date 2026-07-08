@@ -438,6 +438,11 @@ dotnet_diagnostic.IDE0211.severity = silent
 # Enabled: True, Severity: silent
 dotnet_diagnostic.IDE0220.severity = silent
 
+# IDE0221: Add explicit cast
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0221
+# Enabled: True, Severity: silent
+dotnet_diagnostic.IDE0221.severity = silent
+
 # IDE0230: Use UTF-8 string literal
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0230
 # Enabled: True, Severity: silent
@@ -552,6 +557,16 @@ dotnet_diagnostic.IDE0370.severity = warning
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0380
 # Enabled: True, Severity: silent
 dotnet_diagnostic.IDE0380.severity = silent
+
+# IDE0390: Make method synchronous
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0390
+# Enabled: True, Severity: silent
+dotnet_diagnostic.IDE0390.severity = silent
+
+# IDE0391: Make method synchronous
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0391
+# Enabled: True, Severity: silent
+dotnet_diagnostic.IDE0391.severity = silent
 
 # IDE1005: Delegate invocation can be simplified.
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide1005
