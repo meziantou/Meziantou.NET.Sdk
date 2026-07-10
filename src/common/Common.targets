@@ -128,6 +128,8 @@
 		       Condition="'$(AllowPackage_YamlDotNet)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'YamlDotNet')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'YamlDotNet')) == 'true')" />
 		<Error Text="Package 'CliWrap' is not allowed. Use 'Meziantou.Framework.ProcessWrapper' instead. To allow this package, set 'AllowPackage_CliWrap=true'."
 		       Condition="'$(AllowPackage_CliWrap)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'CliWrap')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'CliWrap')) == 'true')" />
+		<Error Text="Package 'Testcontainers' is not allowed. Use 'Meziantou.Framework.TemporaryContainers' instead. To allow this package, set 'AllowPackage_Testcontainers=true'."
+		       Condition="'$(AllowPackage_Testcontainers)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'Testcontainers')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'Testcontainers')) == 'true')" />
 	</Target>
 
 	<!-- NuGet Package -->

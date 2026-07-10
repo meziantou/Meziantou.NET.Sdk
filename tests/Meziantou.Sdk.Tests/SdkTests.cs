@@ -693,6 +693,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
     [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
+    [InlineData("Testcontainers", "4.13.0", "Meziantou.Framework.TemporaryContainers", "AllowPackage_Testcontainers")]
     public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
@@ -709,6 +710,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
     [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
+    [InlineData("Testcontainers", "4.13.0", "Meziantou.Framework.TemporaryContainers", "AllowPackage_Testcontainers")]
     public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
@@ -739,6 +741,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData("YamlDotNet", "16.3.0", "AllowPackage_YamlDotNet")]
     [InlineData("CliWrap", "3.7.0", "AllowPackage_CliWrap")]
+    [InlineData("Testcontainers", "4.13.0", "AllowPackage_Testcontainers")]
     public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string packageVersion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
