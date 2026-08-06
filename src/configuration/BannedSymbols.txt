@@ -40,7 +40,7 @@ M:System.Enum.TryParse``1(System.ReadOnlySpan{System.Char},``0@);Use an overload
 
 M:System.Globalization.CultureInfo.#ctor(System.String);Use CultureInfo.GetCultureInfo
 
-M:System.Collections.Immutable.ImmutableArray`1.#ctor;Use ImmutableArray<T>.Empty or ImmutableArray.Create<T>() instead
+M:System.Collections.Immutable.ImmutableArray`1.#ctor;Use ImmutableArray<T>.Empty, ImmutableArray.Create<T>(), or default instead
 
 T:System.Tuple`1;Use System.ValueTuple`1
 T:System.Tuple`2;Use System.ValueTuple`2
