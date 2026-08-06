@@ -262,6 +262,19 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task BannedSymbols_ImmutableArrayParameterlessConstructor_IsReported()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """
+            using System.Collections.Immutable;
+            _ = new ImmutableArray<int>();
+            """);
+        var data = await project.BuildAndGetOutput();
+        Assert.True(data.HasWarning("RS0030"));
+    }
+
+    [Fact]
     public async Task EditorConfigsAreInBinlog()
     {
         await using var project = CreateProjectBuilder();
