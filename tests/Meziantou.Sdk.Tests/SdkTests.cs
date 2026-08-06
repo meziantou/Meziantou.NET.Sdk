@@ -286,6 +286,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
         Assert.False(data.HasWarning("RS0030"));
     }
+    
     [Fact]
     public async Task EditorConfigsAreInBinlog()
     {
