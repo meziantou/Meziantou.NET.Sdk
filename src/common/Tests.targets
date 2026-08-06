@@ -17,12 +17,12 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                         ))">
-    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.3.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.3.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.9.0" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.0" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.3.0" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.3.0" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.3.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.3.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
@@ -38,7 +38,7 @@
                          @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
                          @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                          )))">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
