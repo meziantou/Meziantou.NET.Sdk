@@ -411,8 +411,16 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             _testOutputHelper.WriteLine("Sarif file not found: " + sarifPath);
         }
 
-        var binlogContent = File.ReadAllBytes(binlogPath);
-        TestContext.Current.AddAttachment($"msbuild{_buildCount}.binlog", binlogContent);
+        byte[]? binlogContent = null;
+        if (File.Exists(binlogPath))
+        {
+            binlogContent = File.ReadAllBytes(binlogPath);
+            TestContext.Current.AddAttachment($"msbuild{_buildCount}.binlog", binlogContent);
+        }
+        else
+        {
+            _testOutputHelper.WriteLine("Binlog file not found: " + binlogPath);
+        }
 
         string? vstestDiagContent = null;
         if (File.Exists(vstestdiagPath))
