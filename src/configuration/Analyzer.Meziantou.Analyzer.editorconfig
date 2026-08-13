@@ -117,7 +117,7 @@ dotnet_diagnostic.MA0021.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0022.severity = warning
 
-# MA0023: Add RegexOptions.ExplicitCapture
+# MA0023: Use RegexOptions.ExplicitCapture or named groups
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0023.md
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0023.severity = warning
@@ -1062,4 +1062,9 @@ dotnet_diagnostic.MA0211.severity = none
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0212.md
 # Enabled: False, Severity: warning
 dotnet_diagnostic.MA0212.severity = none
+
+# MA0213: Simplify negated boolean expression
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0213.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0213.severity = suggestion
 
