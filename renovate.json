@@ -23,9 +23,9 @@
       ],
       "matchStringsStrategy": "any",
       "matchStrings": [
-        "private\\s+const\\s+string\\s+(?<depName>Net(?:10|11)SdkVersion)\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+        "private\\s+const\\s+string\\s+Net(?:10|11)SdkVersion\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "packageNameTemplate": "dotnet-sdk",
+      "depNameTemplate": "dotnet-sdk",
       "datasourceTemplate": "dotnet-version",
       "versioningTemplate": "semver"
     }
@@ -35,19 +35,16 @@
       "matchManagers": [
         "custom.regex"
       ],
-      "matchDepNames": [
-        "Net10SdkVersion"
+      "matchDatasources": [
+        "dotnet-version"
       ],
-      "allowedVersions": "/^10\\./"
-    },
-    {
-      "matchManagers": [
-        "custom.regex"
+      "matchFileNames": [
+        "/(^|/)tests/Meziantou\\.Sdk\\.Tests/Helpers/DotNetSdkHelpers\\.cs$/"
       ],
-      "matchDepNames": [
-        "Net11SdkVersion"
+      "matchUpdateTypes": [
+        "major"
       ],
-      "allowedVersions": "/^11\\.0\\.100-preview\\./"
+      "enabled": false
     }
   ]
 }
