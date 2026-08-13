@@ -296,26 +296,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             environmentChanges["DOTNET_ROOT_ARM64"] = dotnetRoot;
         }
 
-        var sdkRoot = Path.Combine(dotnetRoot, "sdk");
-        if (Directory.Exists(sdkRoot))
-        {
-            var preferredSdkPath = Path.Combine(sdkRoot, Path.GetFileName(dotnetRoot));
-            string? sdkPath = Directory.Exists(preferredSdkPath)
-                ? preferredSdkPath
-                : Directory.GetDirectories(sdkRoot)
-                    .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)
-                    .FirstOrDefault();
-
-            if (sdkPath is not null)
-            {
-                var msbuildSdksPath = Path.Combine(sdkPath, "Sdks");
-                if (Directory.Exists(msbuildSdksPath))
-                {
-                    environmentChanges["MSBuildSDKsPath"] = msbuildSdksPath;
-                }
-            }
-        }
-
         if (environmentVariables != null)
         {
             foreach (var env in environmentVariables)
