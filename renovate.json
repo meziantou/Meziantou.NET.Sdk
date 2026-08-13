@@ -15,6 +15,39 @@
       ],
       "datasourceTemplate": "nuget",
       "versioningTemplate": "nuget"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)tests/Meziantou\\.Sdk\\.Tests/Helpers/DotNetSdkHelpers\\.cs$/"
+      ],
+      "matchStringsStrategy": "any",
+      "matchStrings": [
+        "private\\s+const\\s+string\\s+(?<depName>Net(?:10|11)SdkVersion)\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "packageNameTemplate": "dotnet-sdk",
+      "datasourceTemplate": "dotnet-version",
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "Net10SdkVersion"
+      ],
+      "allowedVersions": "/^10\\./"
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDepNames": [
+        "Net11SdkVersion"
+      ],
+      "allowedVersions": "/^11\\.0\\.100-preview\\./"
     }
   ]
 }

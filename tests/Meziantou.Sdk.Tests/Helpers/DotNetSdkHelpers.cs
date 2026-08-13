@@ -11,6 +11,9 @@ namespace Meziantou.Sdk.Tests.Helpers;
 
 public static class DotNetSdkHelpers
 {
+    private const string Net10SdkVersion = "10.0.302";
+    private const string Net11SdkVersion = "11.0.100-preview.6.26359.118";
+
     private static readonly ConcurrentDictionary<NetSdkVersion, FullPath> Values = new();
     private static readonly KeyedAsyncLock<NetSdkVersion> KeyedAsyncLock = new();
 
@@ -24,23 +27,24 @@ public static class DotNetSdkHelpers
             if (Values.TryGetValue(version, out result))
                 return result;
 
-            var versionString = version switch
+            var (productVersion, sdkVersion) = version switch
             {
-                NetSdkVersion.Net10_0 => "10.0",
-                NetSdkVersion.Net11_0 => "11.0",
+                NetSdkVersion.Net10_0 => ("10.0", Net10SdkVersion),
+                NetSdkVersion.Net11_0 => ("11.0", Net11SdkVersion),
                 _ => throw new NotSupportedException(),
             };
 
             var products = await ExecuteWithRetry(Microsoft.Deployment.DotNet.Releases.ProductCollection.GetAsync);
-            var product = products.Single(a => a.ProductName == ".NET" && a.ProductVersion == versionString);
+            var product = products.Single(a => a.ProductName == ".NET" && a.ProductVersion == productVersion);
             var releases = await ExecuteWithRetry(product.GetReleasesAsync);
-            var latestRelease = releases.Single(r => r.Version == product.LatestReleaseVersion);
-            var latestSdk = latestRelease.Sdks.MaxBy(sdk => sdk.Version);
+            var releaseSdk = releases
+                .SelectMany(release => release.Sdks.Select(sdk => (Release: release, Sdk: sdk)))
+                .Single(item => string.Equals(item.Sdk.Version.ToString(), sdkVersion, StringComparison.Ordinal));
 
             var runtimeIdentifier = RuntimeInformation.RuntimeIdentifier;
             var expectedExtension = OperatingSystem.IsWindows() ? ".zip" : ".gz";
-            var file = latestSdk!.Files.Single(file => file.Rid == runtimeIdentifier && Path.GetExtension(file.Name) == expectedExtension);
-            var finalFolderPath = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / latestSdk.Version.ToString();
+            var file = releaseSdk.Sdk.Files.Single(file => file.Rid == runtimeIdentifier && Path.GetExtension(file.Name) == expectedExtension);
+            var finalFolderPath = FullPath.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) / "meziantou" / "dotnet" / releaseSdk.Sdk.Version.ToString();
             var finalDotnetPath = finalFolderPath / (OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
             if (File.Exists(finalDotnetPath))
             {
@@ -49,7 +53,7 @@ public static class DotNetSdkHelpers
             }
 
             var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
-            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {versionString} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {latestRelease.Version}; SDKVersion: {latestSdk.Version})");
+            TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {sdkVersion} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {releaseSdk.Release.Version}; SDKVersion: {releaseSdk.Sdk.Version})");
             Directory.CreateDirectory(tempFolder);
 
             var bytes = await SharedHttpClient.Instance.GetByteArrayAsync(file.Address);
