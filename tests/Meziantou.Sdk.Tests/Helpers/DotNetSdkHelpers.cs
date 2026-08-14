@@ -11,7 +11,7 @@ namespace Meziantou.Sdk.Tests.Helpers;
 
 public static class DotNetSdkHelpers
 {
-    private const string Net10SdkVersion = "10.0.302";
+    private const string Net10SdkVersion = "10.0.400";
     private const string Net11SdkVersion = "11.0.100-preview.7.26381.103";
 
     private static readonly ConcurrentDictionary<NetSdkVersion, FullPath> Values = new();
