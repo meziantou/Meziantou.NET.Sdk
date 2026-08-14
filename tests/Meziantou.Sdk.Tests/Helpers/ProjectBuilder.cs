@@ -273,6 +273,7 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             ["DOTNET_HOST_PATH"] = dotnetPath,
             ["DOTNET_ROLL_FORWARD"] = "LatestMajor",
             ["DOTNET_ROLL_FORWARD_TO_PRERELEASE"] = "1",
+            ["MSBuildExtensionsPath"] = null,
             ["NUGET_HTTP_CACHE_PATH"] = _fixture.PackageDirectory / "http-cache",
             ["NUGET_PACKAGES"] = _fixture.PackageDirectory,
             ["NUGET_SCRATCH"] = _fixture.PackageDirectory / "nuget-scratch",
@@ -308,6 +309,8 @@ internal sealed class ProjectBuilder : IAsyncDisposable
 
             if (sdkPath is not null)
             {
+                environmentChanges["MSBuildExtensionsPath"] = sdkPath + Path.DirectorySeparatorChar;
+
                 var msbuildSdksPath = Path.Combine(sdkPath, "Sdks");
                 if (Directory.Exists(msbuildSdksPath))
                 {
