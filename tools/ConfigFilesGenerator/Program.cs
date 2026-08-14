@@ -196,7 +196,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
     var bannedSymbols = new HashSet<string>(StringComparer.Ordinal);
 
     var package = await DownloadNuGetPackage("Newtonsoft.Json", version: null, NullLogger.Instance, CancellationToken.None);
-    var libItems = await package.PackageReader.GetLibItemsAsync(CancellationToken.None);
+    var libItems = await package.PackageReader!.GetLibItemsAsync(CancellationToken.None);
 
     var compatibleFrameworks = libItems.Where(item => DefaultCompatibilityProvider.Instance.IsCompatible(NuGetFramework.Parse("net10.0"), item.TargetFramework));
     var items = compatibleFrameworks.SelectMany(item => item.Items).ToArray();
@@ -290,7 +290,7 @@ async Task<(string Id, NuGetVersion Version)[]> GetAllReferencedNuGetPackages()
         var version = package.Version is null ? null : NuGetVersion.Parse(package.Version);
         if (version is null)
         {
-            var metadata = await resource.GetMetadataAsync(package.Id, includePrerelease: true, includeUnlisted: false, cache, NullLogger.Instance, CancellationToken.None);
+            var metadata = await resource!.GetMetadataAsync(package.Id, includePrerelease: true, includeUnlisted: false, cache, NullLogger.Instance, CancellationToken.None);
             version = metadata.MaxBy(metadata => metadata.Identity.Version)!.Identity.Version;
         }
 
@@ -321,7 +321,7 @@ if(package.Id is "Meziantou.Analyzer")
         foreach (var repository in repositories)
         {
             var dependencyInfoResource = await repository.GetResourceAsync<DependencyInfoResource>();
-            var dependencyInfo = await dependencyInfoResource.ResolvePackage(package, framework, cache, logger, cancellationToken);
+            var dependencyInfo = await dependencyInfoResource!.ResolvePackage(package, framework, cache, logger, cancellationToken);
 
             if (dependencyInfo == null)
             {
@@ -376,7 +376,7 @@ static async Task<Assembly[]> GetAnalyzerReferences(string packageId, NuGetVersi
 
     var package = await DownloadNuGetPackage(packageId, version, logger, cancellationToken);
     var result = new List<Assembly>();
-    var files = package.PackageReader.GetFiles("analyzers");
+    var files = package.PackageReader!.GetFiles("analyzers");
     var filesGroupedByFolder = files.GroupBy(Path.GetDirectoryName).ToArray();
     foreach (var group in filesGroupedByFolder)
     {
@@ -639,7 +639,7 @@ static async Task<DownloadResourceResult> DownloadNuGetPackage(string packageId,
     if (version is null)
     {
         var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>();
-        var metadata = await metadataResource.GetMetadataAsync(packageId, includePrerelease: true, includeUnlisted: false, cache, NullLogger.Instance, CancellationToken.None);
+        var metadata = await metadataResource!.GetMetadataAsync(packageId, includePrerelease: true, includeUnlisted: false, cache, NullLogger.Instance, CancellationToken.None);
         version = metadata.MaxBy(metadata => metadata.Identity.Version)!.Identity.Version;
     }
 
@@ -648,7 +648,7 @@ static async Task<DownloadResourceResult> DownloadNuGetPackage(string packageId,
     {
         // Download the package
         using var packageStream = new MemoryStream();
-        await resource.CopyNupkgToStreamAsync(
+        await resource!.CopyNupkgToStreamAsync(
             packageId,
             version,
             packageStream,
