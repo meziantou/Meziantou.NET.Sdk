@@ -63,6 +63,8 @@ foreach (var (sdkName, baseSdkName) in sdks)
         </Project>
         """);
 
+    var nuspecFiles = GetNuspecFiles(rootFolder / "src", sdkName);
+
     File.WriteAllText(nuspecPath, $$"""
         <?xml version="1.0"?>
         <package>
@@ -77,14 +79,7 @@ foreach (var (sdkName, baseSdkName) in sdks)
             <repository type="git" url="$RepositoryUrl$" commit="$RepositoryCommit$" branch="$RepositoryBranch$" />
           </metadata>
           <files>
-            <file src="Sdk/{{sdkName}}/Sdk.props" target="Sdk/Sdk.props" />
-            <file src="Sdk/{{sdkName}}/Sdk.targets" target="Sdk/Sdk.targets" />
-            <file src="common/**/*" target="" />
-            <file src="configuration/**/*" target="" />
-            <file src="icon.png" target="" />
-            <file src="icon.svg" target="" />
-            <file src="../LICENSE.txt" target="" />
-            <file src="../README.md" target="" />
+        {{nuspecFiles}}
           </files>
         </package>
         """);
@@ -97,7 +92,7 @@ static FullPath GetRootFolderPath()
     var path = FullPath.CurrentDirectory();
     while (!path.IsEmpty)
     {
-        if (Directory.Exists(path / ".git"))
+        if (Directory.Exists(path / ".git") || File.Exists(path / ".git"))
             return path;
 
         path = path.Parent;
@@ -107,4 +102,33 @@ static FullPath GetRootFolderPath()
         throw new InvalidOperationException("Cannot find the root folder");
 
     return path;
+}
+
+static string GetNuspecFiles(FullPath srcFolderPath, string sdkName)
+{
+    var files = new List<(string Source, string Target)>
+    {
+        ($"Sdk/{sdkName}/Sdk.props", "Sdk/Sdk.props"),
+        ($"Sdk/{sdkName}/Sdk.targets", "Sdk/Sdk.targets"),
+    };
+
+    AddDirectoryFiles(files, srcFolderPath, "common");
+    AddDirectoryFiles(files, srcFolderPath, "configuration");
+
+    files.Add(("icon.png", "icon.png"));
+    files.Add(("icon.svg", "icon.svg"));
+    files.Add(("../LICENSE.txt", "LICENSE.txt"));
+    files.Add(("../README.md", "README.md"));
+
+    return string.Join(Environment.NewLine, files.Select(file => $"    <file src=\"{file.Source}\" target=\"{file.Target}\" />"));
+}
+
+static void AddDirectoryFiles(List<(string Source, string Target)> files, FullPath srcFolderPath, string directoryName)
+{
+    var directoryPath = srcFolderPath / directoryName;
+    foreach (var filePath in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+    {
+        var relativePath = Path.GetRelativePath(srcFolderPath, filePath).Replace('\\', '/');
+        files.Add((relativePath, relativePath));
+    }
 }

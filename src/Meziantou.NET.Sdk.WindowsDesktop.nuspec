@@ -13,11 +13,28 @@
   <files>
     <file src="Sdk/Meziantou.NET.Sdk.WindowsDesktop/Sdk.props" target="Sdk/Sdk.props" />
     <file src="Sdk/Meziantou.NET.Sdk.WindowsDesktop/Sdk.targets" target="Sdk/Sdk.targets" />
-    <file src="common/**/*" target="" />
-    <file src="configuration/**/*" target="" />
-    <file src="icon.png" target="" />
-    <file src="icon.svg" target="" />
-    <file src="../LICENSE.txt" target="" />
-    <file src="../README.md" target="" />
+    <file src="common/Common.props" target="common/Common.props" />
+    <file src="common/Common.targets" target="common/Common.targets" />
+    <file src="common/ContinuousIntegrationBuild.props" target="common/ContinuousIntegrationBuild.props" />
+    <file src="common/Npm.targets" target="common/Npm.targets" />
+    <file src="common/Tests.targets" target="common/Tests.targets" />
+    <file src="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" target="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" />
+    <file src="configuration/Analyzer.Meziantou.Analyzer.editorconfig" target="configuration/Analyzer.Meziantou.Analyzer.editorconfig" />
+    <file src="configuration/Analyzer.Meziantou.Framework.FullPath.editorconfig" target="configuration/Analyzer.Meziantou.Framework.FullPath.editorconfig" />
+    <file src="configuration/Analyzer.Microsoft.CodeAnalysis.BannedApiAnalyzers.editorconfig" target="configuration/Analyzer.Microsoft.CodeAnalysis.BannedApiAnalyzers.editorconfig" />
+    <file src="configuration/Analyzer.Microsoft.CodeAnalysis.NetAnalyzers.editorconfig" target="configuration/Analyzer.Microsoft.CodeAnalysis.NetAnalyzers.editorconfig" />
+    <file src="configuration/BannedSymbols.NewtonsoftJson.txt" target="configuration/BannedSymbols.NewtonsoftJson.txt" />
+    <file src="configuration/BannedSymbols.txt" target="configuration/BannedSymbols.txt" />
+    <file src="configuration/CodingStyle.editorconfig" target="configuration/CodingStyle.editorconfig" />
+    <file src="configuration/Compiler.editorconfig" target="configuration/Compiler.editorconfig" />
+    <file src="configuration/Meziantou.NET.Sdk.NetStandard2_0.MultiTarget.editorconfig" target="configuration/Meziantou.NET.Sdk.NetStandard2_0.MultiTarget.editorconfig" />
+    <file src="configuration/Meziantou.NET.Sdk.SingleFileApp.editorconfig" target="configuration/Meziantou.NET.Sdk.SingleFileApp.editorconfig" />
+    <file src="configuration/Meziantou.NET.Sdk.Web.editorconfig" target="configuration/Meziantou.NET.Sdk.Web.editorconfig" />
+    <file src="configuration/NamingConvention.editorconfig" target="configuration/NamingConvention.editorconfig" />
+    <file src="configuration/default.runsettings" target="configuration/default.runsettings" />
+    <file src="icon.png" target="icon.png" />
+    <file src="icon.svg" target="icon.svg" />
+    <file src="../LICENSE.txt" target="LICENSE.txt" />
+    <file src="../README.md" target="README.md" />
   </files>
 </package>
