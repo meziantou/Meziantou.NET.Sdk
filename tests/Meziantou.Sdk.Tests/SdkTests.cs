@@ -1494,6 +1494,126 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task MTP_XunitStaticHelpers_XunitCancellationTokenIsAvailableByDefault()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        // 'XunitCancellationToken' must be usable without any using directive
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public async Task Test1()
+                {
+                    Assert.False(XunitCancellationToken.IsCancellationRequested);
+                    await Task.Delay(1, XunitCancellationToken);
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains(data.GetMSBuildItems("Compile"), item => item.EndsWith("Meziantou.NET.Sdk.XunitStaticHelpers.g.cs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task MTP_XunitStaticHelpers_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableXunitStaticHelpers", "false")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.IsMSBuildTargetExecuted("GenerateXunitStaticHelpersSourceFile"));
+        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
+    }
+
+    // 'Xunit.TestContext' doesn't exist in xUnit.net v2, so the file must not be generated
+    [Fact]
+    public async Task MTP_XunitStaticHelpers_NotGeneratedForXunitV2()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableDefaultTestFramework", "false")],
+            nuGetPackages: [.. XUnit2References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
+    }
+
+    // 'Xunit.TestContext' doesn't exist in another test framework, so the file must not be generated
+    [Fact]
+    public async Task MTP_XunitStaticHelpers_NotGeneratedForAnotherTestFramework()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. TUnitReferences]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Test]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
+    }
+
     // 'dotnet test' renders the results itself in MTP mode, so '--output Detailed' must be set on the command line.
     // The default arguments added by the SDK must not conflict with it.
     [Fact]
