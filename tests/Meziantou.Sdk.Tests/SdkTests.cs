@@ -1373,6 +1373,67 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Contains("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task MTP_XunitFullParallelization_IsDisabledByDefault()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.IsMSBuildTargetExecuted("GenerateXunitParallelizationSourceFile"));
+        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task MTP_XunitFullParallelization_RunsTestsOfSameClassInParallel()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableXunitFullParallelization", "true")]
+            );
+
+        // Both tests can only complete when they run at the same time
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                private static readonly System.Threading.Barrier Barrier = new(participantCount: 2);
+
+                [Fact]
+                public void Test1() => Assert.True(Barrier.SignalAndWait(System.TimeSpan.FromSeconds(60)));
+
+                [Fact]
+                public void Test2() => Assert.True(Barrier.SignalAndWait(System.TimeSpan.FromSeconds(60)));
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("GenerateXunitParallelizationSourceFile"));
+        Assert.Contains(data.GetMSBuildItems("Compile"), item => item.EndsWith("Meziantou.NET.Sdk.XunitParallelization.g.cs", StringComparison.Ordinal));
+    }
+
     // 'dotnet test' renders the results itself in MTP mode, so '--output Detailed' must be set on the command line.
     // The default arguments added by the SDK must not conflict with it.
     [Fact]

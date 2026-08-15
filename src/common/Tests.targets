@@ -95,6 +95,34 @@
     <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
   </PropertyGroup>
 
+  <!-- Generate a source file enabling full parallelization for xUnit.net v3 -->
+  <!-- https://xunit.net/docs/running-tests-in-parallel#changing-default-behaviors -->
+  <Target Name="GenerateXunitParallelizationSourceFile"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          Condition="'$(EnableXunitFullParallelization)' == 'true' AND '$(Language)' == 'C#'">
+    <PropertyGroup>
+      <_XunitParallelizationSourceFile Condition="'$(_XunitParallelizationSourceFile)' == ''">$(IntermediateOutputPath)Meziantou.NET.Sdk.XunitParallelization.g$(DefaultLanguageSourceExtension)</_XunitParallelizationSourceFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_XunitParallelizationSourceLine Include="// &lt;auto-generated /&gt;" />
+      <_XunitParallelizationSourceLine Include="// Generated because EnableXunitFullParallelization is set to true. Requires xunit.v3 4.0 or later." />
+      <_XunitParallelizationSourceLine Include="[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]" />
+    </ItemGroup>
+
+    <!-- The encoding must be explicit, so the file has a BOM. Otherwise, the compiler reports CS8055 when embedding sources in the PDB. -->
+    <WriteLinesToFile File="$(_XunitParallelizationSourceFile)"
+                      Lines="@(_XunitParallelizationSourceLine)"
+                      Encoding="utf-8"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <Compile Include="$(_XunitParallelizationSourceFile)" />
+      <FileWrites Include="$(_XunitParallelizationSourceFile)" />
+    </ItemGroup>
+  </Target>
+
   <!-- Add implicit using for xunit -->
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR
