@@ -690,10 +690,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
-    [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
-    [InlineData("Testcontainers", "4.13.0", "Meziantou.Framework.TemporaryContainers", "AllowPackage_Testcontainers")]
-    public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
+    [InlineData("YamlDotNet", "16.3.0", "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
+    [InlineData("CliWrap", "3.7.0", "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
+    [InlineData("Testcontainers", "4.13.0", "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
+    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
+    public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string packageVersion, string suggestion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(properties: [("TargetFramework", "net10.0")], nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
@@ -702,15 +704,17 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains($"Package '{packageName}' is not allowed.", StringComparison.Ordinal));
-        Assert.True(data.OutputContains($"Use '{suggestedPackage}' instead.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"Use {suggestion} instead.", StringComparison.Ordinal));
         Assert.True(data.OutputContains($"{allowProperty}=true", StringComparison.Ordinal));
     }
 
     [Theory]
-    [InlineData("YamlDotNet", "16.3.0", "Meziantou.Framework.Yaml", "AllowPackage_YamlDotNet")]
-    [InlineData("CliWrap", "3.7.0", "Meziantou.Framework.ProcessWrapper", "AllowPackage_CliWrap")]
-    [InlineData("Testcontainers", "4.13.0", "Meziantou.Framework.TemporaryContainers", "AllowPackage_Testcontainers")]
-    public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string packageVersion, string suggestedPackage, string allowProperty)
+    [InlineData("YamlDotNet", "16.3.0", "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
+    [InlineData("CliWrap", "3.7.0", "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
+    [InlineData("Testcontainers", "4.13.0", "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
+    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
+    public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string packageVersion, string suggestion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
         project.AddFile("Dependency/Dependency.csproj", $$"""
@@ -733,7 +737,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(1, data.ExitCode);
         Assert.True(data.OutputContains($"Package '{packageName}' is not allowed.", StringComparison.Ordinal));
-        Assert.True(data.OutputContains($"Use '{suggestedPackage}' instead.", StringComparison.Ordinal));
+        Assert.True(data.OutputContains($"Use {suggestion} instead.", StringComparison.Ordinal));
         Assert.True(data.OutputContains($"{allowProperty}=true", StringComparison.Ordinal));
     }
 
@@ -741,6 +745,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData("YamlDotNet", "16.3.0", "AllowPackage_YamlDotNet")]
     [InlineData("CliWrap", "3.7.0", "AllowPackage_CliWrap")]
     [InlineData("Testcontainers", "4.13.0", "AllowPackage_Testcontainers")]
+    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
     public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string packageVersion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
