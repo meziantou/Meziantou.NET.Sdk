@@ -105,8 +105,8 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
       - run: Get-ChildItem "${{ env.NUGET_DIRECTORY }}/*" -Recurse
       - run: dotnet --info
-      - run: dotnet tool install --global Meziantou.ShardedTest
-      - run: sharded-test --shard-index ${{ matrix.shard-index }} --total-shards 4 tests/Meziantou.Sdk.Tests --logger "trx" --results-directory test_results --settings .github/sharded-tests.runsettings
+      - name: Run tests (shard ${{ matrix.shard-index }}/4)
+        run: ./.github/run-sharded-tests.ps1 -ShardIndex ${{ matrix.shard-index }} -TotalShards 4 -Project tests/Meziantou.Sdk.Tests -ResultsDirectory test_results
         env:
             NUGET_DIRECTORY: ${{ env.NUGET_DIRECTORY }}
             PACKAGE_VERSION: ${{ needs.compute_version.outputs.package_version }}
