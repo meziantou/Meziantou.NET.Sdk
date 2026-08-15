@@ -1068,3 +1068,13 @@ dotnet_diagnostic.MA0212.severity = none
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0213.severity = suggestion
 
+# MA0214: Use 'await' instead of returning the task
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0214.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0214.severity = none
+
+# MA0215: Return the task instead of awaiting it
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0215.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0215.severity = none
+
