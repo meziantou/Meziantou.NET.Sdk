@@ -27,13 +27,13 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     ];
     private static readonly NuGetReference[] XUnit3References =
     [
-        new NuGetReference("xunit.v3", "3.2.0"),
-        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+        new NuGetReference("xunit.v3", "4.0.0"),
+        new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
     private static readonly NuGetReference[] XUnit3MTP2References =
     [
-        new NuGetReference("xunit.v3.mtp-v2", "3.2.0"),
-        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+        new NuGetReference("xunit.v3.mtp-v2", "4.0.0"),
+        new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
     private static readonly NuGetReference[] TUnitReferences =
     [

@@ -1,7 +1,10 @@
 using Meziantou.Framework;
 using Meziantou.Sdk.Tests.Helpers;
+using Xunit.Sdk;
+using Xunit.v3;
 
 [assembly: AssemblyFixture(typeof(PackageFixture))]
+[assembly: Parallelization(Mode = ParallelMode.All)]
 
 namespace Meziantou.Sdk.Tests.Helpers;
 
