@@ -215,9 +215,30 @@ already references `xunit`, `xunit.v3*`, `TUnit`, `MSTest`, or `NUnit`. Set
 `EnableDefaultTestFramework` to `false` for full control, which is also required for a test project
 that must stay a library (VSTest).
 
+xUnit.net v3 runs test collections in parallel, but the tests inside a collection run one after the
+other. When the project resolves xUnit.net v3 4.0 or later, the SDK generates a source file that opts
+the whole assembly into
+[full parallelization](https://xunit.net/docs/running-tests-in-parallel#changing-default-behaviors):
+
+````csharp
+[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]
+````
+
+Tests that share mutable state with another test of the same class must therefore be synchronized, or
+be moved to a collection that disables parallelization. Set `EnableXunitFullParallelization` to
+`false` to keep the xUnit.net defaults, which is also required when the assembly already declares the
+attribute itself, as the compiler reports `CS0579` for the duplicate:
+
+````xml
+<PropertyGroup>
+  <EnableXunitFullParallelization>false</EnableXunitFullParallelization>
+</PropertyGroup>
+````
+
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
+| `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh`. The extension is inert unless the build runs on GitHub Actions. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
