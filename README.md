@@ -235,10 +235,33 @@ attribute itself, as the compiler reports `CS0579` for the duplicate:
 </PropertyGroup>
 ````
 
+When the project references xUnit.net v3, the SDK also generates a source file with static helpers and a
+global `using static` directive for them, so `TestContext.Current.CancellationToken` can be written as
+`XunitCancellationToken` in any test:
+
+````csharp
+[Fact]
+public async Task Sample() => await httpClient.GetAsync("https://example.com", XunitCancellationToken);
+````
+
+The class is `partial`, so the project can declare another part of it to add its own helpers, which
+are then usable without any using directive too.
+
+Set `EnableXunitStaticHelpers` to `false` to opt out, which is also required when the project already
+declares a non-partial `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` type, as the compiler reports `CS0260` for
+the missing `partial` modifier:
+
+````xml
+<PropertyGroup>
+  <EnableXunitStaticHelpers>false</EnableXunitStaticHelpers>
+</PropertyGroup>
+````
+
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
 | `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
+| `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh`. The extension is inert unless the build runs on GitHub Actions. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
