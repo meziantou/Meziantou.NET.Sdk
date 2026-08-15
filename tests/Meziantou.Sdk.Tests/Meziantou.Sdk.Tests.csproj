@@ -6,6 +6,8 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,13 +15,12 @@
     <PackageReference Include="Meziantou.Framework.ProcessWrapper" Version="2.0.1" />
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="3.0.1" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="3.0.0" />
-    <PackageReference Include="Meziantou.Xunit.v3.ParallelTestFramework" Version="1.0.6" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.244" />
     <PackageReference Include="NuGet.Packaging" Version="7.9.0" />
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+    <PackageReference Include="xunit.v3" Version="4.0.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
