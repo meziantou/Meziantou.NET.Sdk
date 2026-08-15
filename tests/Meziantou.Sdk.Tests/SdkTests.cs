@@ -1528,6 +1528,42 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MTP_XunitStaticHelpers_ClassIsPartial()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        // The project can add its own helpers to the generated class
+        project.AddFile("Program.cs", """
+            namespace Meziantou.NET.Sdk.Test
+            {
+                internal static partial class XUnitStaticHelpers
+                {
+                    public static int SampleHelper => 42;
+                }
+            }
+
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Assert.Equal(42, SampleHelper);
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
     public async Task MTP_XunitStaticHelpers_OptOut()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
