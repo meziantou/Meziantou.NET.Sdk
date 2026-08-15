@@ -130,6 +130,10 @@
 		       Condition="'$(AllowPackage_CliWrap)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'CliWrap')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'CliWrap')) == 'true')" />
 		<Error Text="Package 'Testcontainers' is not allowed. Use 'Meziantou.Framework.TemporaryContainers' instead. To allow this package, set 'AllowPackage_Testcontainers=true'."
 		       Condition="'$(AllowPackage_Testcontainers)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'Testcontainers')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'Testcontainers')) == 'true')" />
+		<Error Text="Package 'Meziantou.Xunit.ParallelTestFramework' is not allowed. Use the built-in parallelization of xunit.v3 instead. To allow this package, set 'AllowPackage_Meziantou_Xunit_ParallelTestFramework=true'."
+		       Condition="'$(AllowPackage_Meziantou_Xunit_ParallelTestFramework)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'Meziantou.Xunit.ParallelTestFramework')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'Meziantou.Xunit.ParallelTestFramework')) == 'true')" />
+		<Error Text="Package 'Meziantou.Xunit.v3.ParallelTestFramework' is not allowed. Use the built-in parallelization of xunit.v3 instead. To allow this package, set 'AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework=true'."
+		       Condition="'$(AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'Meziantou.Xunit.v3.ParallelTestFramework')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'Meziantou.Xunit.v3.ParallelTestFramework')) == 'true')" />
 	</Target>
 
 	<!-- NuGet Package -->
