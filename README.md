@@ -8,8 +8,10 @@ MSBuild SDK that helps standardize build and quality settings across repositorie
 - A static analysis baseline with Roslyn analyzers
 - Set `ContinuousIntegrationBuild` based on the context
 - dotnet test features
+  - xUnit.net v3 and Microsoft Testing Platform (MTP) by default
   - Dump on crash or hang
   - Loggers when running on GitHub
+  - Annotations and job summary when running on GitHub Actions
   - Disable Roslyn analyzers to speed up build
 - Relevant NuGet packages based on the project type
 
@@ -177,13 +179,51 @@ The SDK also blocks selected NuGet packages by default:
 
 ## Testing
 
+A project using `Meziantou.NET.Sdk.Test` needs no `PackageReference` to run tests:
+
+````xml
+<Project Sdk="Meziantou.NET.Sdk.Test">
+</Project>
+````
+
+````csharp
+public class Tests
+{
+    [Fact]
+    public void Test1() { }
+}
+````
+
+It gets xUnit.net v3 on Microsoft Testing Platform, a TRX report, crash and hang dumps, code coverage
+on CI, and GitHub Actions annotations and job summary when running on GitHub Actions. Add the
+following to `global.json` so `dotnet test` runs in MTP mode:
+
+````json
+{
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
+  }
+}
+````
+
+`dotnet test` only reports failures by default. Use `dotnet test --output Detailed` to also list the
+tests that passed — the option belongs to `dotnet test` itself, so it cannot be set from the project
+file.
+
+To use another test framework, reference it: the default framework is not added when the project
+already references `xunit`, `xunit.v3*`, `TUnit`, `MSTest`, or `NUnit`. Set
+`EnableDefaultTestFramework` to `false` for full control, which is also required for a test project
+that must stay a library (VSTest).
+
 | Property | Default | Description |
 | --- | --- | --- |
+| `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
+| `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh`. The extension is inert unless the build runs on GitHub Actions. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
-| `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3.mtp-v2` or `TUnit` is referenced. |
+| `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3`, `xunit.v3.mtp-v2`, `xunit.v3.core.mtp-v2`, or `TUnit` is referenced. `Microsoft.NET.Test.Sdk` is added only when MTP is not used. |
 | `EnableDefaultTestSettings` | `true` | Adds default crash/hang dumps and loggers. |
-| `TestingPlatformCommandLineArguments` | Appended | Adds MTP arguments such as `--report-trx` and `--coverage` when enabled. |
+| `TestingPlatformCommandLineArguments` | Appended | Adds MTP arguments such as `--report-trx`, `--report-gh` and `--coverage` when enabled. |
 | `VSTestBlame` | `true` | Enables VSTest blame. |
 | `VSTestBlameCrash` | `true` | Enables crash dumps. |
 | `VSTestBlameCrashDumpType` | `mini` | Sets crash dump type. |

@@ -2,8 +2,18 @@
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
+    <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
+    <EnableDefaultTestFramework Condition="'$(EnableDefaultTestFramework)' == ''">true</EnableDefaultTestFramework>
+    <EnableGitHubActionsReport Condition="'$(EnableGitHubActionsReport)' == ''">true</EnableGitHubActionsReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(EnableDefaultTestFramework)' == 'true'">
+    <!-- xUnit.net v3 test projects must be executables. 'Library' is the value set by Microsoft.NET.Sdk.props when the project doesn't set one -->
+    <OutputType Condition="'$(OutputType)' == 'Library'">Exe</OutputType>
+
+    <!-- Use the Microsoft Testing Platform command line instead of the xUnit.net console runner -->
+    <UseMicrosoftTestingPlatformRunner Condition="'$(UseMicrosoftTestingPlatformRunner)' == ''">true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
   <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
@@ -12,10 +22,30 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Add the default test framework when the project doesn't reference one -->
+  <!-- This item group must be evaluated before the ones detecting the test platform to use -->
+  <ItemGroup Condition="'$(EnableDefaultTestFramework)' == 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v1')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-off')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit.Core')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'MSTest')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'MSTest.TestFramework')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'NUnit')) != 'true'">
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.0" IsImplicitlyDefined="true" />
+  </ItemGroup>
+
   <!-- MTP -->
   <ItemGroup Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND (
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                         ))">
     <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.3.3" IsImplicitlyDefined="true" />
@@ -24,10 +54,12 @@
     <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.3.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.3.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="1.0.0-alpha.26377.5" IsImplicitlyDefined="true" Condition="'$(EnableGitHubActionsReport)' != 'false'" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
+    <TestingPlatformCommandLineArguments Condition="'$(EnableGitHubActionsReport)' != 'false'">$(TestingPlatformCommandLineArguments) --report-gh</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
@@ -36,7 +68,9 @@
 
   <!-- VSTest -->
   <ItemGroup Condition="!('$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND (
+                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
                          @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
+                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) == 'true' OR
                          @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                          )))">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" IsImplicitlyDefined="true" />
@@ -56,7 +90,7 @@
     <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)../configuration/default.runsettings</VSTestSetting>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
     <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
     <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
   </PropertyGroup>
