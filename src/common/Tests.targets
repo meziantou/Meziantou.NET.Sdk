@@ -14,6 +14,7 @@
 
   <!-- MTP -->
   <ItemGroup Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND (
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
                         ))">
