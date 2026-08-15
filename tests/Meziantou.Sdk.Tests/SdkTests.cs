@@ -28,7 +28,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     private static readonly NuGetReference[] XUnit3References =
     [
         new NuGetReference("xunit.v3", "4.0.0"),
-        new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
     private static readonly NuGetReference[] XUnit3MTP2References =
     [
@@ -1278,6 +1277,202 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MTP_DefaultTestFramework_AddsXunit()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
+
+        var packageReferences = data.GetMSBuildItems("PackageReference");
+        Assert.Contains("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public async Task MTP_DefaultTestFramework_NotAddedWhenAnotherFrameworkIsReferenced()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. TUnitReferences]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Test]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("xunit.v3.mtp-v2", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task MTP_DefaultTestFramework_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableDefaultTestFramework", "false")],
+            nuGetPackages: [.. XUnit2References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+
+        var packageReferences = data.GetMSBuildItems("PackageReference");
+        Assert.DoesNotContain("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
+    }
+
+    // 'dotnet test' renders the results itself in MTP mode, so '--output Detailed' must be set on the command line.
+    // The default arguments added by the SDK must not conflict with it.
+    [Fact]
+    public async Task MTP_DetailedOutputListsSucceededTests()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. XUnit3References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void SampleSucceedingTest()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(["--output", "Detailed"]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("SampleSucceedingTest", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task MTP_GitHubActionsReport()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+    }
+
+    [Fact]
+    public async Task MTP_GitHubActionsReport_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableGitHubActionsReport", "false")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("Microsoft.Testing.Extensions.GitHubActionsReport", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+        Assert.Empty(project.GetGitHubStepSummaryContent());
+    }
+
+    [Fact]
     public async Task CentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
@@ -1287,7 +1482,13 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             );
 
         project.AddFile("Program.cs", """
-            Console.WriteLine();
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
             """);
 
         project.AddFile("Directory.Packages.props", """
@@ -1577,7 +1778,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task AssemblyContainsMetadataAttributeWithSdkName(string sdkName)
     {
         await using var project = CreateProjectBuilder(sdkName);
-        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+        project.AddCsprojFile(filename: "Sample.Tests.csproj", properties: [("EnableDefaultTestFramework", "false")]);
 
         project.AddDirectoryBuildPropsFile(postSdkContent: "");
 
