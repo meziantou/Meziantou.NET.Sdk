@@ -2,6 +2,7 @@
 is_global = true
 global_level = 0
 
+MA0002.report_only_non_ordinal = true
 MA0015.consider_member_access_as_parameter = true
 
 # MA0001: StringComparison is missing
