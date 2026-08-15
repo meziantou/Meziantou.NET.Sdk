@@ -2,7 +2,7 @@
   <!-- When running dotnet test, disable analyzers to compile faster and get feedback earlier -->
   <!-- This assume that most CI uses an actual dotnet build/publish/pack in parallel of dotnet test -->
   <PropertyGroup>
-    <IsPackable Condition="'$(IsPackable)' == ''">false</IsPackable>
+    <IsPackable>false</IsPackable>
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
     <EnableDefaultTestFramework Condition="'$(EnableDefaultTestFramework)' == ''">true</EnableDefaultTestFramework>
     <EnableGitHubActionsReport Condition="'$(EnableGitHubActionsReport)' == ''">true</EnableGitHubActionsReport>
