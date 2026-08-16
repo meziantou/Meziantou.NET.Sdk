@@ -230,12 +230,24 @@ the whole assembly into
 
 Tests that share mutable state with another test of the same class must therefore be synchronized, or
 be moved to a collection that disables parallelization. Set `EnableXunitFullParallelization` to
-`false` to keep the xUnit.net defaults, which is also required when the assembly already declares the
+`false` to not generate the file at all, which is also required when the assembly already declares the
 attribute itself, as the compiler reports `CS0579` for the duplicate:
 
 ````xml
 <PropertyGroup>
   <EnableXunitFullParallelization>false</EnableXunitFullParallelization>
+</PropertyGroup>
+````
+
+Set `XunitParallelizationMode` to generate the attribute with another
+[`Xunit.Sdk.ParallelMode`](https://xunit.net/docs/running-tests-in-parallel#changing-default-behaviors)
+value: `None` (no parallelization at all), `Collections` (the xUnit.net default: only test collections
+run in parallel) or `All` (the SDK default). Setting the property also generates the file whatever the
+resolved references are, like `EnableXunitFullParallelization` set to `true`:
+
+````xml
+<PropertyGroup>
+  <XunitParallelizationMode>None</XunitParallelizationMode>
 </PropertyGroup>
 ````
 
@@ -265,6 +277,7 @@ the missing `partial` modifier:
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
 | `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
+| `XunitParallelizationMode` | `All` | Sets the `Xunit.Sdk.ParallelMode` value used by the generated attribute: `None`, `Collections` or `All`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |
 | `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh --report-gh-slow-test-notices off`. The extension is inert unless the build runs on GitHub Actions. Slow-test notices are disabled as they are mostly noise on CI machines with varying performance. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
