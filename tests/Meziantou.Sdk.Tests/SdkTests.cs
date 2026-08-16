@@ -1442,6 +1442,63 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData("", "All")]
+    [InlineData("All", "All")]
+    [InlineData("Collections", "Collections")]
+    [InlineData("None", "None")]
+    [InlineData("collections", "Collections")]
+    public async Task MTP_XunitParallelizationMode(string mode, string expectedMode)
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: mode.Length == 0 ? null : [("XunitParallelizationMode", mode)]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+
+        var generatedFile = Directory.GetFiles(project.RootFolder, "Meziantou.NET.Sdk.XunitParallelization.g.cs", SearchOption.AllDirectories).Single();
+        Assert.Contains($"[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.{expectedMode})]", File.ReadAllText(generatedFile), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MTP_XunitParallelizationMode_InvalidValueIsReported()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("XunitParallelizationMode", "Collection")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains("'XunitParallelizationMode' has an invalid value: 'Collection'.", StringComparison.Ordinal));
+    }
+
     // 'Xunit.v3.ParallelizationAttribute' doesn't exist in another test framework, so the file must not be generated
     [Fact]
     public async Task MTP_XunitFullParallelization_NotGeneratedForAnotherTestFramework()
