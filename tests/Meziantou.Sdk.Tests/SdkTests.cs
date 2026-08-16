@@ -1756,6 +1756,53 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MTP_MinimumExpectedTests()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("--minimum-expected-tests 1", data.GetMSBuildPropertyValue("TestingPlatformCommandLineArguments"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MTP_MinimumExpectedTests_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableMinimumExpectedTests", "false")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("--minimum-expected-tests", data.GetMSBuildPropertyValue("TestingPlatformCommandLineArguments"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();

@@ -63,7 +63,9 @@
     <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
-    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
+    <!-- Set 'EnableMinimumExpectedTests' to 'false' to not set the argument, for instance when the project sets
+         its own value in 'TestingPlatformCommandLineArguments' -->
+    <TestingPlatformCommandLineArguments Condition="'$(EnableMinimumExpectedTests)' != 'false'">$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
   </PropertyGroup>
 
   <!-- VSTest -->

@@ -268,6 +268,7 @@ the missing `partial` modifier:
 | `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh`. The extension is inert unless the build runs on GitHub Actions. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
+| `EnableMinimumExpectedTests` | `true` | Adds `--minimum-expected-tests 1`. Set it to `false` when the project sets its own value in `TestingPlatformCommandLineArguments`. Note that Microsoft.Testing.Platform expects at least one test to run even when the argument is not set. |
 | `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
 | `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3`, `xunit.v3.mtp-v2`, `xunit.v3.core.mtp-v2`, or `TUnit` is referenced. `Microsoft.NET.Test.Sdk` is added only when MTP is not used. |
 | `EnableDefaultTestSettings` | `true` | Adds default crash/hang dumps and loggers. |
