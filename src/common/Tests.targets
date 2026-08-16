@@ -40,6 +40,26 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'MSTest.TestFramework')) != 'true' AND
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'NUnit')) != 'true'">
     <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.0" IsImplicitlyDefined="true" />
+
+    <!-- An item is used instead of a property as item lists cannot be referenced in a property condition outside of a target (MSB4099) -->
+    <_DefaultTestFrameworkAdded Include="true" />
+  </ItemGroup>
+
+  <!-- Use 'Meziantou.Framework.Assertions' as the default assertion library -->
+  <!-- The package only supports .NET 10 and later, so it is added by default only when the SDK adds the default
+       test framework and the project targets a supported framework. Set 'EnableMeziantouAssertions' to 'true' to
+       add it whatever the referenced packages and the target framework are, or to 'false' to never add it. -->
+  <ItemGroup Condition="'$(EnableMeziantouAssertions)' == 'true' OR (
+                        '$(EnableMeziantouAssertions)' == '' AND
+                        '@(_DefaultTestFrameworkAdded)' == 'true' AND
+                        $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))
+                        )">
+    <PackageReference Include="Meziantou.Framework.Assertions" Version="2.0.2" IsImplicitlyDefined="true" />
+
+    <!-- 'Assert' must refer to 'Meziantou.Framework.Assertions.Assert', not to the one of the test framework.
+         A using alias takes precedence over the namespaces imported in the same scope, so the alias wins over
+         the global 'using Xunit;' directive. -->
+    <Using Include="Meziantou.Framework.Assertions.Assert" Alias="Assert" />
   </ItemGroup>
 
   <!-- MTP -->

@@ -1383,6 +1383,188 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MTP_MeziantouAssertions_AssertRefersToMeziantouAssertions()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        // 'Assert' must be resolved to the Meziantou.Framework.Assertions type without any using directive
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Assert.Equal(typeof(Meziantou.Framework.Assertions.Assert), typeof(Assert));
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("Meziantou.Framework.Assertions", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("Meziantou.Framework.Assertions.Assert", data.GetMSBuildItems("Using"), StringComparer.Ordinal);
+    }
+
+    // Only the meaning of 'Assert' changes: the assertions of the test framework stay available
+    [Fact]
+    public async Task MTP_MeziantouAssertions_XunitAssertIsStillAvailable()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Xunit.Assert.True(true);
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task MTP_MeziantouAssertions_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableMeziantouAssertions", "false")]
+            );
+
+        // 'Assert' must still be resolved to the xUnit.net type
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Assert.Equal(typeof(Xunit.Assert), typeof(Assert));
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("Meziantou.Framework.Assertions", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Meziantou.Framework.Assertions.Assert", data.GetMSBuildItems("Using"), StringComparer.Ordinal);
+    }
+
+    // The package must not replace the assertions of a test framework referenced by the project itself
+    [Fact]
+    public async Task MTP_MeziantouAssertions_NotAddedForAnotherTestFramework()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. TUnitReferences]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Test]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("Meziantou.Framework.Assertions", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+    }
+
+    // The package only supports .NET 10 and later, so it must not break projects targeting an older framework
+    [Fact]
+    public async Task MTP_MeziantouAssertions_NotAddedForUnsupportedTargetFramework()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("TargetFramework", "net8.0")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Assert.Equal(typeof(Xunit.Assert), typeof(Assert));
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("Meziantou.Framework.Assertions", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+    }
+
+    // Setting the property explicitly adds the package even when the project references the test framework itself
+    [Fact]
+    public async Task MTP_MeziantouAssertions_ExplicitlyEnabled()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableMeziantouAssertions", "true")],
+            nuGetPackages: [.. XUnit3References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1() => Assert.Equal(typeof(Meziantou.Framework.Assertions.Assert), typeof(Assert));
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("Meziantou.Framework.Assertions", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task MTP_XunitFullParallelization_RunsTestsOfSameClassInParallelByDefault()
     {
         await using var project = CreateProjectBuilder(SdkTestName);

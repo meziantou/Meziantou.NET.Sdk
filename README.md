@@ -219,6 +219,30 @@ already references `xunit`, `xunit.v3*`, `TUnit`, `MSTest`, or `NUnit`. Set
 `EnableDefaultTestFramework` to `false` for full control, which is also required for a test project
 that must stay a library (VSTest).
 
+The assertions come from
+[`Meziantou.Framework.Assertions`](https://www.nuget.org/packages/Meziantou.Framework.Assertions)
+instead of xUnit.net. The SDK adds the package and generates the
+`global using Assert = Meziantou.Framework.Assertions.Assert;` alias, so `Assert` refers to it in any test
+— a using alias takes precedence over the namespaces imported in the same scope, so it wins over the
+global `using Xunit;` directive:
+
+````csharp
+[Fact]
+public void Sample() => Assert.HasCount(2, new[] { 1, 2 });
+````
+
+Only the meaning of `Assert` changes: the assertions of the test framework stay available under their
+full name, such as `Xunit.Assert`. This happens when the SDK adds the default test framework itself and
+the project targets .NET 10 or later, as the package supports no older framework. Set
+`EnableMeziantouAssertions` to `true` to add it whatever the referenced packages and the target framework
+are, or to `false` to opt out and keep the assertions of the test framework:
+
+````xml
+<PropertyGroup>
+  <EnableMeziantouAssertions>false</EnableMeziantouAssertions>
+</PropertyGroup>
+````
+
 xUnit.net v3 runs test collections in parallel, but the tests inside a collection run one after the
 other. When the project resolves xUnit.net v3 4.0 or later, the SDK generates a source file that opts
 the whole assembly into
@@ -276,6 +300,7 @@ the missing `partial` modifier:
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
+| `EnableMeziantouAssertions` | Auto | Adds `Meziantou.Framework.Assertions` and aliases `Assert` to `Meziantou.Framework.Assertions.Assert`. Added when the SDK adds the default test framework and the project targets .NET 10 or later, when set to `true` whatever the referenced packages and the target framework are, and never when set to `false`. |
 | `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
 | `XunitParallelizationMode` | `All` | Sets the `Xunit.Sdk.ParallelMode` value used by the generated attribute: `None`, `Collections` or `All`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |
 | `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |

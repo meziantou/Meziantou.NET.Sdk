@@ -1,10 +1,12 @@
 ﻿<Project>
-	<Import Project="$(MSBuildThisFileDirectory)/Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
-	<Import Project="$(MSBuildThisFileDirectory)/Npm.targets" />
-
+	<!-- The default target framework must be set before importing 'Tests.targets', as it uses it to
+	     determine which packages are compatible with the project -->
 	<PropertyGroup>
 		<TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(NETCoreAppMaximumVersion)' != ''">net$(NETCoreAppMaximumVersion)</TargetFramework>
 	</PropertyGroup>
+
+	<Import Project="$(MSBuildThisFileDirectory)/Tests.targets" Condition="'$(IsTestProject)' == 'true'" />
+	<Import Project="$(MSBuildThisFileDirectory)/Npm.targets" />
 
 	<PropertyGroup>
     <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
