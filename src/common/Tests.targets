@@ -6,6 +6,7 @@
     <EnableCodeCoverage Condition="'$(EnableCodeCoverage)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</EnableCodeCoverage>
     <EnableDefaultTestFramework Condition="'$(EnableDefaultTestFramework)' == ''">true</EnableDefaultTestFramework>
     <EnableGitHubActionsReport Condition="'$(EnableGitHubActionsReport)' == ''">true</EnableGitHubActionsReport>
+    <MinimumExpectedTests Condition="'$(MinimumExpectedTests)' == ''">1</MinimumExpectedTests>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(EnableDefaultTestFramework)' == 'true'">
@@ -64,7 +65,8 @@
     <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
-    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --minimum-expected-tests 1</TestingPlatformCommandLineArguments>
+    <!-- Microsoft.Testing.Platform only accepts a non-zero positive value, so the argument is not set when 'MinimumExpectedTests' is '0' -->
+    <TestingPlatformCommandLineArguments Condition="'$(MinimumExpectedTests)' != '' AND '$(MinimumExpectedTests)' != '0'">$(TestingPlatformCommandLineArguments) --minimum-expected-tests $(MinimumExpectedTests)</TestingPlatformCommandLineArguments>
   </PropertyGroup>
 
   <!-- VSTest -->

@@ -1705,6 +1705,96 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MTP_MinimumExpectedTests()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("--minimum-expected-tests 1", data.GetMSBuildPropertyValue("TestingPlatformCommandLineArguments"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MTP_MinimumExpectedTests_CustomValue()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("MinimumExpectedTests", "2")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(9, data.ExitCode);
+        Assert.Contains("--minimum-expected-tests 2", data.GetMSBuildPropertyValue("TestingPlatformCommandLineArguments"), StringComparison.Ordinal);
+    }
+
+    // Microsoft.Testing.Platform reports an invalid command line when '--minimum-expected-tests' is set to '0',
+    // so the argument must not be set at all
+    [Fact]
+    public async Task MTP_MinimumExpectedTests_Zero()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("MinimumExpectedTests", "0")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("--minimum-expected-tests", data.GetMSBuildPropertyValue("TestingPlatformCommandLineArguments"), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
