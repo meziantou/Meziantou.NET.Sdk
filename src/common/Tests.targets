@@ -226,6 +226,13 @@
     </ItemGroup>
   </Target>
 
+  <!-- Define the 'XUNIT_ENTRYPOINT_DISABLE_WARNINGS' compilation constant. Set 'EnableXunitEntryPointDisableWarnings' to 'false' to opt out. -->
+  <!-- Visual Basic separates the constants with ',' and requires a value for each of them, otherwise the compiler reports BC31030 -->
+  <PropertyGroup Condition="'$(EnableXunitEntryPointDisableWarnings)' != 'false'">
+    <DefineConstants Condition="'$(MSBuildProjectExtension)' == '.vbproj'">$(DefineConstants),XUNIT_ENTRYPOINT_DISABLE_WARNINGS=-1</DefineConstants>
+    <DefineConstants Condition="'$(MSBuildProjectExtension)' != '.vbproj'">$(DefineConstants);XUNIT_ENTRYPOINT_DISABLE_WARNINGS</DefineConstants>
+  </PropertyGroup>
+
   <!-- Add implicit using for xunit -->
   <ItemGroup Condition="'$(ImplicitUsings)' == 'enable' AND (
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR

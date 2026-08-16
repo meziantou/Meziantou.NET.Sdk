@@ -1844,6 +1844,59 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task MTP_XunitEntryPointDisableWarningsConstantIsDefined()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            #if !XUNIT_ENTRYPOINT_DISABLE_WARNINGS
+            #error XUNIT_ENTRYPOINT_DISABLE_WARNINGS is not defined
+            #endif
+
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task MTP_XunitEntryPointDisableWarningsConstant_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("EnableXunitEntryPointDisableWarnings", "false")]
+            );
+
+        project.AddFile("Program.cs", """
+            #if XUNIT_ENTRYPOINT_DISABLE_WARNINGS
+            #error XUNIT_ENTRYPOINT_DISABLE_WARNINGS is defined
+            #endif
+
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+    }
+
     // 'dotnet test' renders the results itself in MTP mode, so '--output Detailed' must be set on the command line.
     // The default arguments added by the SDK must not conflict with it.
     [Fact]

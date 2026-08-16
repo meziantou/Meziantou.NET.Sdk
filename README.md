@@ -297,6 +297,22 @@ the missing `partial` modifier:
 </PropertyGroup>
 ````
 
+The SDK also defines the `XUNIT_ENTRYPOINT_DISABLE_WARNINGS` compilation constant in every test project:
+
+````csharp
+#if XUNIT_ENTRYPOINT_DISABLE_WARNINGS
+// ...
+#endif
+````
+
+Set `EnableXunitEntryPointDisableWarnings` to `false` to not define it:
+
+````xml
+<PropertyGroup>
+  <EnableXunitEntryPointDisableWarnings>false</EnableXunitEntryPointDisableWarnings>
+</PropertyGroup>
+````
+
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
@@ -304,6 +320,7 @@ the missing `partial` modifier:
 | `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
 | `XunitParallelizationMode` | `All` | Sets the `Xunit.Sdk.ParallelMode` value used by the generated attribute: `None`, `Collections` or `All`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |
 | `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |
+| `EnableXunitEntryPointDisableWarnings` | `true` | Defines the `XUNIT_ENTRYPOINT_DISABLE_WARNINGS` compilation constant. Set it to `false` to not define the constant. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh --report-gh-slow-test-notices off`. The extension is inert unless the build runs on GitHub Actions. Slow-test notices are disabled as they are mostly noise on CI machines with varying performance. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `MinimumExpectedTests` | `1` | Sets `--minimum-expected-tests`, the number of tests that must run for the test run to succeed. Set it to `0` to not set the argument, as Microsoft.Testing.Platform only accepts a non-zero positive value. Note that the platform still expects at least one test to run when the argument is not set. |
