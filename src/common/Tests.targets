@@ -59,7 +59,8 @@
 
   <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-trx</TestingPlatformCommandLineArguments>
-    <TestingPlatformCommandLineArguments Condition="'$(EnableGitHubActionsReport)' != 'false'">$(TestingPlatformCommandLineArguments) --report-gh</TestingPlatformCommandLineArguments>
+    <!-- Slow-test notices are disabled as they are mostly noise on CI machines with varying performance -->
+    <TestingPlatformCommandLineArguments Condition="'$(EnableGitHubActionsReport)' != 'false'">$(TestingPlatformCommandLineArguments) --report-gh --report-gh-slow-test-notices off</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments Condition="'$(EnableCodeCoverage)' == 'true'">$(TestingPlatformCommandLineArguments) --coverage</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --crashdump --crashdump-type mini</TestingPlatformCommandLineArguments>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
