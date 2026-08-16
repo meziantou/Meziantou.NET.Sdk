@@ -31,7 +31,6 @@
     <file src="configuration/Meziantou.NET.Sdk.SingleFileApp.editorconfig" target="configuration/Meziantou.NET.Sdk.SingleFileApp.editorconfig" />
     <file src="configuration/Meziantou.NET.Sdk.Web.editorconfig" target="configuration/Meziantou.NET.Sdk.Web.editorconfig" />
     <file src="configuration/NamingConvention.editorconfig" target="configuration/NamingConvention.editorconfig" />
-    <file src="configuration/default.runsettings" target="configuration/default.runsettings" />
     <file src="icon.png" target="icon.png" />
     <file src="icon.svg" target="icon.svg" />
     <file src="../LICENSE.txt" target="LICENSE.txt" />

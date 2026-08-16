@@ -186,14 +186,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         static bool ShouldRemoveEnvironmentVariable(string key) =>
             key.StartsWith("GITHUB", StringComparison.Ordinal) ||
             key.StartsWith("GITHUB_", StringComparison.Ordinal) ||
-            key.StartsWith("RUNNER_", StringComparison.Ordinal) ||
-            key.StartsWith("VSTEST_", StringComparison.OrdinalIgnoreCase);
+            key.StartsWith("RUNNER_", StringComparison.Ordinal);
 
         _buildCount++;
 
         FullPath sarifPath = _directory.FullPath / SarifFileName;
         FullPath binlogPath = _directory.FullPath / "msbuild.binlog";
-        FullPath vstestdiagPath = RootFolder / "vstestdiag.txt";
 
         if (File.Exists(sarifPath))
         {
@@ -203,11 +201,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
         if (File.Exists(binlogPath))
         {
             File.Delete(binlogPath);
-        }
-
-        if (File.Exists(vstestdiagPath))
-        {
-            File.Delete(vstestdiagPath);
         }
 
         foreach (var file in Directory.GetFiles(_directory.FullPath, "*", SearchOption.AllDirectories))
@@ -285,7 +278,6 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             environmentChanges[key] = string.Empty;
         }
 
-        environmentChanges["VSTestDiag"] = vstestdiagPath;
         var dotnetRoot = Path.GetDirectoryName(dotnetPath) ?? throw new InvalidOperationException("Cannot get dotnet root path");
         environmentChanges["DOTNET_ROOT"] = dotnetRoot;
         if (RuntimeInformation.ProcessArchitecture is Architecture.X64)
@@ -425,19 +417,12 @@ internal sealed class ProjectBuilder : IAsyncDisposable
             _testOutputHelper.WriteLine("Binlog file not found: " + binlogPath);
         }
 
-        string? vstestDiagContent = null;
-        if (File.Exists(vstestdiagPath))
-        {
-            vstestDiagContent = File.ReadAllText(vstestdiagPath);
-            TestContext.Current.AddAttachment(vstestdiagPath.Name, vstestDiagContent);
-        }
-
         if (result.Output.Any(line => line.Text.Contains("Could not resolve SDK")))
         {
             Assert.Fail("The SDK cannot be found, expected version: " + _fixture.Version);
         }
 
-        return new BuildResult(result.ExitCode, [.. result.Output.Select(line => line.Text)], sarif, binlogContent, vstestDiagContent);
+        return new BuildResult(result.ExitCode, [.. result.Output.Select(line => line.Text)], sarif, binlogContent);
     }
 
     public async Task ExecuteGitCommand(params string[]? arguments)

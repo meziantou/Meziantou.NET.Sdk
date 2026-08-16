@@ -216,8 +216,9 @@ file.
 
 To use another test framework, reference it: the default framework is not added when the project
 already references `xunit`, `xunit.v3*`, `TUnit`, `MSTest`, or `NUnit`. Set
-`EnableDefaultTestFramework` to `false` for full control, which is also required for a test project
-that must stay a library (VSTest).
+`EnableDefaultTestFramework` to `false` for full control. Only Microsoft Testing Platform is
+supported, so the framework must run on it: the SDK never adds `Microsoft.NET.Test.Sdk` and
+configures no VSTest setting.
 
 The assertions come from
 [`Meziantou.Framework.Assertions`](https://www.nuget.org/packages/Meziantou.Framework.Assertions)
@@ -307,16 +308,6 @@ the missing `partial` modifier:
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh --report-gh-slow-test-notices off`. The extension is inert unless the build runs on GitHub Actions. Slow-test notices are disabled as they are mostly noise on CI machines with varying performance. |
 | `EnableCodeCoverage` | `true` on CI | Enables code coverage collection on CI. |
 | `MinimumExpectedTests` | `1` | Sets `--minimum-expected-tests`, the number of tests that must run for the test run to succeed. Set it to `0` to not set the argument, as Microsoft.Testing.Platform only accepts a non-zero positive value. Note that the platform still expects at least one test to run when the argument is not set. |
-| `OptimizeVsTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
-| `UseMicrosoftTestingPlatform` | Auto | Uses MTP when set to `true` or when `xunit.v3`, `xunit.v3.mtp-v2`, `xunit.v3.core.mtp-v2`, or `TUnit` is referenced. `Microsoft.NET.Test.Sdk` is added only when MTP is not used. |
-| `EnableDefaultTestSettings` | `true` | Adds default crash/hang dumps and loggers. |
+| `OptimizeTestRun` | `true` | Disables analyzers during `dotnet test` unless set to `false`. |
+| `EnableDefaultTestSettings` | `true` | Adds the default MTP arguments, such as the crash and hang dumps and the TRX report. |
 | `TestingPlatformCommandLineArguments` | Appended | Adds MTP arguments such as `--report-trx`, `--report-gh` and `--coverage` when enabled. |
-| `VSTestBlame` | `true` | Enables VSTest blame. |
-| `VSTestBlameCrash` | `true` | Enables crash dumps. |
-| `VSTestBlameCrashDumpType` | `mini` | Sets crash dump type. |
-| `VSTestBlameHang` | `true` | Enables hang dumps. |
-| `VSTestBlameHangDumpType` | `mini` | Sets hang dump type. |
-| `VSTestBlameHangTimeout` | `10min` | Sets hang dump timeout. |
-| `VSTestCollect` | `Code Coverage` when enabled | Enables VSTest code coverage. |
-| `VSTestSetting` | Default runsettings when enabled | Uses the default runsettings file for coverage. |
-| `VSTestLogger` | `trx;console%3bverbosity=normal` | Appends loggers. |
