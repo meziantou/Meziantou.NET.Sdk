@@ -20,11 +20,6 @@ public sealed class Sdk11_0_Root_Tests(PackageFixture fixture, ITestOutputHelper
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion)
 {
     // note: don't simplify names as they are used in the Renovate regex
-    private static readonly NuGetReference[] XUnit3VSTestReferences =
-    [
-        new NuGetReference("xunit.v3.mtp-off", "4.0.0"),
-        new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
-    ];
     private static readonly NuGetReference[] XUnit3References =
     [
         new NuGetReference("xunit.v3", "4.0.0"),
@@ -988,50 +983,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task DotnetTestSkipAnalyzers()
-    {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(
-            properties: [("IsTestProject", "true"), ("UseMicrosoftTestingPlatformRunner", "false")],
-            nuGetPackages: [.. XUnit3VSTestReferences]
-        );
-        project.AddFile("sample.cs", """
-            public class Sample
-            {
-                [Xunit.Fact]
-                public void Test()
-                {
-                    _ = System.DateTime.Now; // This should not be reported as an error
-                }
-            }
-            """);
-        var data = await project.TestAndGetOutput();
-        Assert.False(data.HasWarning("RS0030"));
-    }
-
-    [Fact]
-    public async Task DotnetTestSkipAnalyzers_OptOut()
-    {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(
-            properties: [("IsTestProject", "true"), ("OptimizeVsTestRun", "false"), ("UseMicrosoftTestingPlatformRunner", "false")],
-            nuGetPackages: [.. XUnit3VSTestReferences]
-        );
-        project.AddFile("sample.cs", """
-            public class Sample
-            {
-                [Xunit.Fact]
-                public void Test()
-                {
-                    _ = System.DateTime.Now; // This should not be reported as an error
-                }
-            }
-            """);
-        var data = await project.TestAndGetOutput();
-        Assert.True(data.HasWarning("RS0030"));
-    }
-
-    [Fact]
     public async Task NonMeziantouCsproj_DoesNotIncludePackageProperties()
     {
         await using var project = CreateProjectBuilder();
@@ -1079,37 +1030,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task VSTests_OnUnknownContextShouldNotAddCustomLogger()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            properties: [("UseMicrosoftTestingPlatformRunner", "false")],
-            nuGetPackages: [.. XUnit3VSTestReferences]
-            );
-
-        // 'xunit.v3.mtp-off' doesn't add the implicit using for 'Xunit', so the names must be fully qualified
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Xunit.Fact]
-                public void Test1()
-                {
-                    Xunit.Assert.Fail("failure message");
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
-
-        Assert.Equal(1, data.ExitCode);
-        Assert.True(data.OutputContains("failure message", StringComparison.Ordinal));
-        Assert.Empty(project.GetGitHubStepSummaryContent());
-        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-        Assert.Empty(Directory.GetFiles(project.RootFolder, "*.coverage", SearchOption.AllDirectories));
-    }
-
-    [Fact]
     public async Task MTP_DotnetTestSkipAnalyzers()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
@@ -1141,6 +1061,41 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.TestAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.HasWarning("RS0030"));
+        Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
+    }
+
+    [Fact]
+    public async Task MTP_DotnetTestSkipAnalyzers_OptOut()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("OptimizeTestRun", "false")],
+            nuGetPackages: [.. XUnit3MTP2References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                    _ = System.DateTime.Now; // This should be reported as the analyzers are not disabled
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.HasWarning("RS0030"));
         Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
     }
 
@@ -1359,10 +1314,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [("EnableDefaultTestFramework", "false")],
-            nuGetPackages: [.. XUnit3VSTestReferences]
+            nuGetPackages: [.. XUnit3References]
             );
 
-        // 'xunit.v3.mtp-off' doesn't add the implicit using for 'Xunit', so the names must be fully qualified
         project.AddFile("Program.cs", """
             public class Tests
             {
@@ -1373,13 +1327,21 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             }
             """);
 
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
         var data = await project.TestAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
 
         var packageReferences = data.GetMSBuildItems("PackageReference");
         Assert.DoesNotContain("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]

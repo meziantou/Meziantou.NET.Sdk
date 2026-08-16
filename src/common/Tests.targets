@@ -17,7 +17,7 @@
     <UseMicrosoftTestingPlatformRunner Condition="'$(UseMicrosoftTestingPlatformRunner)' == ''">true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>
 
-  <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="VSTest;_MTPBuild" Condition="'$(OptimizeVsTestRun)' != 'false'">
+  <Target Name="DisableAnalyzerWhenRunningTests" BeforeTargets="_MTPBuild" Condition="'$(OptimizeTestRun)' != 'false'">
     <PropertyGroup>
       <RunAnalyzers>false</RunAnalyzers>
     </PropertyGroup>
@@ -62,13 +62,8 @@
     <Using Include="Meziantou.Framework.Assertions.Assert" Alias="Assert" />
   </ItemGroup>
 
-  <!-- MTP -->
-  <ItemGroup Condition="'$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND (
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) == 'true' OR
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
-                        ))">
+  <!-- MTP is the only supported test platform, so the extensions are always added -->
+  <ItemGroup>
     <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.3.3" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.3" IsImplicitlyDefined="true" />
@@ -87,35 +82,6 @@
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --hangdump --hangdump-timeout 10m --hangdump-type mini</TestingPlatformCommandLineArguments>
     <!-- Microsoft.Testing.Platform only accepts a non-zero positive value, so the argument is not set when 'MinimumExpectedTests' is '0' -->
     <TestingPlatformCommandLineArguments Condition="'$(MinimumExpectedTests)' != '' AND '$(MinimumExpectedTests)' != '0'">$(TestingPlatformCommandLineArguments) --minimum-expected-tests $(MinimumExpectedTests)</TestingPlatformCommandLineArguments>
-  </PropertyGroup>
-
-  <!-- VSTest -->
-  <ItemGroup Condition="!('$(UseMicrosoftTestingPlatform)' == 'true' OR ('$(UseMicrosoftTestingPlatform)' == '' AND (
-                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
-                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
-                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) == 'true' OR
-                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) == 'true'
-                         )))">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" IsImplicitlyDefined="true" />
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
-    <VSTestBlame>true</VSTestBlame>
-
-    <VSTestBlameCrash>true</VSTestBlameCrash>
-    <VSTestBlameCrashDumpType>mini</VSTestBlameCrashDumpType>
-
-    <VSTestBlameHang>true</VSTestBlameHang>
-    <VSTestBlameHangDumpType>mini</VSTestBlameHangDumpType>
-    <VSTestBlameHangTimeout>10min</VSTestBlameHangTimeout>
-
-    <VSTestCollect Condition="'$(EnableCodeCoverage)' == 'true'">Code Coverage</VSTestCollect>
-    <VSTestSetting Condition="'$(EnableCodeCoverage)' == 'true'">$(MSBuildThisFileDirectory)../configuration/default.runsettings</VSTestSetting>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
-    <VSTestLogger Condition="'$(VSTestLogger)' != ''">$(VSTestLogger);</VSTestLogger>
-    <VSTestLogger>$(VSTestLogger)trx;console%3bverbosity=normal</VSTestLogger>
   </PropertyGroup>
 
   <!-- Generate a source file configuring the parallelization mode for xUnit.net v3 -->

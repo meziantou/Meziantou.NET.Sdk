@@ -2,7 +2,7 @@ using Microsoft.Build.Logging.StructuredLogger;
 
 namespace Meziantou.Sdk.Tests.Helpers;
 
-internal sealed record BuildResult(int ExitCode, IReadOnlyList<string> OutputLines, SarifFile SarifFile, byte[] BinaryLogContent, string VSTestDiagnosticFileContent)
+internal sealed record BuildResult(int ExitCode, IReadOnlyList<string> OutputLines, SarifFile SarifFile, byte[] BinaryLogContent)
 {
     public bool OutputContains(string value, StringComparison stringComparison = StringComparison.Ordinal) => OutputLines.Any(line => line.Contains(value, stringComparison));
     public bool OutputDoesNotContain(string value, StringComparison stringComparison = StringComparison.Ordinal) => !OutputLines.Any(line => line.Contains(value, stringComparison));
