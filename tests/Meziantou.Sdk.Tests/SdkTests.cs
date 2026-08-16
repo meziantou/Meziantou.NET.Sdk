@@ -20,10 +20,10 @@ public sealed class Sdk11_0_Root_Tests(PackageFixture fixture, ITestOutputHelper
 public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOutputHelper, NetSdkVersion dotnetSdkVersion)
 {
     // note: don't simplify names as they are used in the Renovate regex
-    private static readonly NuGetReference[] XUnit2References =
+    private static readonly NuGetReference[] XUnit3VSTestReferences =
     [
-        new NuGetReference("xunit", "2.9.3"),
-        new NuGetReference("xunit.runner.visualstudio", "3.1.5"),
+        new NuGetReference("xunit.v3.mtp-off", "4.0.0"),
+        new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
     private static readonly NuGetReference[] XUnit3References =
     [
@@ -992,8 +992,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
-            properties: [("IsTestProject", "true")],
-            nuGetPackages: [.. XUnit2References]
+            properties: [("IsTestProject", "true"), ("UseMicrosoftTestingPlatformRunner", "false")],
+            nuGetPackages: [.. XUnit3VSTestReferences]
         );
         project.AddFile("sample.cs", """
             public class Sample
@@ -1014,8 +1014,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(
-            properties: [("IsTestProject", "true"), ("OptimizeVsTestRun", "false")],
-            nuGetPackages: [.. XUnit2References]
+            properties: [("IsTestProject", "true"), ("OptimizeVsTestRun", "false"), ("UseMicrosoftTestingPlatformRunner", "false")],
+            nuGetPackages: [.. XUnit3VSTestReferences]
         );
         project.AddFile("sample.cs", """
             public class Sample
@@ -1084,16 +1084,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. XUnit2References]
+            properties: [("UseMicrosoftTestingPlatformRunner", "false")],
+            nuGetPackages: [.. XUnit3VSTestReferences]
             );
 
+        // 'xunit.v3.mtp-off' doesn't add the implicit using for 'Xunit', so the names must be fully qualified
         project.AddFile("Program.cs", """
             public class Tests
             {
-                [Fact]
+                [Xunit.Fact]
                 public void Test1()
                 {
-                    Assert.Fail("failure message");
+                    Xunit.Assert.Fail("failure message");
                 }
             }
             """);
@@ -1357,13 +1359,14 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
             properties: [("EnableDefaultTestFramework", "false")],
-            nuGetPackages: [.. XUnit2References]
+            nuGetPackages: [.. XUnit3VSTestReferences]
             );
 
+        // 'xunit.v3.mtp-off' doesn't add the implicit using for 'Xunit', so the names must be fully qualified
         project.AddFile("Program.cs", """
             public class Tests
             {
-                [Fact]
+                [Xunit.Fact]
                 public void Test1()
                 {
                 }
@@ -1436,33 +1439,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.IsMSBuildTargetExecuted("GenerateXunitParallelizationSourceFile"));
-        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
-    }
-
-    // 'Xunit.v3.ParallelizationAttribute' doesn't exist in xUnit.net v2, so the file must not be generated
-    [Fact]
-    public async Task MTP_XunitFullParallelization_NotGeneratedForXunitV2()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            properties: [("EnableDefaultTestFramework", "false")],
-            nuGetPackages: [.. XUnit2References]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Fact]
-                public void Test1()
-                {
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
-
-        Assert.Equal(0, data.ExitCode);
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
     }
 
@@ -1592,33 +1568,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.IsMSBuildTargetExecuted("GenerateXunitStaticHelpersSourceFile"));
-        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
-    }
-
-    // 'Xunit.TestContext' doesn't exist in xUnit.net v2, so the file must not be generated
-    [Fact]
-    public async Task MTP_XunitStaticHelpers_NotGeneratedForXunitV2()
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            properties: [("EnableDefaultTestFramework", "false")],
-            nuGetPackages: [.. XUnit2References]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Fact]
-                public void Test1()
-                {
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
-
-        Assert.Equal(0, data.ExitCode);
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
     }
 
