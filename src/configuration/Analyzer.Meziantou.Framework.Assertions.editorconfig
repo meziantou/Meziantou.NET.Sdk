@@ -1,0 +1,112 @@
+# global_level must be higher than the NET Analyzer files
+is_global = true
+global_level = 0
+
+# MFAS0001: Pass the expected value before the actual value
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0001.severity = warning
+
+# MFAS0002: Use Assert.Same instead of Assert.ReferenceEquals
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0002.severity = error
+
+# MFAS0003: Do not use Assert.IsType with static or abstract types
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0003.severity = error
+
+# MFAS0004: Use Assert.Empty for zero count checks
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0004.severity = warning
+
+# MFAS0005: Use specialized count assertions
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0005.severity = warning
+
+# MFAS0006: Use Assert.Null for null comparisons
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0006.severity = warning
+
+# MFAS0007: Use Assert.NotNull for null comparisons
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0007.severity = warning
+
+# MFAS0008: Do not use Assert.Null with value types
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0008.severity = error
+
+# MFAS0009: Do not use Assert.NotNull with value types
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0009.severity = error
+
+# MFAS0010: Do not use Assert.Same with value types
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0010.severity = error
+
+# MFAS0011: Do not use Assert.NotSame with value types
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0011.severity = error
+
+# MFAS0012: Use Assert.IsAssignableTo for type pattern checks
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0012.severity = warning
+
+# MFAS0013: Use Assert.IsNotAssignableTo for type pattern checks
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0013.severity = warning
+
+# MFAS0014: Use Assert.Matches instead of Assert.True(Regex.IsMatch(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0014.severity = warning
+
+# MFAS0015: Use Assert.DoesNotMatch instead of Assert.False(Regex.IsMatch(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0015.severity = warning
+
+# MFAS0016: Use Assert.Contains instead of Assert.True(string.Contains(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0016.severity = warning
+
+# MFAS0017: Use Assert.DoesNotContain instead of Assert.False(string.Contains(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0017.severity = warning
+
+# MFAS0018: Use Assert.StartsWith instead of Assert.True(string.StartsWith(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0018.severity = warning
+
+# MFAS0019: Use Assert.DoesNotStartWith instead of Assert.False(string.StartsWith(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0019.severity = warning
+
+# MFAS0020: Use Assert.EndsWith instead of Assert.True(string.EndsWith(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0020.severity = warning
+
+# MFAS0021: Use Assert.DoesNotEndWith instead of Assert.False(string.EndsWith(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0021.severity = warning
+
+# MFAS0022: Use Assert.Contains instead of Assert.True(collection.Contains(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0022.severity = warning
+
+# MFAS0023: Use Assert.DoesNotContain instead of Assert.False(collection.Contains(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0023.severity = warning
+
+# MFAS0024: Use Assert.Contains instead of Assert.True(collection.Any(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0024.severity = warning
+
+# MFAS0025: Use Assert.DoesNotContain instead of Assert.False(collection.Any(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0025.severity = warning
+
+# MFAS0026: Use Assert.All instead of Assert.True(collection.All(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0026.severity = warning
+
+# MFAS0027: Use Assert.DoesNotAll instead of Assert.False(collection.All(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0027.severity = warning
+

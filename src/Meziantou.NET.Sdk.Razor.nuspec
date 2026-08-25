@@ -20,9 +20,11 @@
     <file src="common/Tests.targets" target="common/Tests.targets" />
     <file src="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" target="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" />
     <file src="configuration/Analyzer.Meziantou.Analyzer.editorconfig" target="configuration/Analyzer.Meziantou.Analyzer.editorconfig" />
+    <file src="configuration/Analyzer.Meziantou.Framework.Assertions.editorconfig" target="configuration/Analyzer.Meziantou.Framework.Assertions.editorconfig" />
     <file src="configuration/Analyzer.Meziantou.Framework.FullPath.editorconfig" target="configuration/Analyzer.Meziantou.Framework.FullPath.editorconfig" />
     <file src="configuration/Analyzer.Microsoft.CodeAnalysis.BannedApiAnalyzers.editorconfig" target="configuration/Analyzer.Microsoft.CodeAnalysis.BannedApiAnalyzers.editorconfig" />
     <file src="configuration/Analyzer.Microsoft.CodeAnalysis.NetAnalyzers.editorconfig" target="configuration/Analyzer.Microsoft.CodeAnalysis.NetAnalyzers.editorconfig" />
+    <file src="configuration/Analyzer.xunit.analyzers.editorconfig" target="configuration/Analyzer.xunit.analyzers.editorconfig" />
     <file src="configuration/BannedSymbols.NewtonsoftJson.txt" target="configuration/BannedSymbols.NewtonsoftJson.txt" />
     <file src="configuration/BannedSymbols.txt" target="configuration/BannedSymbols.txt" />
     <file src="configuration/CodingStyle.editorconfig" target="configuration/CodingStyle.editorconfig" />
