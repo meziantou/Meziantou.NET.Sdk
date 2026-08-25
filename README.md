@@ -180,6 +180,7 @@ The SDK also blocks selected NuGet packages by default:
 | `EnableDefaultNpmPackageFile` | Enabled when unset | Enables automatic package.json inclusion as `NpmPackageFile` (set to `false` to disable). |
 | `NpmIgnoreScripts` | `true` | Adds `--ignore-scripts` to `npm install` / `npm ci` when `true` (set to `false` to allow lifecycle scripts). |
 | `NpmRestoreLockedMode` | `true` on CI or when `RestoreLockedMode` is `true` | Uses `npm ci` when `true`, otherwise `npm install`. |
+| `NpmStampFileIdentifier` | Current runtime identifier (e.g. `win-x64`, `linux-x64`) | Suffix of the `node_modules/.npm-install-stamp-*` file. It makes the stamp file specific to the current environment, so packages are reinstalled when the same folder is built from another OS or architecture (e.g. a Windows host and a dev container). |
 
 ## Testing
 
