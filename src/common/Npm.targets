@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <NpmPackageFile>
+        <NodeModulesFolder>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules'))</NodeModulesFolder>
         <StampFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules', '$(_NpmStampFileName)'))</StampFile>
         <LockFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'package-lock.json'))</LockFile>
         <WorkingDirectory>%(RootDir)%(Directory)</WorkingDirectory>
@@ -39,6 +40,20 @@
   <Target Name="NpmRestore" DependsOnTargets="ComputeNpmPackageMetadata;NpmRestoreForce" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)" BeforeTargets="Restore;CollectPackageReferences">
     <Message Importance="high" Text="Installing npm packages for @(NpmPackageFile)" />
     <Exec Command="@(NpmPackageFile->'%(RestoreCommand)')" WorkingDirectory="%(WorkingDirectory)" />
+
+    <!-- The packages installed for the current environment replace the packages installed for any other environment,
+         so the stamp files of the other environments are stale and must not be used to skip the installation.
+         The search pattern must come from a property as wildcards are not expanded when they come from item metadata. -->
+    <PropertyGroup>
+      <_NpmStampFileSearchPattern>%(NpmPackageFile.NodeModulesFolder)/.npm-install-stamp-*</_NpmStampFileSearchPattern>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_NpmStampFileToDelete Remove="@(_NpmStampFileToDelete)" />
+      <_NpmStampFileToDelete Include="$(_NpmStampFileSearchPattern)" />
+    </ItemGroup>
+
+    <Delete Files="@(_NpmStampFileToDelete)" />
     <Touch Files="@(NpmPackageFile->'%(StampFile)')" AlwaysCreate="true" />
   </Target>
 

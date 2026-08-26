@@ -2453,6 +2453,11 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         return Directory.Exists(nodeModules) ? Directory.GetFiles(nodeModules, ".npm-install-stamp-*") : [];
     }
 
+    private static string GetSingleNpmStampFileName(FullPath projectFolder)
+    {
+        return Path.GetFileName(Assert.Single(GetNpmStampFiles(projectFolder)));
+    }
+
     private static void AssertNpmStampFileExists(FullPath projectFolder)
     {
         // The stamp file is environment-specific, so the same node_modules folder can be used from multiple environments
@@ -2585,18 +2590,27 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env1"]);
         Assert.Equal(0, data.ExitCode);
         Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp-env1"));
+        Assert.Equal(".npm-install-stamp-env1", GetSingleNpmStampFileName(project.RootFolder));
 
-        // The packages must be installed again when building the same folder from another environment
-        data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env2"]);
-        Assert.Equal(0, data.ExitCode);
-        Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp-env2"));
-
-        // The packages must not be installed again when building from an environment that is already up to date
+        // The packages must not be installed again when restoring from the same environment
         data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env1"]);
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.IsMSBuildTargetExecuted("NpmRestore"));
+        Assert.Equal(".npm-install-stamp-env1", GetSingleNpmStampFileName(project.RootFolder));
+
+        // The packages must be installed again when restoring the same folder from another environment.
+        // The stamp file of the first environment must be removed as its packages are replaced by the new ones.
+        data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env2"]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
+        Assert.Equal(".npm-install-stamp-env2", GetSingleNpmStampFileName(project.RootFolder));
+
+        // The packages of the first environment were replaced by the packages of the second environment,
+        // so they must be installed again when restoring from the first environment
+        data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env1"]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
+        Assert.Equal(".npm-install-stamp-env1", GetSingleNpmStampFileName(project.RootFolder));
     }
 
     [Fact]
