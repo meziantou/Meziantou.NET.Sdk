@@ -9,10 +9,6 @@
 	<Import Project="$(MSBuildThisFileDirectory)/Npm.targets" />
 
 	<PropertyGroup>
-    <GenerateSBOM Condition="'$(GenerateSBOM)' == '' AND '$(ContinuousIntegrationBuild)' == 'true'">true</GenerateSBOM>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<!-- Suppress documentation warnings (CS1573, CS1591) unless DisableDocumentationWarnings is set to false -->
 		<NoWarn Condition="'$(DisableDocumentationWarnings)' != 'false'">$(NoWarn);CS1573;CS1591</NoWarn>
 	</PropertyGroup>

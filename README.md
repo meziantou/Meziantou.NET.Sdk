@@ -94,9 +94,8 @@ Set these properties in your project file or a directory-level props file. Unles
 
 | Property | Default | Description |
 | --- | --- | --- |
-| `ContinuousIntegrationBuild` | Auto-detected | Set to `true` or `false` to force CI behavior (warnings as errors, code style enforcement, SBOM, code coverage, npm locked mode). |
+| `ContinuousIntegrationBuild` | Auto-detected | Set to `true` or `false` to force CI behavior (warnings as errors, code style enforcement, code coverage, npm locked mode). |
 | `TargetFramework` | `net$(NETCoreAppMaximumVersion)` | Used when both `TargetFramework` and `TargetFrameworks` are empty. |
-| `GenerateSBOM` | `true` on CI | Controls SBOM generation on CI builds. |
 | `RollForward` | `LatestMajor` | Applied for non-test projects when unset. |
 | `SuppressNETCoreSdkPreviewMessage` | `true` | Suppresses preview SDK message. |
 | `PublishRepositoryUrl` | `true` | Publishes repository URL in packages. |
