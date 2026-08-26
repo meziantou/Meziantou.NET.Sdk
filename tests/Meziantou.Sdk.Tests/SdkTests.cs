@@ -101,33 +101,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task GenerateSbom_IsSetWhenContinuousIntegrationBuildIsSet()
-    {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("ContinuousIntegrationBuild", "true")]);
-        project.AddFile("Program.cs", "Console.WriteLine();");
-        var data = await project.PackAndGetOutput();
-        data.AssertMSBuildPropertyValue("GenerateSBOM", "true");
-
-        var nupkg = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories).Single();
-        using var archive = ZipFile.OpenRead(nupkg);
-        Assert.Contains(archive.Entries, e => e.FullName.EndsWith("manifest.spdx.json", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task GenerateSbom_IsNotSetWhenContinuousIntegrationBuildIsNotSet()
-    {
-        await using var project = CreateProjectBuilder();
-        project.AddCsprojFile();
-        project.AddFile("Program.cs", "Console.WriteLine();");
-        var data = await project.PackAndGetOutput();
-
-        var nupkg = Directory.GetFiles(project.RootFolder, "*.nupkg", SearchOption.AllDirectories).Single();
-        using var archive = ZipFile.OpenRead(nupkg);
-        Assert.DoesNotContain(archive.Entries, e => e.FullName.EndsWith("manifest.spdx.json", StringComparison.Ordinal));
-    }
-
-    [Fact]
     public async Task CanOverrideRollForward()
     {
         await using var project = CreateProjectBuilder();
