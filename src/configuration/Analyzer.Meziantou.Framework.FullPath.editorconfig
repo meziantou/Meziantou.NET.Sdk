@@ -14,7 +14,7 @@ dotnet_diagnostic.MFFP0002.severity = warning
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0003.severity = warning
 
-# MFFP0004: Use '/' operator instead of Path.Combine
+# MFFP0004: Use '/' operator instead of Path.Combine or Path.Join
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0004.severity = warning
 
@@ -45,4 +45,52 @@ dotnet_diagnostic.MFFP0010.severity = warning
 # MFFP0011: Return FullPath instead of string
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0011.severity = warning
+
+# MFFP0012: Declare the property as FullPath instead of string
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0012.severity = suggestion
+
+# MFFP0013: Declare the variable as FullPath instead of string
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0013.severity = suggestion
+
+# MFFP0014: Declare the parameter as FullPath instead of string
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0014.severity = suggestion
+
+# MFFP0015: Compare FullPath values instead of their string representation
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFFP0015.severity = warning
+
+# MFFP0016: FullPath.Equals with a string argument is always false
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFFP0016.severity = warning
+
+# MFFP0018: Path.IsPathRooted and Path.IsPathFullyQualified are redundant on a FullPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0018.severity = suggestion
+
+# MFFP0019: Simplify the FullPath.FromPath call
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0019.severity = suggestion
+
+# MFFP0020: Use FullPath.FromFileSystemInfo instead of FullPath.FromPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0020.severity = suggestion
+
+# MFFP0021: Use FullPath.IsEmpty
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0021.severity = suggestion
+
+# MFFP0022: Use FullPath.CreateParentDirectory instead of Directory.CreateDirectory
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0022.severity = suggestion
+
+# MFFP0023: Use FullPath.Parent instead of Directory.GetParent
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0023.severity = suggestion
+
+# MFFP0024: Use the FullPath equivalent of Path.GetTempPath or Environment.GetFolderPath
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFFP0024.severity = suggestion
 

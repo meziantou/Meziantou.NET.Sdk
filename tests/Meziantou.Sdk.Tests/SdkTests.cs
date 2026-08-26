@@ -2447,6 +2447,26 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Fail("Attribute not found");
     }
 
+    private static string[] GetNpmStampFiles(FullPath projectFolder)
+    {
+        var nodeModules = projectFolder / "node_modules";
+        return Directory.Exists(nodeModules) ? Directory.GetFiles(nodeModules, ".npm-install-stamp-*") : [];
+    }
+
+    private static void AssertNpmStampFileExists(FullPath projectFolder)
+    {
+        // The stamp file is environment-specific, so the same node_modules folder can be used from multiple environments
+        // (e.g. a Windows host and a dev container) without skipping the npm restore
+        var expectedPrefix = ".npm-install-stamp-" + (OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsMacOS() ? "osx" : "linux");
+        var stampFile = Assert.Single(GetNpmStampFiles(projectFolder));
+        Assert.StartsWith(expectedPrefix, Path.GetFileName(stampFile), StringComparison.Ordinal);
+    }
+
+    private static void AssertNpmStampFileDoesNotExist(FullPath projectFolder)
+    {
+        Assert.Empty(GetNpmStampFiles(projectFolder));
+    }
+
     [Fact]
     public async Task NpmInstall()
     {
@@ -2468,7 +2488,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder);
         var files = data.GetBinLogFiles();
         Assert.Contains(files, f => f.EndsWith("package-lock.json", StringComparison.Ordinal));
     }
@@ -2541,7 +2561,42 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.RestoreAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder);
+    }
+
+    [Fact]
+    public async Task NpmRestore_StampFileIsEnvironmentSpecific()
+    {
+        await using var project = CreateProjectBuilder(SdkWebName);
+        project.AddCsprojFile();
+
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile("package.json", """
+            {
+              "name": "sample",
+              "version": "1.0.0",
+              "private": true,
+              "devDependencies": {
+                "is-number": "7.0.0"
+              }
+            }
+            """);
+
+        var data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env1"]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp-env1"));
+
+        // The packages must be installed again when building the same folder from another environment
+        data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env2"]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.IsMSBuildTargetExecuted("NpmRestore"));
+        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp-env2"));
+
+        // The packages must not be installed again when building from an environment that is already up to date
+        data = await project.RestoreAndGetOutput(["/p:NpmStampFileIdentifier=env1"]);
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.IsMSBuildTargetExecuted("NpmRestore"));
     }
 
     [Fact]
@@ -2565,7 +2620,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.RestoreAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.False(File.Exists(project.RootFolder / "package-lock.json"));
-        Assert.False(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileDoesNotExist(project.RootFolder);
     }
 
     [Fact]
@@ -2594,7 +2649,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput([slnFile]);
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder);
     }
 
     [Theory]
@@ -2653,7 +2708,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
 
         Assert.True(File.Exists(project.RootFolder / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder);
     }
 
     [Fact]
@@ -2692,9 +2747,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.RestoreAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.True(File.Exists(project.RootFolder / "a" / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "a" / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder / "a");
         Assert.True(File.Exists(project.RootFolder / "b" / "package-lock.json"));
-        Assert.True(File.Exists(project.RootFolder / "b" / "node_modules" / ".npm-install-stamp"));
+        AssertNpmStampFileExists(project.RootFolder / "b");
     }
 
     [Fact]

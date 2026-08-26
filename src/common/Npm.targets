@@ -11,11 +11,19 @@
       <NpmRestoreLockedMode Condition="'$(NpmRestoreLockedMode)' == '' AND ('$(RestoreLockedMode)' == 'true' OR '$(ContinuousIntegrationBuild)' == 'true')">true</NpmRestoreLockedMode>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' != 'true'">install</_NpmRestoreCommand>
       <_NpmRestoreCommand Condition="'$(NpmRestoreLockedMode)' == 'true'">ci</_NpmRestoreCommand>
+
+      <!-- The node_modules folder can be shared by multiple environments (e.g. a Windows host and a dev container using the same
+           folder). The installed packages are environment-specific, so the stamp file name contains an identifier of the current
+           environment to reinstall the packages when building from another environment. -->
+      <NpmStampFileIdentifier Condition="'$(NpmStampFileIdentifier)' == ''">$(NETCoreSdkPortableRuntimeIdentifier)</NpmStampFileIdentifier>
+      <NpmStampFileIdentifier Condition="'$(NpmStampFileIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</NpmStampFileIdentifier>
+      <NpmStampFileIdentifier Condition="'$(NpmStampFileIdentifier)' == ''">$(OS)-$([System.Runtime.InteropServices.RuntimeInformation]::get_OSArchitecture())</NpmStampFileIdentifier>
+      <_NpmStampFileName>.npm-install-stamp-$([System.Text.RegularExpressions.Regex]::Replace(`$(NpmStampFileIdentifier)`, '[^a-zA-Z0-9._-]', '_'))</_NpmStampFileName>
     </PropertyGroup>
-    
+
     <ItemGroup>
       <NpmPackageFile>
-        <StampFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules', '.npm-install-stamp'))</StampFile>
+        <StampFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'node_modules', '$(_NpmStampFileName)'))</StampFile>
         <LockFile>$([System.IO.Path]::Combine(`%(RootDir)%(Directory)`, 'package-lock.json'))</LockFile>
         <WorkingDirectory>%(RootDir)%(Directory)</WorkingDirectory>
         <_NpmInstallOptions>--no-fund --no-audit</_NpmInstallOptions>
