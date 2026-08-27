@@ -1087,7 +1087,7 @@ dotnet_diagnostic.MA0217.severity = none
 # MA0218: The language attribute is empty
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0218.md
 # Enabled: True, Severity: suggestion
-dotnet_diagnostic.MA0218.severity = suggestion
+dotnet_diagnostic.MA0218.severity = warning
 
 # MA0219: Set the language attribute in XML comment
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0219.md
