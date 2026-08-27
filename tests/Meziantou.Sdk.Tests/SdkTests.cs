@@ -955,6 +955,26 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.False(File.Exists(extractedPath / "README.md"));
     }
 
+    [Theory]
+    [InlineData("THIRD-PARTY-NOTICES.TXT")]
+    [InlineData("THIRD-PARTY-NOTICES.md")]
+    public async Task Pack_ThirdPartyNotices(string noticesFileName)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "Console.WriteLine();");
+        project.AddFile(noticesFileName, "sample");
+
+        var data = await project.PackAndGetOutput(["--configuration", "Release"]);
+
+        var extractedPath = project.RootFolder / "extracted";
+        var files = Directory.GetFiles(project.RootFolder / "bin" / "Release");
+        var nupkg = files.Single(f => f.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+        ZipFile.ExtractToDirectory(nupkg, extractedPath);
+
+        Assert.Equal("sample", File.ReadAllText(extractedPath / noticesFileName));
+    }
+
     [Fact]
     public async Task NonMeziantouCsproj_DoesNotIncludePackageProperties()
     {
