@@ -1094,3 +1094,8 @@ dotnet_diagnostic.MA0218.severity = warning
 # Enabled: True, Severity: silent
 dotnet_diagnostic.MA0219.severity = silent
 
+# MA0220: The configured regular expression is not valid
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0220.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0220.severity = warning
+

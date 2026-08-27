@@ -88,7 +88,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.181" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.183" Condition="$(PackageId) != 'Meziantou.Analyzer'" IsImplicitlyDefined="true">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
