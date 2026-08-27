@@ -14,7 +14,7 @@ dotnet_diagnostic.MFAS0002.severity = error
 # Enabled: True, Severity: error
 dotnet_diagnostic.MFAS0003.severity = error
 
-# MFAS0004: Use Assert.Empty for zero count checks
+# MFAS0004: Use Assert.Empty or Assert.NotEmpty for zero count checks
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MFAS0004.severity = warning
 
@@ -109,4 +109,116 @@ dotnet_diagnostic.MFAS0026.severity = warning
 # MFAS0027: Use Assert.DoesNotAll instead of Assert.False(collection.All(...))
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MFAS0027.severity = warning
+
+# MFAS0028: Use Assert.NotEmpty instead of Assert.True(collection.Any())
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0028.severity = warning
+
+# MFAS0029: Use Assert.Empty instead of Assert.False(collection.Any())
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0029.severity = warning
+
+# MFAS0030: Use Assert.Empty or Assert.NotEmpty instead of a count assertion
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0030.severity = warning
+
+# MFAS0031: Use Assert.Equal instead of Assert.True(a == b)
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0031.severity = warning
+
+# MFAS0032: Use Assert.NotEqual instead of Assert.True(a != b)
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0032.severity = warning
+
+# MFAS0033: Use Assert.Equal instead of Assert.True(a.Equals(b))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0033.severity = warning
+
+# MFAS0034: Use Assert.NotEqual instead of Assert.False(a.Equals(b))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0034.severity = warning
+
+# MFAS0035: Use Assert.Equal instead of Assert.True(actual.SequenceEqual(expected))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0035.severity = warning
+
+# MFAS0036: Use Assert.NotEqual instead of Assert.False(actual.SequenceEqual(expected))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0036.severity = warning
+
+# MFAS0037: Use Assert.Same instead of Assert.True(ReferenceEquals(a, b))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0037.severity = warning
+
+# MFAS0038: Use Assert.NotSame instead of Assert.False(ReferenceEquals(a, b))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0038.severity = warning
+
+# MFAS0039: Use Assert.InRange instead of Assert.True(low <= x && x <= high)
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0039.severity = warning
+
+# MFAS0040: Use Assert.NotInRange instead of Assert.False(low <= x && x <= high)
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0040.severity = warning
+
+# MFAS0041: Use Assert.ProperSubset instead of Assert.True(set.IsProperSubsetOf(other))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0041.severity = warning
+
+# MFAS0042: Use Assert.NotProperSubset instead of Assert.False(set.IsProperSubsetOf(other))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0042.severity = warning
+
+# MFAS0043: Use Assert.ProperSuperset instead of Assert.True(set.IsProperSupersetOf(other))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0043.severity = warning
+
+# MFAS0044: Use Assert.NotProperSuperset instead of Assert.False(set.IsProperSupersetOf(other))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0044.severity = warning
+
+# MFAS0045: Use Assert.False instead of Assert.True(!condition)
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0045.severity = warning
+
+# MFAS0046: Use Assert.IsType instead of Assert.True(x.GetType() == typeof(T))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0046.severity = warning
+
+# MFAS0047: Use Assert.IsNotType instead of Assert.False(x.GetType() == typeof(T))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0047.severity = warning
+
+# MFAS0048: Await assertions that return a Task
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0048.severity = error
+
+# MFAS0049: Assertion always produces the same result
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0049.severity = error
+
+# MFAS0050: Use Assert.Fail instead of an assertion that always fails
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0050.severity = warning
+
+# MFAS0051: Use Assert.Contains instead of Assert.NotEmpty(collection.Where(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0051.severity = warning
+
+# MFAS0052: Use Assert.DoesNotContain instead of Assert.Empty(collection.Where(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0052.severity = warning
+
+# MFAS0053: Use Assert.Single with a predicate instead of Assert.Single(collection.Where(...))
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0053.severity = warning
+
+# MFAS0054: Use Assert.Contains with the expected value instead of an equality predicate
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0054.severity = warning
+
+# MFAS0055: Use Assert.DoesNotContain with the expected value instead of an equality predicate
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MFAS0055.severity = warning
 
