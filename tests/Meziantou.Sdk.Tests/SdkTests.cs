@@ -246,7 +246,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         }
 
         Assert.Contains(files, f => f.EndsWith(".editorconfig", StringComparison.Ordinal));
-        Assert.Contains(files, f => f == localFile || f == "/private" + localFile); // macos may prefix it with /private
+        // macos may prefix the path with /private
+        Assert.Contains(files, f => FullPathComparer.Default.Equals(FullPath.FromPath(f), localFile)
+                                 || FullPathComparer.Default.Equals(FullPath.FromPath(f), FullPath.FromPath("/private" + localFile)));
     }
 
     [Fact]
@@ -1018,6 +1020,33 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(filename: "Meziantou.Analyzer.csproj");
         project.AddFile("Program.cs", """Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task MeziantouAnalyzerAnnotationsCsproj()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(filename: "Meziantou.Analyzer.Annotations.csproj");
+        project.AddFile("Program.cs", """Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task MeziantouAnalyzerAnnotationsAreReferenced()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", """Console.WriteLine();""");
+        project.AddFile("Sample.cs", """
+            class Sample
+            {
+                [Meziantou.Analyzer.Annotations.ExcludeFromCancellationTokenAnalysis]
+                public static System.Threading.Tasks.Task FlushAsync() => System.Threading.Tasks.Task.CompletedTask;
+            }
+            """);
         var data = await project.BuildAndGetOutput();
         Assert.Equal(0, data.ExitCode);
     }
