@@ -14,7 +14,7 @@ dotnet_diagnostic.MFFP0002.severity = warning
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0003.severity = warning
 
-# MFFP0004: Use '/' operator instead of Path.Combine or Path.Join
+# MFFP0004: Use '/' operator instead of Path.Combine
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0004.severity = warning
 
