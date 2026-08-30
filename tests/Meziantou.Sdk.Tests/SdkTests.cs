@@ -1023,6 +1023,33 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task MeziantouAnalyzerAnnotationsCsproj()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(filename: "Meziantou.Analyzer.Annotations.csproj");
+        project.AddFile("Program.cs", """Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task MeziantouAnalyzerAnnotationsAreReferenced()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", """Console.WriteLine();""");
+        project.AddFile("Sample.cs", """
+            class Sample
+            {
+                [Meziantou.Analyzer.Annotations.ExcludeFromCancellationTokenAnalysis]
+                public static System.Threading.Tasks.Task FlushAsync() => System.Threading.Tasks.Task.CompletedTask;
+            }
+            """);
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
     public async Task MTP_DotnetTestSkipAnalyzers()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
