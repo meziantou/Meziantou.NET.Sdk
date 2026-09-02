@@ -129,6 +129,22 @@ Set these properties in your project file or a directory-level props file. Unles
 | `NuGetAuditLevel` | `low` | Minimum severity level to report. |
 | `WarningsAsErrors` | Adds `NU1900`–`NU1904` on CI, Release, or AI agent runtime | Promotes NuGet audit warnings to errors. |
 
+## NuGet package assets
+
+The SDK limits the assets imported from NuGet packages to the compile-time and runtime assemblies, so the analyzers, source generators, MSBuild props/targets, content files and native libraries shipped by a package are not imported:
+
+````xml
+<PackageReference Include="Some.Package" Version="1.2.3" IncludeAssets="runtime;compile" />
+````
+
+A reference is left untouched when it already sets `IncludeAssets`, `ExcludeAssets` or `PrivateAssets`, when the SDK adds it, or when its package id matches `DefaultPackageIncludeAssetsExcludedPackagePattern`. The default pattern covers `Meziantou.*` and `Microsoft.*` packages, as well as the test frameworks supported by the SDK (`xunit*`, `TUnit*`, `NUnit*`, `MSTest*`), as they rely on the source generators and the MSBuild props/targets they ship.
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `EnableDefaultPackageIncludeAssets` | `true` | Set to `false` to keep the default NuGet asset selection. |
+| `DefaultPackageIncludeAssets` | `runtime;compile` | Assets imported from the packages that are not excluded. |
+| `DefaultPackageIncludeAssetsExcludedPackagePattern` | ``^(?i:(Meziantou\|Microsoft)\.\|xunit\|TUnit\|NUnit\|MSTest)`` | .NET regular expression matched against the package id. A package whose id matches keeps the default NuGet asset selection. |
+
 ## Banned symbols and analyzers
 
 The SDK also blocks selected NuGet packages by default:

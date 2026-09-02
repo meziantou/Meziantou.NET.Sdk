@@ -54,6 +54,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 var nodes = doc.Descendants("PackageReference");
                 foreach (var node in nodes)
                 {
+                    // 'Update' items only change the metadata of an existing reference, so they don't need to be flagged as implicit
+                    if (node.Attribute("Include") is null)
+                    {
+                        continue;
+                    }
+
                     var attr = node.Attribute("IsImplicitlyDefined");
                     if (attr is null || attr.Value != "true")
                     {
@@ -723,6 +729,114 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_IsRestrictedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Equal("runtime;compile", data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+    }
+
+    [Theory]
+    [InlineData("Microsoft.Extensions.Logging", "9.0.0")]
+    [InlineData("Meziantou.Framework", "6.0.2")]
+    [InlineData("xunit.v3", "4.0.0")]
+    [InlineData("TUnit", "1.22.19")]
+    public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackages(string packageName, string packageVersion)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", packageName, "IncludeAssets"));
+    }
+
+    [Theory]
+    [InlineData("IncludeAssets", "all")]
+    [InlineData("ExcludeAssets", "none")]
+    [InlineData("PrivateAssets", "all")]
+    public async Task PackageIncludeAssets_IsNotRestrictedWhenTheReferenceConfiguresItsAssets(string metadataName, string metadataValue)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(additionalProjectElements:
+        [
+            new XElement("ItemGroup",
+                new XElement("PackageReference",
+                    new XAttribute("Include", "Newtonsoft.Json"),
+                    new XAttribute("Version", "13.0.4"),
+                    new XElement(metadataName, metadataValue))),
+        ]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Equal(metadataName is "IncludeAssets" ? metadataValue : null, data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_CanBeDisabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_CanBeConfigured()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssets", "compile")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Equal("compile", data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_ExcludedPackagePatternCanBeConfigured()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssetsExcludedPackagePattern", "^Newtonsoft\\.")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_AnalyzersFromPackagesAreNotImported()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Roslynator.Analyzers", "4.14.1")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_AnalyzersFromPackagesAreImportedWhenDisabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("Roslynator.Analyzers", "4.14.1")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Contains("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
