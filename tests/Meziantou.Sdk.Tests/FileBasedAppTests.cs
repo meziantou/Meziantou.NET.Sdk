@@ -63,14 +63,13 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         await using var project = CreateProjectBuilder();
         project.AddFile("Program.cs", $$"""
             {{GetSdkDirectives()}}
-            #:package Meziantou.Framework.FullPath@2.1.4
-            _ = Meziantou.Framework.FullPath.Empty;
-            Console.WriteLine("done");
+            #:package {{TestPackages.Library}}@{{TestPackages.Version}}
+            Console.WriteLine(Meziantou.Sdk.TestLibrary.TestClass.GetValue());
             """);
 
         var data = await project.RunFileAndGetOutput("Program.cs");
         Assert.Equal(0, data.ExitCode);
-        Assert.True(data.OutputContains("done"));
+        Assert.True(data.OutputContains(TestPackages.LibraryAssemblyName));
     }
 
     [Fact]
