@@ -33,12 +33,7 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-off')) != 'true' AND
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core')) != 'true' AND
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'TUnit.Core')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'MSTest')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'MSTest.TestFramework')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'NUnit')) != 'true'">
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) != 'true'">
     <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.0" IsImplicitlyDefined="true" />
 
     <!-- An item is used instead of a property as item lists cannot be referenced in a property condition outside of a target (MSB4099) -->

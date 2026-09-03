@@ -29,10 +29,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         new NuGetReference("xunit.v3.mtp-v2", "4.0.0"),
         new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
-    private static readonly NuGetReference[] TUnitReferences =
-    [
-        new NuGetReference("TUnit", "1.22.19"),
-    ];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
@@ -750,7 +746,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData("Microsoft.Extensions.Logging", "9.0.0")]
     [InlineData("Meziantou.Framework", "6.0.2")]
     [InlineData("xunit.v3", "4.0.0")]
-    [InlineData("TUnit", "1.22.19")]
     public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackages(string packageName, string packageVersion)
     {
         await using var project = CreateProjectBuilder();
@@ -1431,43 +1426,6 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task MTP_SuccessTests_TUnit(bool addUseMicrosoftTestingPlatformProperty)
-    {
-        await using var project = CreateProjectBuilder(SdkTestName);
-        project.AddCsprojFile(
-            filename: "Sample.Tests.csproj",
-            properties: addUseMicrosoftTestingPlatformProperty ? [("UseMicrosoftTestingPlatform", "true")] : [],
-            nuGetPackages: [.. TUnitReferences]
-            );
-
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Test]
-                public void Test1()
-                {
-                }
-            }
-            """);
-
-        project.AddFile("global.json", """
-            {
-                "test": {
-                    "runner": "Microsoft.Testing.Platform"
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
-
-        Assert.Equal(0, data.ExitCode);
-        Assert.NotEmpty(Directory.GetFiles(project.RootFolder, "*.trx", SearchOption.AllDirectories));
-        Assert.True(data.IsMSBuildTargetExecuted("_MTPBuild"));
-    }
-
     [Fact]
     public async Task MTP_NoTest()
     {
@@ -1533,18 +1491,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task MTP_DefaultTestFramework_NotAddedWhenAnotherFrameworkIsReferenced()
+    public async Task MTP_DefaultTestFramework_NotAddedWhenATestFrameworkIsReferenced()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. TUnitReferences]
+            nuGetPackages: [.. XUnit3References]
             );
 
         project.AddFile("Program.cs", """
             public class Tests
             {
-                [Test]
+                [Fact]
                 public void Test1()
                 {
                 }
@@ -1695,21 +1653,20 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
     // The package must not replace the assertions of a test framework referenced by the project itself
     [Fact]
-    public async Task MTP_MeziantouAssertions_NotAddedForAnotherTestFramework()
+    public async Task MTP_MeziantouAssertions_NotAddedWhenATestFrameworkIsReferenced()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. TUnitReferences]
+            nuGetPackages: [.. XUnit3References]
             );
 
+        // 'Assert' must still be resolved to the xUnit.net type
         project.AddFile("Program.cs", """
             public class Tests
             {
-                [Test]
-                public void Test1()
-                {
-                }
+                [Fact]
+                public void Test1() => Assert.Equal(typeof(Xunit.Assert), typeof(Assert));
             }
             """);
 
@@ -1901,35 +1858,19 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("'XunitParallelizationMode' has an invalid value: 'Collection'.", StringComparison.Ordinal));
     }
 
-    // 'Xunit.v3.ParallelizationAttribute' doesn't exist in another test framework, so the file must not be generated
+    // 'Xunit.v3.ParallelizationAttribute' is only available when xUnit.net v3 is referenced, so the file must not be generated
     [Fact]
-    public async Task MTP_XunitFullParallelization_NotGeneratedForAnotherTestFramework()
+    public async Task MTP_XunitFullParallelization_NotGeneratedWhenXunitIsNotReferenced()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. TUnitReferences]
+            properties: [("EnableDefaultTestFramework", "false")]
             );
 
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Test]
-                public void Test1()
-                {
-                }
-            }
-            """);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
 
-        project.AddFile("global.json", """
-            {
-                "test": {
-                    "runner": "Microsoft.Testing.Platform"
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
+        var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitParallelization", StringComparison.Ordinal));
@@ -2030,37 +1971,22 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
     }
 
-    // 'Xunit.TestContext' doesn't exist in another test framework, so the file must not be generated
+    // 'Xunit.TestContext' is only available when xUnit.net v3 is referenced, so the file must not be generated
     [Fact]
-    public async Task MTP_XunitStaticHelpers_NotGeneratedForAnotherTestFramework()
+    public async Task MTP_XunitStaticHelpers_NotGeneratedWhenXunitIsNotReferenced()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(
             filename: "Sample.Tests.csproj",
-            nuGetPackages: [.. TUnitReferences]
+            properties: [("EnableDefaultTestFramework", "false")]
             );
 
-        project.AddFile("Program.cs", """
-            public class Tests
-            {
-                [Test]
-                public void Test1()
-                {
-                }
-            }
-            """);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
 
-        project.AddFile("global.json", """
-            {
-                "test": {
-                    "runner": "Microsoft.Testing.Platform"
-                }
-            }
-            """);
-
-        var data = await project.TestAndGetOutput();
+        var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
+        Assert.False(data.IsMSBuildTargetExecuted("GenerateXunitStaticHelpersSourceFile"));
         Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.Contains("XunitStaticHelpers", StringComparison.Ordinal));
     }
 

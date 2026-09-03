@@ -137,13 +137,13 @@ The SDK limits the assets imported from NuGet packages to the compile-time and r
 <PackageReference Include="Some.Package" Version="1.2.3" IncludeAssets="runtime;compile" />
 ````
 
-A reference is left untouched when it already sets `IncludeAssets`, `ExcludeAssets` or `PrivateAssets`, when the SDK adds it, or when its package id matches `DefaultPackageIncludeAssetsExcludedPackagePattern`. The default pattern covers `Meziantou.*` and `Microsoft.*` packages, as well as the test frameworks supported by the SDK (`xunit*`, `TUnit*`, `NUnit*`, `MSTest*`), as they rely on the source generators and the MSBuild props/targets they ship.
+A reference is left untouched when it already sets `IncludeAssets`, `ExcludeAssets` or `PrivateAssets`, when the SDK adds it, or when its package id matches `DefaultPackageIncludeAssetsExcludedPackagePattern`. The default pattern covers `Meziantou.*` and `Microsoft.*` packages, as well as the test framework supported by the SDK (`xunit*`), as they rely on the source generators and the MSBuild props/targets they ship.
 
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultPackageIncludeAssets` | `true` | Set to `false` to keep the default NuGet asset selection. |
 | `DefaultPackageIncludeAssets` | `runtime;compile` | Assets imported from the packages that are not excluded. |
-| `DefaultPackageIncludeAssetsExcludedPackagePattern` | ``^(?i:(Meziantou\|Microsoft)\.\|xunit\|TUnit\|NUnit\|MSTest)`` | .NET regular expression matched against the package id. A package whose id matches keeps the default NuGet asset selection. |
+| `DefaultPackageIncludeAssetsExcludedPackagePattern` | ``^(?i:(Meziantou\|Microsoft)\.\|xunit)`` | .NET regular expression matched against the package id. A package whose id matches keeps the default NuGet asset selection. |
 
 ## Banned symbols and analyzers
 
@@ -230,11 +230,10 @@ following to `global.json` so `dotnet test` runs in MTP mode:
 tests that passed — the option belongs to `dotnet test` itself, so it cannot be set from the project
 file.
 
-To use another test framework, reference it: the default framework is not added when the project
-already references `xunit`, `xunit.v3*`, `TUnit`, `MSTest`, or `NUnit`. Set
-`EnableDefaultTestFramework` to `false` for full control. Only Microsoft Testing Platform is
-supported, so the framework must run on it: the SDK never adds `Microsoft.NET.Test.Sdk` and
-configures no VSTest setting.
+To use another xUnit.net package, reference it: the default framework is not added when the project
+already references `xunit` or `xunit.v3*`. Set `EnableDefaultTestFramework` to `false` for full
+control. Only Microsoft Testing Platform is supported, so the test framework must run on it: the SDK
+never adds `Microsoft.NET.Test.Sdk` and configures no VSTest setting.
 
 The assertions come from
 [`Meziantou.Framework.Assertions`](https://www.nuget.org/packages/Meziantou.Framework.Assertions)
