@@ -918,6 +918,55 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreNotImported()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference("coverlet.msbuild", "6.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.props", StringComparison.OrdinalIgnoreCase) || file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreImportedWhenDisabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("coverlet.msbuild", "6.0.4")]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreNotImportedWithCentralPackageManagement()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Directory.Packages.props", """
+            <Project>
+              <PropertyGroup>
+                <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+              </PropertyGroup>
+              <ItemGroup>
+                <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
+              </ItemGroup>
+            </Project>
+            """);
+        project.AddCsprojFile(additionalProjectElements:
+        [
+            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", "coverlet.msbuild"))),
+        ]);
+        project.AddFile("Program.cs", """System.Console.WriteLine();""");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.props", StringComparison.OrdinalIgnoreCase) || file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+    }
+
     // 'GlobalPackageReference' is meant for the packages providing analyzers and MSBuild logic, so it must not be restricted
     [Fact]
     public async Task PackageIncludeAssets_GlobalPackageReferenceIsNotRestricted()
