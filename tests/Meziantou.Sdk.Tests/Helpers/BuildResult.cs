@@ -36,6 +36,34 @@ internal sealed record BuildResult(int ExitCode, IReadOnlyList<string> OutputLin
         return result;
     }
 
+    public string GetMSBuildItemMetadata(string itemName, string itemSpec, string metadataName)
+    {
+        string result = null;
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        build.VisitAllChildren<Item>(item =>
+        {
+            if (item.Parent is AddItem parent && parent.Name == itemName && string.Equals(item.Name, itemSpec, StringComparison.OrdinalIgnoreCase))
+            {
+                var metadata = item.Children.OfType<Metadata>().LastOrDefault(metadata => string.Equals(metadata.Name, metadataName, StringComparison.OrdinalIgnoreCase));
+                if (metadata is not null)
+                {
+                    result = metadata.Value;
+                }
+            }
+        });
+
+        return result;
+    }
+
+    public string GetCompilerCommandLineArguments()
+    {
+        using var stream = new MemoryStream(BinaryLogContent);
+        var build = Serialization.ReadBinLog(stream);
+        var task = build.FindLastDescendant<Microsoft.Build.Logging.StructuredLogger.Task>(task => task.Name is "Csc" or "Vbc" or "Fsc");
+        return task?.FindChild<Property>(property => property.Name is "CommandLineArguments")?.Value;
+    }
+
     public string GetMSBuildPropertyValue(string name)
     {
         using var stream = new MemoryStream(BinaryLogContent);

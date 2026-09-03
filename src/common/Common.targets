@@ -134,6 +134,56 @@
 		       Condition="'$(AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework)' != 'true' AND (@(PackageReference->AnyHaveMetadataValue('Identity', 'Meziantou.Xunit.v3.ParallelTestFramework')) == 'true' OR @(ReferencePath->AnyHaveMetadataValue('NuGetPackageId', 'Meziantou.Xunit.v3.ParallelTestFramework')) == 'true')" />
 	</Target>
 
+  <!-- Limit the assets imported from NuGet packages to the compile-time and runtime assemblies -->
+  <!-- Packages can also ship analyzers, source generators, MSBuild props/targets, content files and native
+       libraries. Those assets are not imported by default, as they can slow down the build or change it in
+       unexpected ways.
+       A reference is left untouched when it already sets 'IncludeAssets', 'ExcludeAssets' or 'PrivateAssets',
+       when it is added by the SDK, or when its package id matches
+       'DefaultPackageIncludeAssetsExcludedPackagePattern'. The default pattern covers 'Meziantou.*' and
+       'Microsoft.*' packages, as well as the test frameworks supported by the SDK, as they rely on the
+       source generators and the MSBuild props/targets they ship.
+       Set 'EnableDefaultPackageIncludeAssets' to 'false' to opt out, or 'DefaultPackageIncludeAssets' to
+       change the imported assets. -->
+  <PropertyGroup>
+    <DefaultPackageIncludeAssets Condition="'$(DefaultPackageIncludeAssets)' == ''">runtime;compile</DefaultPackageIncludeAssets>
+    <DefaultPackageIncludeAssetsExcludedPackagePattern Condition="'$(DefaultPackageIncludeAssetsExcludedPackagePattern)' == ''">^(?i:(Meziantou|Microsoft)\.|xunit|TUnit|NUnit|MSTest)</DefaultPackageIncludeAssetsExcludedPackagePattern>
+    <_DefaultPackageIncludeAssetsIncludesAnalyzers Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(DefaultPackageIncludeAssets)', '(?i:(^|;)\s*(all|analyzers)\s*(;|$))'))">true</_DefaultPackageIncludeAssetsIncludesAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(EnableDefaultPackageIncludeAssets)' != 'false'">
+    <PackageReference Update="@(PackageReference)">
+      <!-- The metadata is set first, so the other conditions can rely on it instead of being duplicated -->
+      <_UsesDefaultPackageIncludeAssets Condition="'%(IncludeAssets)' == '' AND
+                                                   '%(ExcludeAssets)' == '' AND
+                                                   '%(PrivateAssets)' == '' AND
+                                                   '%(IsImplicitlyDefined)' != 'true' AND
+                                                   !$([System.Text.RegularExpressions.Regex]::IsMatch('%(Identity)', '$(DefaultPackageIncludeAssetsExcludedPackagePattern)'))">true</_UsesDefaultPackageIncludeAssets>
+      <IncludeAssets Condition="'%(_UsesDefaultPackageIncludeAssets)' == 'true'">$(DefaultPackageIncludeAssets)</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- The .NET SDK resolves the analyzers of a direct package reference whatever its 'IncludeAssets' value is,
+       so the analyzers of the restricted packages are removed explicitly -->
+  <Target Name="RemoveAnalyzersFromRestrictedPackages"
+          BeforeTargets="CoreCompile"
+          Condition="'$(EnableDefaultPackageIncludeAssets)' != 'false' AND '$(_DefaultPackageIncludeAssetsIncludesAnalyzers)' != 'true'">
+    <ItemGroup>
+      <_RestrictedPackage Include="@(PackageReference)" Condition="'%(PackageReference._UsesDefaultPackageIncludeAssets)' == 'true'" />
+    </ItemGroup>
+
+    <!-- Item lists are not expanded in the arguments of a property function, so the value is lowercased in a second step -->
+    <PropertyGroup>
+      <_RestrictedPackageIds>;@(_RestrictedPackage);</_RestrictedPackageIds>
+      <_RestrictedPackageIds>$(_RestrictedPackageIds.ToLowerInvariant())</_RestrictedPackageIds>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)"
+                Condition="'%(Analyzer.NuGetPackageId)' != '' AND $(_RestrictedPackageIds.Contains($([System.String]::Copy(';%(Analyzer.NuGetPackageId);').ToLowerInvariant())))" />
+    </ItemGroup>
+  </Target>
+
 	<!-- NuGet Package -->
 	<Choose>
 		<When Condition="'$(PackageIcon)' == '' AND '$(_IsMeziantouProject)' == 'true'">
