@@ -22,6 +22,13 @@ public sealed class PackageFixture : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
+        await Task.WhenAll(
+            CreateSdkPackagesAsync(),
+            TestPackages.CreateAsync(_packageDirectory.FullPath, CancellationToken.None));
+    }
+
+    private async Task CreateSdkPackagesAsync()
+    {
         if (Environment.GetEnvironmentVariable("CI") != null)
         {
             if (Environment.GetEnvironmentVariable("NUGET_DIRECTORY") is { } path)

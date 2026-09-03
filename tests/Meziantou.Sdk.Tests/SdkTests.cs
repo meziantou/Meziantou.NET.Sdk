@@ -210,11 +210,23 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Contains(files, f => f.EndsWith("BannedSymbols.txt", StringComparison.OrdinalIgnoreCase));
     }
 
+    // The banned symbols are configured per namespace, so declaring the symbols in the project is enough to validate the configuration
+    private const string NewtonsoftJsonStub = """
+        namespace Newtonsoft.Json
+        {
+            public static class JsonConvert
+            {
+                public static string SerializeObject(object value) => "";
+            }
+        }
+        """;
+
     [Fact]
     public async Task BannedSymbols_NewtonsoftJson_AreReported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile();
+        project.AddFile("NewtonsoftJson.cs", NewtonsoftJsonStub);
         project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
         var data = await project.BuildAndGetOutput();
         Assert.True(data.HasWarning("RS0030"));
@@ -224,7 +236,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task BannedSymbols_NewtonsoftJson_Disabled_AreNotReported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("BannedNewtonsoftJsonSymbols", "false")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(properties: [("BannedNewtonsoftJsonSymbols", "false")]);
+        project.AddFile("NewtonsoftJson.cs", NewtonsoftJsonStub);
         project.AddFile("sample.cs", """_ = Newtonsoft.Json.JsonConvert.SerializeObject("test");""");
         var data = await project.BuildAndGetOutput();
         Assert.False(data.HasWarning("RS0030"));
@@ -663,15 +676,15 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("YamlDotNet", "16.3.0", "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
-    [InlineData("CliWrap", "3.7.0", "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
-    [InlineData("Testcontainers", "4.13.0", "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
-    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
-    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
-    public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string packageVersion, string suggestion, string allowProperty)
+    [InlineData(TestPackages.YamlDotNet, "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
+    [InlineData(TestPackages.CliWrap, "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
+    [InlineData(TestPackages.Testcontainers, "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
+    [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
+    public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string suggestion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("TargetFramework", "net10.0")], nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddCsprojFile(properties: [("TargetFramework", "net10.0")], nuGetPackages: [new NuGetReference(packageName, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
@@ -682,12 +695,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("YamlDotNet", "16.3.0", "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
-    [InlineData("CliWrap", "3.7.0", "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
-    [InlineData("Testcontainers", "4.13.0", "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
-    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
-    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
-    public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string packageVersion, string suggestion, string allowProperty)
+    [InlineData(TestPackages.YamlDotNet, "'Meziantou.Framework.Yaml'", "AllowPackage_YamlDotNet")]
+    [InlineData(TestPackages.CliWrap, "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
+    [InlineData(TestPackages.Testcontainers, "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
+    [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
+    public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string suggestion, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
         project.AddFile("Dependency/Dependency.csproj", $$"""
@@ -696,7 +709,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 <TargetFramework>net10.0</TargetFramework>
               </PropertyGroup>
               <ItemGroup>
-                <PackageReference Include="{{packageName}}" Version="{{packageVersion}}" />
+                <PackageReference Include="{{packageName}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
@@ -715,15 +728,15 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Theory]
-    [InlineData("YamlDotNet", "16.3.0", "AllowPackage_YamlDotNet")]
-    [InlineData("CliWrap", "3.7.0", "AllowPackage_CliWrap")]
-    [InlineData("Testcontainers", "4.13.0", "AllowPackage_Testcontainers")]
-    [InlineData("Meziantou.Xunit.ParallelTestFramework", "2.3.0", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
-    [InlineData("Meziantou.Xunit.v3.ParallelTestFramework", "1.0.6", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
-    public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string packageVersion, string allowProperty)
+    [InlineData(TestPackages.YamlDotNet, "AllowPackage_YamlDotNet")]
+    [InlineData(TestPackages.CliWrap, "AllowPackage_CliWrap")]
+    [InlineData(TestPackages.Testcontainers, "AllowPackage_Testcontainers")]
+    [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
+    [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
+    public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string allowProperty)
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("TargetFramework", "net10.0"), (allowProperty, "true")], nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddCsprojFile(properties: [("TargetFramework", "net10.0"), (allowProperty, "true")], nuGetPackages: [new NuGetReference(packageName, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
@@ -734,22 +747,22 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task PackageIncludeAssets_IsRestrictedByDefault()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference(TestPackages.Library, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal("runtime;compile", data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Equal("runtime;compile", data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Theory]
-    [InlineData("Microsoft.Extensions.Logging", "9.0.0")]
-    [InlineData("Meziantou.Framework", "6.0.2")]
-    [InlineData("xunit.v3", "4.0.0")]
-    public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackages(string packageName, string packageVersion)
+    [InlineData(TestPackages.MicrosoftLibrary)]
+    [InlineData(TestPackages.MeziantouLibrary)]
+    [InlineData(TestPackages.XunitLibrary)]
+    public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackages(string packageName)
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [new NuGetReference(packageName, packageVersion)]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference(packageName, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
@@ -767,199 +780,199 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         [
             new XElement("ItemGroup",
                 new XElement("PackageReference",
-                    new XAttribute("Include", "Newtonsoft.Json"),
-                    new XAttribute("Version", "13.0.4"),
+                    new XAttribute("Include", TestPackages.Library),
+                    new XAttribute("Version", TestPackages.Version),
                     new XElement(metadataName, metadataValue))),
         ]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal(metadataName is "IncludeAssets" ? metadataValue : null, data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Equal(metadataName is "IncludeAssets" ? metadataValue : null, data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_CanBeDisabled()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference(TestPackages.Library, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_CanBeConfigured()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssets", "compile")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssets", "compile")], nuGetPackages: [new NuGetReference(TestPackages.Library, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal("compile", data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Equal("compile", data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_ExcludedPackagePatternCanBeConfigured()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssetsExcludedPackagePattern", "^Newtonsoft\\.")], nuGetPackages: [new NuGetReference("Newtonsoft.Json", "13.0.4")]);
+        project.AddCsprojFile(properties: [("DefaultPackageIncludeAssetsExcludedPackagePattern", "^TestPackage\\.")], nuGetPackages: [new NuGetReference(TestPackages.Library, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_AnalyzersFromPackagesAreNotImported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [new NuGetReference("Roslynator.Analyzers", "4.14.1")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference(TestPackages.Analyzer, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.DoesNotContain("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(TestPackages.AnalyzerAssemblyName, data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task PackageIncludeAssets_AnalyzersFromPackagesAreImportedWhenDisabled()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("Roslynator.Analyzers", "4.14.1")]);
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference(TestPackages.Analyzer, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Contains("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(TestPackages.AnalyzerAssemblyName, data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task PackageIncludeAssets_IsRestrictedWithCentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
-        project.AddFile("Directory.Packages.props", """
+        project.AddFile("Directory.Packages.props", $$"""
             <Project>
               <PropertyGroup>
                 <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
               </PropertyGroup>
               <ItemGroup>
-                <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+                <PackageVersion Include="{{TestPackages.Library}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
         project.AddCsprojFile(additionalProjectElements:
         [
-            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", "Newtonsoft.Json"))),
+            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", TestPackages.Library))),
         ]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal("runtime;compile", data.GetMSBuildItemMetadata("PackageReference", "Newtonsoft.Json", "IncludeAssets"));
+        Assert.Equal("runtime;compile", data.GetMSBuildItemMetadata("PackageReference", TestPackages.Library, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackagesWithCentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
-        project.AddFile("Directory.Packages.props", """
+        project.AddFile("Directory.Packages.props", $$"""
             <Project>
               <PropertyGroup>
                 <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
               </PropertyGroup>
               <ItemGroup>
-                <PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+                <PackageVersion Include="{{TestPackages.MicrosoftLibrary}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
         project.AddCsprojFile(additionalProjectElements:
         [
-            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", "Microsoft.Extensions.Logging"))),
+            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", TestPackages.MicrosoftLibrary))),
         ]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", "Microsoft.Extensions.Logging", "IncludeAssets"));
+        Assert.Null(data.GetMSBuildItemMetadata("PackageReference", TestPackages.MicrosoftLibrary, "IncludeAssets"));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_AnalyzersFromPackagesAreNotImportedWithCentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
-        project.AddFile("Directory.Packages.props", """
+        project.AddFile("Directory.Packages.props", $$"""
             <Project>
               <PropertyGroup>
                 <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
               </PropertyGroup>
               <ItemGroup>
-                <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
+                <PackageVersion Include="{{TestPackages.Analyzer}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
         project.AddCsprojFile(additionalProjectElements:
         [
-            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", "Roslynator.Analyzers"))),
+            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", TestPackages.Analyzer))),
         ]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.DoesNotContain("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(TestPackages.AnalyzerAssemblyName, data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreNotImported()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(nuGetPackages: [new NuGetReference("coverlet.msbuild", "6.0.4")]);
+        project.AddCsprojFile(nuGetPackages: [new NuGetReference(TestPackages.BuildAssets, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.props", StringComparison.OrdinalIgnoreCase) || file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith(TestPackages.BuildAssets + ".props", StringComparison.OrdinalIgnoreCase) || file.EndsWith(TestPackages.BuildAssets + ".targets", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreImportedWhenDisabled()
     {
         await using var project = CreateProjectBuilder();
-        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference("coverlet.msbuild", "6.0.4")]);
+        project.AddCsprojFile(properties: [("EnableDefaultPackageIncludeAssets", "false")], nuGetPackages: [new NuGetReference(TestPackages.BuildAssets, TestPackages.Version)]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Contains(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(data.GetBinLogFiles(), file => file.EndsWith(TestPackages.BuildAssets + ".targets", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
     public async Task PackageIncludeAssets_BuildAssetsFromPackagesAreNotImportedWithCentralPackageManagement()
     {
         await using var project = CreateProjectBuilder();
-        project.AddFile("Directory.Packages.props", """
+        project.AddFile("Directory.Packages.props", $$"""
             <Project>
               <PropertyGroup>
                 <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
               </PropertyGroup>
               <ItemGroup>
-                <PackageVersion Include="coverlet.msbuild" Version="6.0.4" />
+                <PackageVersion Include="{{TestPackages.BuildAssets}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
         project.AddCsprojFile(additionalProjectElements:
         [
-            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", "coverlet.msbuild"))),
+            new XElement("ItemGroup", new XElement("PackageReference", new XAttribute("Include", TestPackages.BuildAssets))),
         ]);
         project.AddFile("Program.cs", """System.Console.WriteLine();""");
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith("coverlet.msbuild.props", StringComparison.OrdinalIgnoreCase) || file.EndsWith("coverlet.msbuild.targets", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(data.GetBinLogFiles(), file => file.EndsWith(TestPackages.BuildAssets + ".props", StringComparison.OrdinalIgnoreCase) || file.EndsWith(TestPackages.BuildAssets + ".targets", StringComparison.OrdinalIgnoreCase));
     }
 
     // 'GlobalPackageReference' is meant for the packages providing analyzers and MSBuild logic, so it must not be restricted
@@ -967,13 +980,13 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     public async Task PackageIncludeAssets_GlobalPackageReferenceIsNotRestricted()
     {
         await using var project = CreateProjectBuilder();
-        project.AddFile("Directory.Packages.props", """
+        project.AddFile("Directory.Packages.props", $$"""
             <Project>
               <PropertyGroup>
                 <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
               </PropertyGroup>
               <ItemGroup>
-                <GlobalPackageReference Include="Roslynator.Analyzers" Version="4.14.1" />
+                <GlobalPackageReference Include="{{TestPackages.Analyzer}}" Version="{{TestPackages.Version}}" />
               </ItemGroup>
             </Project>
             """);
@@ -982,7 +995,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Contains("Roslynator", data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(TestPackages.AnalyzerAssemblyName, data.GetCompilerCommandLineArguments(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
