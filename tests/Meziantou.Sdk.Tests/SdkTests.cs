@@ -1465,7 +1465,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         var data = await project.TestAndGetOutput();
 
-        Assert.Equal(8, data.ExitCode);
+        // The SDK sets '--minimum-expected-tests', which supersedes the zero-tests policy (exit code 8)
+        Assert.Equal(9, data.ExitCode);
     }
 
     [Fact]
@@ -2092,10 +2093,74 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task MTP_GitHubActionsReport()
+    public async Task MTP_GitHubActionsReport_FailingTestWritesStepSummary()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
         project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                    throw new System.InvalidOperationException("Sample failure");
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.NotEqual(0, data.ExitCode);
+        Assert.NotEmpty(project.GetGitHubStepSummaryContent());
+    }
+
+    [Fact]
+    public async Task MTP_GitHubActionsReport_SucceedingTestDoesNotWriteStepSummary()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(filename: "Sample.Tests.csproj");
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Empty(project.GetGitHubStepSummaryContent());
+    }
+
+    [Fact]
+    public async Task MTP_GitHubActionsReport_StepSummaryAlwaysWritten()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("GitHubActionsStepSummary", "on")]
+            );
 
         project.AddFile("Program.cs", """
             public class Tests
