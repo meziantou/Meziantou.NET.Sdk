@@ -730,6 +730,30 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task DefaultEditorConfig_MA0222_MA0223_AreReportedAsWarnings()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            using System.Text.Json.Serialization;
+
+            class Sample
+            {
+                public string? Name { get; set; }
+            }
+
+            [JsonSerializable(typeof(Sample))]
+            partial class SampleJsonSerializerContext : JsonSerializerContext
+            {
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("MA0222"));
+        Assert.True(data.HasWarning("MA0223"));
+    }
+
+    [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();

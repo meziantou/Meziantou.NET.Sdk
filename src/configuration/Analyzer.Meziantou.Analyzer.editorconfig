@@ -929,11 +929,6 @@ dotnet_diagnostic.MA0185.severity = suggestion
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0186.severity = suggestion
 
-# MA0186: TryGetValue method should use [MaybeNullWhen(false)] on the value parameter
-# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0186.md
-# Enabled: False, Severity: suggestion
-dotnet_diagnostic.MA0186.severity = suggestion
-
 # MA0187: Use constructor injection instead of [Inject] attribute
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0187.md
 # Enabled: False, Severity: suggestion
@@ -1103,4 +1098,19 @@ dotnet_diagnostic.MA0219.severity = silent
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0220.md
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MA0220.severity = warning
+
+# MA0221: TryGetValue method should use [MaybeNullWhen(false)] on the value parameter
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0221.md
+# Enabled: False, Severity: suggestion
+dotnet_diagnostic.MA0221.severity = warning
+
+# MA0222: JsonSourceGenerationOptions should set RespectNullableAnnotations
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0222.md
+# Enabled: False, Severity: warning
+dotnet_diagnostic.MA0222.severity = warning
+
+# MA0223: JsonSourceGenerationOptions should set RespectRequiredConstructorParameters
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0223.md
+# Enabled: False, Severity: warning
+dotnet_diagnostic.MA0223.severity = warning
 
