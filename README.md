@@ -119,6 +119,23 @@ Set these properties in your project file or a directory-level props file. Unles
 | `EnforceCodeStyleInBuild` | `true` on CI or Release | Enforces analyzer code style during builds. |
 | `AccelerateBuildsInVisualStudio` | `true` | Enables faster builds in Visual Studio. |
 
+## JSON serialization
+
+The SDK enables the `System.Text.Json` behaviors that honor the nullable reference type annotations and the `required` constructor parameters, so the deserialization is consistent with what the type declares:
+
+````xml
+<ItemGroup>
+  <RuntimeHostConfigurationOption Include="System.Text.Json.Serialization.RespectNullableAnnotationsDefault" Value="true" />
+  <RuntimeHostConfigurationOption Include="System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault" Value="true" />
+</ItemGroup>
+````
+
+A switch explicitly set by the project is left untouched.
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `EnableDefaultJsonSerializationOptions` | `true` | Set to `false` to keep the default `System.Text.Json` behaviors. |
+
 ## Package validation and auditing
 
 | Property | Default | Description |

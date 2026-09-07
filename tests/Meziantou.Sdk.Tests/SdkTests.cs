@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
 using NuGet.Packaging;
@@ -119,6 +119,83 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
+    }
+
+    [Fact]
+    public async Task JsonSerializationOptions_AreEnabledByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("RespectNullableAnnotations=enabled", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("RespectRequiredConstructorParameters=enabled", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task JsonSerializationOptions_CanBeDisabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("EnableDefaultJsonSerializationOptions", "false")]);
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("RespectNullableAnnotations=disabled", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("RespectRequiredConstructorParameters=disabled", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("System.Text.Json.Serialization.RespectNullableAnnotationsDefault", "RespectNullableAnnotations")]
+    [InlineData("System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault", "RespectRequiredConstructorParameters")]
+    public async Task JsonSerializationOptions_CanBeOverriddenByTheProject(string switchName, string disabledBehavior)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(additionalProjectElements:
+        [
+            new XElement("ItemGroup",
+                new XElement("RuntimeHostConfigurationOption",
+                    new XAttribute("Include", switchName),
+                    new XAttribute("Value", "false"))),
+        ]);
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains(disabledBehavior + "=disabled", StringComparison.Ordinal));
+
+        // The switch that is not set by the project keeps the value set by the SDK
+        var otherBehavior = disabledBehavior is "RespectNullableAnnotations" ? "RespectRequiredConstructorParameters" : "RespectNullableAnnotations";
+        Assert.True(data.OutputContains(otherBehavior + "=enabled", StringComparison.Ordinal));
+    }
+
+    private static void AddJsonSerializationSampleFiles(ProjectBuilder project)
+    {
+        project.AddFile("Sample.cs", "internal sealed record Sample(string Name, int Value);");
+        project.AddFile("Program.cs", """"
+            using System.Text.Json;
+
+            // 'Name' is not nullable, so the payload is rejected when the nullable annotations are respected
+            Console.WriteLine("RespectNullableAnnotations=" + (IsRejected("""{"Name":null,"Value":1}""") ? "enabled" : "disabled"));
+
+            // 'Value' has no default value, so the payload is rejected when the required constructor parameters are respected
+            Console.WriteLine("RespectRequiredConstructorParameters=" + (IsRejected("""{"Name":"dummy"}""") ? "enabled" : "disabled"));
+
+            static bool IsRejected(string json)
+            {
+                try
+                {
+                    _ = JsonSerializer.Deserialize<Sample>(json);
+                    return false;
+                }
+                catch (JsonException)
+                {
+                    return true;
+                }
+            }
+            """");
     }
 
     [Fact]
