@@ -57,6 +57,20 @@
 		<PackAsTool Condition="'$(PackAsTool)' == '' AND '$(OutputType)' == 'Exe' AND '$(IsTestProject)' != 'true'">true</PackAsTool>
 	</PropertyGroup>
 
+  <!-- Opt in to the 'System.Text.Json' behaviors that honor the nullable reference type annotations and the
+       'required' constructor parameters. Both are opt-in in the runtime for backward compatibility, but they
+       make the deserialization consistent with what the type declares.
+       A switch explicitly set by the project is left untouched.
+       Set 'EnableDefaultJsonSerializationOptions' to 'false' to opt out. -->
+  <ItemGroup Condition="'$(EnableDefaultJsonSerializationOptions)' != 'false'">
+    <RuntimeHostConfigurationOption Include="System.Text.Json.Serialization.RespectNullableAnnotationsDefault"
+                                    Value="true"
+                                    Condition="@(RuntimeHostConfigurationOption->AnyHaveMetadataValue('Identity', 'System.Text.Json.Serialization.RespectNullableAnnotationsDefault')) != 'true'" />
+    <RuntimeHostConfigurationOption Include="System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault"
+                                    Value="true"
+                                    Condition="@(RuntimeHostConfigurationOption->AnyHaveMetadataValue('Identity', 'System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault')) != 'true'" />
+  </ItemGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>

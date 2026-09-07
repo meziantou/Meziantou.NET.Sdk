@@ -1,5 +1,6 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using System.Reflection.PortableExecutable;
+using System.Text.Json;
 using System.Xml.Linq;
 using NuGet.Packaging;
 using Task = System.Threading.Tasks.Task;
@@ -119,6 +120,65 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(properties: [("OutputType", "Library")]);
         var data = await project.BuildAndGetOutput();
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
+    }
+
+    [Fact]
+    public async Task JsonSerializationOptions_AreEnabledByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", "System.Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Equal("true", GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectNullableAnnotationsDefault"));
+        Assert.Equal("true", GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault"));
+    }
+
+    [Fact]
+    public async Task JsonSerializationOptions_CanBeDisabled()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("EnableDefaultJsonSerializationOptions", "false")]);
+        project.AddFile("Program.cs", "System.Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Null(GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectNullableAnnotationsDefault"));
+        Assert.Null(GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault"));
+    }
+
+    [Theory]
+    [InlineData("System.Text.Json.Serialization.RespectNullableAnnotationsDefault")]
+    [InlineData("System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault")]
+    public async Task JsonSerializationOptions_CanBeOverriddenByTheProject(string switchName)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(additionalProjectElements:
+        [
+            new XElement("ItemGroup",
+                new XElement("RuntimeHostConfigurationOption",
+                    new XAttribute("Include", switchName),
+                    new XAttribute("Value", "false"))),
+        ]);
+        project.AddFile("Program.cs", "System.Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.Equal("false", GetRuntimeConfigProperty(project, switchName));
+    }
+
+    private static string GetRuntimeConfigProperty(ProjectBuilder project, string name)
+    {
+        var path = Directory.GetFiles(project.RootFolder / "bin", "*.runtimeconfig.json", SearchOption.AllDirectories).Single();
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        if (document.RootElement.GetProperty("runtimeOptions").TryGetProperty("configProperties", out var configProperties) &&
+            configProperties.TryGetProperty(name, out var value))
+        {
+            return value.GetRawText();
+        }
+
+        return null;
     }
 
     [Fact]
