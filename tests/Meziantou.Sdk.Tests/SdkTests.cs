@@ -1,6 +1,5 @@
 ﻿using System.IO.Compression;
 using System.Reflection.PortableExecutable;
-using System.Text.Json;
 using System.Xml.Linq;
 using NuGet.Packaging;
 using Task = System.Threading.Tasks.Task;
@@ -127,12 +126,12 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile();
-        project.AddFile("Program.cs", "System.Console.WriteLine();");
-        var data = await project.BuildAndGetOutput();
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal("true", GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectNullableAnnotationsDefault"));
-        Assert.Equal("true", GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault"));
+        Assert.True(data.OutputContains("RespectNullableAnnotations=enabled", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("RespectRequiredConstructorParameters=enabled", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -140,18 +139,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(properties: [("EnableDefaultJsonSerializationOptions", "false")]);
-        project.AddFile("Program.cs", "System.Console.WriteLine();");
-        var data = await project.BuildAndGetOutput();
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Null(GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectNullableAnnotationsDefault"));
-        Assert.Null(GetRuntimeConfigProperty(project, "System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault"));
+        Assert.True(data.OutputContains("RespectNullableAnnotations=disabled", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("RespectRequiredConstructorParameters=disabled", StringComparison.Ordinal));
     }
 
     [Theory]
-    [InlineData("System.Text.Json.Serialization.RespectNullableAnnotationsDefault")]
-    [InlineData("System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault")]
-    public async Task JsonSerializationOptions_CanBeOverriddenByTheProject(string switchName)
+    [InlineData("System.Text.Json.Serialization.RespectNullableAnnotationsDefault", "RespectNullableAnnotations")]
+    [InlineData("System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault", "RespectRequiredConstructorParameters")]
+    public async Task JsonSerializationOptions_CanBeOverriddenByTheProject(string switchName, string disabledBehavior)
     {
         await using var project = CreateProjectBuilder();
         project.AddCsprojFile(additionalProjectElements:
@@ -161,24 +160,42 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                     new XAttribute("Include", switchName),
                     new XAttribute("Value", "false"))),
         ]);
-        project.AddFile("Program.cs", "System.Console.WriteLine();");
-        var data = await project.BuildAndGetOutput();
+        AddJsonSerializationSampleFiles(project);
+        var data = await project.RunAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.Equal("false", GetRuntimeConfigProperty(project, switchName));
+        Assert.True(data.OutputContains(disabledBehavior + "=disabled", StringComparison.Ordinal));
+
+        // The switch that is not set by the project keeps the value set by the SDK
+        var otherBehavior = disabledBehavior is "RespectNullableAnnotations" ? "RespectRequiredConstructorParameters" : "RespectNullableAnnotations";
+        Assert.True(data.OutputContains(otherBehavior + "=enabled", StringComparison.Ordinal));
     }
 
-    private static string GetRuntimeConfigProperty(ProjectBuilder project, string name)
+    private static void AddJsonSerializationSampleFiles(ProjectBuilder project)
     {
-        var path = Directory.GetFiles(project.RootFolder / "bin", "*.runtimeconfig.json", SearchOption.AllDirectories).Single();
-        using var document = JsonDocument.Parse(File.ReadAllText(path));
-        if (document.RootElement.GetProperty("runtimeOptions").TryGetProperty("configProperties", out var configProperties) &&
-            configProperties.TryGetProperty(name, out var value))
-        {
-            return value.GetRawText();
-        }
+        project.AddFile("Sample.cs", "internal sealed record Sample(string Name, int Value);");
+        project.AddFile("Program.cs", """"
+            using System.Text.Json;
 
-        return null;
+            // 'Name' is not nullable, so the payload is rejected when the nullable annotations are respected
+            Console.WriteLine("RespectNullableAnnotations=" + (IsRejected("""{"Name":null,"Value":1}""") ? "enabled" : "disabled"));
+
+            // 'Value' has no default value, so the payload is rejected when the required constructor parameters are respected
+            Console.WriteLine("RespectRequiredConstructorParameters=" + (IsRejected("""{"Name":"dummy"}""") ? "enabled" : "disabled"));
+
+            static bool IsRejected(string json)
+            {
+                try
+                {
+                    _ = JsonSerializer.Deserialize<Sample>(json);
+                    return false;
+                }
+                catch (JsonException)
+                {
+                    return true;
+                }
+            }
+            """");
     }
 
     [Fact]
