@@ -2112,8 +2112,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddCsprojFile(filename: "Sample.Tests.csproj");
 
         project.AddFile("Program.cs", """
-            #if !XUNIT_ENTRYPOINT_DISABLE_WARNINGS
-            #error XUNIT_ENTRYPOINT_DISABLE_WARNINGS is not defined
+            #if !XUNIT_GENERATED_DISABLE_WARNINGS
+            #error XUNIT_GENERATED_DISABLE_WARNINGS is not defined
             #endif
 
             public class Tests
@@ -2140,8 +2140,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             );
 
         project.AddFile("Program.cs", """
-            #if XUNIT_ENTRYPOINT_DISABLE_WARNINGS
-            #error XUNIT_ENTRYPOINT_DISABLE_WARNINGS is defined
+            #if XUNIT_GENERATED_DISABLE_WARNINGS
+            #error XUNIT_GENERATED_DISABLE_WARNINGS is defined
             #endif
 
             public class Tests
