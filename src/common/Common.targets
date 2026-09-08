@@ -13,6 +13,21 @@
 		<NoWarn Condition="'$(DisableDocumentationWarnings)' != 'false'">$(NoWarn);CS1573;CS1591</NoWarn>
 	</PropertyGroup>
 
+  <!-- Opt in to the updated memory safety rules (https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unsafe-evolution).
+       Under those rules 'unsafe' on a member makes it caller-unsafe: the obligation to audit the memory safety
+       propagates to the callers, which must invoke the member from an 'unsafe' context.
+
+       The rules are evaluated here rather than in 'Common.props' because 'Common.props' is imported before the
+       project file, so the language version chosen by the project is not known yet.
+
+       The compiler reports CS8652 when the feature is enabled under a language version older than 'preview', so
+       the rules are only enabled when the project opted into 'preview'. Older compilers ignore the unknown feature.
+       Set 'MeziantouUpdatedMemorySafetyRules' to 'false' to opt out, or to 'true' to opt in explicitly. -->
+  <PropertyGroup>
+    <MeziantouUpdatedMemorySafetyRules Condition="'$(MeziantouUpdatedMemorySafetyRules)' == '' AND '$(LangVersion)' == 'preview'">true</MeziantouUpdatedMemorySafetyRules>
+    <Features Condition="'$(MeziantouUpdatedMemorySafetyRules)' == 'true'">$(Features);updated-memory-safety-rules</Features>
+  </PropertyGroup>
+
 	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true' AND '$(UsingMicrosoftNETSdkWeb)' == 'true'">
 		<EnableSdkContainerSupport Condition="'$(EnableSdkContainerSupport)' == ''">true</EnableSdkContainerSupport>
 		<ContainerRegistry Condition="'$(ContainerRegistry)' == ''">ghcr.io</ContainerRegistry>

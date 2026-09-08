@@ -114,6 +114,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | `AnalysisLevel` | `latest-all` | Uses the latest analyzer rules. |
 | `AllowUnsafeBlocks` | `true` | Allows `unsafe` code blocks. |
 | `LangVersion` | `latest` | Uses the latest C# language version. |
+| `MeziantouUpdatedMemorySafetyRules` | `true` when `LangVersion` is `preview` | Adds the `updated-memory-safety-rules` compiler feature, so `unsafe` members propagate the audit obligation to their callers. |
 | `MSBuildTreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats MSBuild warnings as errors. |
 | `TreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats compiler warnings as errors. |
 | `EnforceCodeStyleInBuild` | `true` on CI or Release | Enforces analyzer code style during builds. |

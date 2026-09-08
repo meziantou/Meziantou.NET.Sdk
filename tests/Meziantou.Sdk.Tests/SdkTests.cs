@@ -259,6 +259,67 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task UpdatedMemorySafetyRules_DisabledByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """
+            unsafe
+            {
+                int* p = null;
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    // The compiler reports CS8652 when the feature is enabled under a language version older than 'preview',
+    // so an 'unsafe' member must keep compiling with the default language version
+    [Fact]
+    public async Task UpdatedMemorySafetyRules_UnsafeMemberCompilesWithDefaultLangVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library")]);
+        project.AddFile("sample.cs", """
+            public static class Sample
+            {
+                public static unsafe int Read(int* value) => *value;
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.HasError("CS8652"));
+    }
+
+    [Fact]
+    public async Task UpdatedMemorySafetyRules_EnabledWhenLangVersionIsPreview()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("LangVersion", "preview")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        data.AssertMSBuildPropertyValue("MeziantouUpdatedMemorySafetyRules", "true");
+        Assert.Contains("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpdatedMemorySafetyRules_CanOptOut()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("LangVersion", "preview"), ("MeziantouUpdatedMemorySafetyRules", "false")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task StrictModeEnabled()
     {
         await using var project = CreateProjectBuilder();
