@@ -155,13 +155,13 @@ The SDK limits the assets imported from NuGet packages to the compile-time and r
 <PackageReference Include="Some.Package" Version="1.2.3" IncludeAssets="runtime;compile" />
 ````
 
-A reference is left untouched when it already sets `IncludeAssets`, `ExcludeAssets` or `PrivateAssets`, when the SDK adds it, or when its package id matches `DefaultPackageIncludeAssetsExcludedPackagePattern`. The default pattern covers `Meziantou.*` and `Microsoft.*` packages, as well as the test framework supported by the SDK (`xunit*`), as they rely on the source generators and the MSBuild props/targets they ship.
+A reference is left untouched when it already sets `IncludeAssets`, `ExcludeAssets` or `PrivateAssets`, when the SDK adds it, or when its package id matches `DefaultPackageIncludeAssetsExcludedPackagePattern`. The default pattern covers `Meziantou.*`, `Microsoft.*` and `System.*` packages, as well as the test framework supported by the SDK (`xunit*`), as they rely on the source generators and the MSBuild props/targets they ship.
 
 | Property | Default | Description |
 | --- | --- | --- |
 | `EnableDefaultPackageIncludeAssets` | `true` | Set to `false` to keep the default NuGet asset selection. |
 | `DefaultPackageIncludeAssets` | `runtime;compile` | Assets imported from the packages that are not excluded. |
-| `DefaultPackageIncludeAssetsExcludedPackagePattern` | ``^(?i:(Meziantou\|Microsoft)\.\|xunit)`` | .NET regular expression matched against the package id. A package whose id matches keeps the default NuGet asset selection. |
+| `DefaultPackageIncludeAssetsExcludedPackagePattern` | ``^(?i:(Meziantou\|Microsoft\|System)\.\|xunit)`` | .NET regular expression matched against the package id. A package whose id matches keeps the default NuGet asset selection. |
 
 ## Banned symbols and analyzers
 

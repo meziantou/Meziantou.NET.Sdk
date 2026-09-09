@@ -169,14 +169,14 @@
        unexpected ways.
        A reference is left untouched when it already sets 'IncludeAssets', 'ExcludeAssets' or 'PrivateAssets',
        when it is added by the SDK, or when its package id matches
-       'DefaultPackageIncludeAssetsExcludedPackagePattern'. The default pattern covers 'Meziantou.*' and
-       'Microsoft.*' packages, as well as the test framework supported by the SDK, as they rely on the
-       source generators and the MSBuild props/targets they ship.
+       'DefaultPackageIncludeAssetsExcludedPackagePattern'. The default pattern covers 'Meziantou.*',
+       'Microsoft.*' and 'System.*' packages, as well as the test framework supported by the SDK, as they
+       rely on the source generators and the MSBuild props/targets they ship.
        Set 'EnableDefaultPackageIncludeAssets' to 'false' to opt out, or 'DefaultPackageIncludeAssets' to
        change the imported assets. -->
   <PropertyGroup>
     <DefaultPackageIncludeAssets Condition="'$(DefaultPackageIncludeAssets)' == ''">runtime;compile</DefaultPackageIncludeAssets>
-    <DefaultPackageIncludeAssetsExcludedPackagePattern Condition="'$(DefaultPackageIncludeAssetsExcludedPackagePattern)' == ''">^(?i:(Meziantou|Microsoft)\.|xunit)</DefaultPackageIncludeAssetsExcludedPackagePattern>
+    <DefaultPackageIncludeAssetsExcludedPackagePattern Condition="'$(DefaultPackageIncludeAssetsExcludedPackagePattern)' == ''">^(?i:(Meziantou|Microsoft|System)\.|xunit)</DefaultPackageIncludeAssetsExcludedPackagePattern>
     <_DefaultPackageIncludeAssetsIncludesAnalyzers Condition="$([System.Text.RegularExpressions.Regex]::IsMatch('$(DefaultPackageIncludeAssets)', '(?i:(^|;)\s*(all|analyzers)\s*(;|$))'))">true</_DefaultPackageIncludeAssetsIncludesAnalyzers>
   </PropertyGroup>
 
