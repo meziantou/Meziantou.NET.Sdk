@@ -920,6 +920,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [Theory]
     [InlineData(TestPackages.MicrosoftLibrary)]
     [InlineData(TestPackages.MeziantouLibrary)]
+    [InlineData(TestPackages.SystemLibrary)]
     [InlineData(TestPackages.XunitLibrary)]
     public async Task PackageIncludeAssets_IsNotRestrictedForExcludedPackages(string packageName)
     {

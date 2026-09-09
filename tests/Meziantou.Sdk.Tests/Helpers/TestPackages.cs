@@ -29,6 +29,7 @@ internal static class TestPackages
     // Library packages whose names are excluded from the default 'IncludeAssets' restriction
     public const string MicrosoftLibrary = "Microsoft.TestPackage";
     public const string MeziantouLibrary = "Meziantou.TestPackage";
+    public const string SystemLibrary = "System.TestPackage";
     public const string XunitLibrary = "xunit.TestPackage";
 
     /// <summary>Package providing a Roslyn analyzer.</summary>
@@ -46,7 +47,7 @@ internal static class TestPackages
 
     private static string[] BannedPackages => [YamlDotNet, CliWrap, Testcontainers, MeziantouXunitParallelTestFramework, MeziantouXunitV3ParallelTestFramework];
 
-    private static string[] LibraryPackages => [Library, MicrosoftLibrary, MeziantouLibrary, XunitLibrary, .. BannedPackages];
+    private static string[] LibraryPackages => [Library, MicrosoftLibrary, MeziantouLibrary, SystemLibrary, XunitLibrary, .. BannedPackages];
 
     public static IEnumerable<string> PackageIds => [.. LibraryPackages, Analyzer, BuildAssets];
 
