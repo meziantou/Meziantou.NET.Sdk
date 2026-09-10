@@ -815,6 +815,66 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task DefaultEditorConfig_MA0224_MA0225_AreReportedAsWarnings()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            using System.Text.Json;
+
+            class Sample
+            {
+                public JsonSerializerOptions Test() => new JsonSerializerOptions();
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("MA0224"));
+        Assert.True(data.HasWarning("MA0225"));
+    }
+
+    [Fact]
+    public async Task DefaultEditorConfig_MA0226_IsReportedAsWarning()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            using System.Diagnostics.Tracing;
+
+            class SampleEventSource : EventSource
+            {
+                public static SampleEventSource Log { get; } = new SampleEventSource();
+
+                [Event(1)]
+                public void Start() => WriteEvent(1);
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("MA0226"));
+    }
+
+    [Fact]
+    public async Task DefaultEditorConfig_MA0227_IsReportedAsWarning()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class Sample
+            {
+                public bool Test(HashSet<string> set, string value) => set.Contains(value, StringComparer.Ordinal);
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("MA0227"));
+    }
+
+    [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
