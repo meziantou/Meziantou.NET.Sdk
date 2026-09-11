@@ -29,6 +29,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         new NuGetReference("xunit.v3.mtp-v2", "4.0.0"),
         new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
+    private static readonly NuGetReference[] CsWin32References =
+    [
+        new NuGetReference("Microsoft.Windows.CsWin32", "0.3.333"),
+    ];
 
     private ProjectBuilder CreateProjectBuilder(string defaultSdkName = SdkName)
     {
@@ -317,6 +321,32 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.BuildAndGetOutput();
         Assert.Equal(0, data.ExitCode);
         Assert.DoesNotContain("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpdatedMemorySafetyRules_DisabledWhenCsWin32IsReferenced()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("LangVersion", "preview")], nuGetPackages: [.. CsWin32References]);
+        project.AddFile("NativeMethods.txt", "GetTickCount64");
+        project.AddFile("sample.cs", "_ = OperatingSystem.IsWindows() ? Windows.Win32.PInvoke.GetTickCount64() : 0;");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        data.AssertMSBuildPropertyValue("MeziantouUpdatedMemorySafetyRules", "false");
+        Assert.DoesNotContain("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpdatedMemorySafetyRules_CanOptInWhenCsWin32IsReferenced()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("LangVersion", "preview"), ("MeziantouUpdatedMemorySafetyRules", "true")], nuGetPackages: [.. CsWin32References]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("updated-memory-safety-rules", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
     }
 
     [Fact]
