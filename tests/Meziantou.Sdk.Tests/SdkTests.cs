@@ -2097,7 +2097,63 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Equal(0, data.ExitCode);
 
         var generatedFile = Directory.GetFiles(project.RootFolder, "Meziantou.NET.Sdk.XunitParallelization.g.cs", SearchOption.AllDirectories).Single();
-        Assert.Contains($"[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.{expectedMode})]", File.ReadAllText(generatedFile), StringComparison.Ordinal);
+        Assert.Contains($"[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.{expectedMode}, Algorithm = Xunit.Sdk.ParallelAlgorithm.Conservative)]", File.ReadAllText(generatedFile), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("", "Conservative")]
+    [InlineData("Conservative", "Conservative")]
+    [InlineData("Aggressive", "Aggressive")]
+    [InlineData("aggressive", "Aggressive")]
+    public async Task MTP_XunitParallelizationAlgorithm(string algorithm, string expectedAlgorithm)
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: algorithm.Length == 0 ? null : [("XunitParallelizationAlgorithm", algorithm)]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+
+        var generatedFile = Directory.GetFiles(project.RootFolder, "Meziantou.NET.Sdk.XunitParallelization.g.cs", SearchOption.AllDirectories).Single();
+        Assert.Contains($"[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All, Algorithm = Xunit.Sdk.ParallelAlgorithm.{expectedAlgorithm})]", File.ReadAllText(generatedFile), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MTP_XunitParallelizationAlgorithm_InvalidValueIsReported()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("XunitParallelizationAlgorithm", "Balanced")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(1, data.ExitCode);
+        Assert.True(data.OutputContains("'XunitParallelizationAlgorithm' has an invalid value: 'Balanced'.", StringComparison.Ordinal));
     }
 
     [Fact]
