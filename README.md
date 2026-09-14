@@ -283,7 +283,7 @@ the whole assembly into
 [full parallelization](https://xunit.net/docs/running-tests-in-parallel#changing-default-behaviors):
 
 ````csharp
-[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]
+[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All, Algorithm = Xunit.Sdk.ParallelAlgorithm.Conservative)]
 ````
 
 Tests that share mutable state with another test of the same class must therefore be synchronized, or
@@ -306,6 +306,19 @@ resolved references are, like `EnableXunitFullParallelization` set to `true`:
 ````xml
 <PropertyGroup>
   <XunitParallelizationMode>None</XunitParallelizationMode>
+</PropertyGroup>
+````
+
+Set `XunitParallelizationAlgorithm` to generate the attribute with another
+[`Xunit.Sdk.ParallelAlgorithm`](https://xunit.net/docs/running-tests-in-parallel#changing-default-behaviors)
+value: `Conservative` (the default: the number of started tests is limited to the number of threads) or
+`Aggressive` (the number of running tests is limited to the number of threads, which uses the CPU more
+effectively when tests spend time awaiting). Setting the property also generates the file whatever the
+resolved references are:
+
+````xml
+<PropertyGroup>
+  <XunitParallelizationAlgorithm>Aggressive</XunitParallelizationAlgorithm>
 </PropertyGroup>
 ````
 
@@ -351,8 +364,9 @@ Set `EnableXunitEntryPointDisableWarnings` to `false` to not define it:
 | --- | --- | --- |
 | `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
 | `EnableMeziantouAssertions` | Auto | Adds `Meziantou.Framework.Assertions` and aliases `Assert` to `Meziantou.Framework.Assertions.Assert`. Added when the SDK adds the default test framework and the project targets .NET 10 or later, when set to `true` whatever the referenced packages and the target framework are, and never when set to `false`. |
-| `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
+| `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All, Algorithm = Xunit.Sdk.ParallelAlgorithm.Conservative)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
 | `XunitParallelizationMode` | `All` | Sets the `Xunit.Sdk.ParallelMode` value used by the generated attribute: `None`, `Collections` or `All`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |
+| `XunitParallelizationAlgorithm` | `Conservative` | Sets the `Xunit.Sdk.ParallelAlgorithm` value used by the generated attribute: `Conservative` or `Aggressive`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |
 | `EnableXunitStaticHelpers` | Auto | Generates the `Meziantou.NET.Sdk.Test.XUnitStaticHelpers` static class exposing `XunitCancellationToken` (`TestContext.Current.CancellationToken`). Generated when an xUnit.net v3 package is referenced, when set to `true` whatever the referenced packages are, and never when set to `false`. The global `using static` directive requires `ImplicitUsings`. |
 | `EnableXunitEntryPointDisableWarnings` | `true` | Defines the `XUNIT_GENERATED_DISABLE_WARNINGS` compilation constant. Set it to `false` to not define the constant. |
 | `EnableGitHubActionsReport` | `true` | Adds `Microsoft.Testing.Extensions.GitHubActionsReport` and `--report-gh --report-gh-slow-test-notices off --report-gh-step-summary $(GitHubActionsStepSummary)`. The extension is inert unless the build runs on GitHub Actions. Slow-test notices are disabled as they are mostly noise on CI machines with varying performance. |
