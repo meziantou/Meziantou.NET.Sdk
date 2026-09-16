@@ -34,7 +34,7 @@ dotnet_diagnostic.MFFP0007.severity = warning
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0008.severity = warning
 
-# MFFP0009: Use FullPath.ChangeExtension instead of Path.ChangeExtension
+# MFFP0009: Use FullPath.WithExtension instead of Path.ChangeExtension
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFFP0009.severity = warning
 

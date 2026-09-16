@@ -222,3 +222,7 @@ dotnet_diagnostic.MFAS0054.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.MFAS0055.severity = warning
 
+# MFAS0056: Use the value returned by the assertion instead of re-deriving it
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MFAS0056.severity = suggestion
+
