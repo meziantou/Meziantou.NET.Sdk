@@ -85,6 +85,18 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         data.AssertMSBuildPropertyValue("EnablePackageValidation", "true");
         data.AssertMSBuildPropertyValue("RestoreUseStaticGraphEvaluation", "true");
         data.AssertMSBuildPropertyValue("RollForward", "LatestMajor");
+        data.AssertMSBuildPropertyValue("IlcGenerateMstatFile", "true");
+        data.AssertMSBuildPropertyValue("IlcGenerateDgmlFile", "true");
+    }
+
+    [Fact]
+    public async Task CanOverrideNativeAotDebuggingProperties()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library"), ("IlcGenerateMstatFile", "false"), ("IlcGenerateDgmlFile", "false")]);
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("IlcGenerateMstatFile", "false");
+        data.AssertMSBuildPropertyValue("IlcGenerateDgmlFile", "false");
     }
 
     [Fact]

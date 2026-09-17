@@ -119,6 +119,8 @@ Set these properties in your project file or a directory-level props file. Unles
 | `TreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats compiler warnings as errors. |
 | `EnforceCodeStyleInBuild` | `true` on CI or Release | Enforces analyzer code style during builds. |
 | `AccelerateBuildsInVisualStudio` | `true` | Enables faster builds in Visual Studio. |
+| `IlcGenerateMstatFile` | `true` | Generates the `.mstat` file when publishing a Native AOT app, to investigate the app size (e.g. using [sizoscope](https://github.com/MichalStrehovsky/sizoscope)). |
+| `IlcGenerateDgmlFile` | `true` | Generates the `.dgml` dependency graph when publishing a Native AOT app, to investigate why code is included. |
 
 ## JSON serialization
 
