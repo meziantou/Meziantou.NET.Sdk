@@ -61,12 +61,12 @@
 
   <!-- MTP is the only supported test platform, so the extensions are always added -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.3.3" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.3.3" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.3.3" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.3.3" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.3.3" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.4.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.4.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.4.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.4.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.0" IsImplicitlyDefined="true" />
     <PackageReference Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.4.0" IsImplicitlyDefined="true" Condition="'$(EnableGitHubActionsReport)' != 'false'" />
   </ItemGroup>
 

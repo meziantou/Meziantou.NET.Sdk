@@ -16,7 +16,7 @@
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="3.0.9" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="3.1.4" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.246" />
     <PackageReference Include="NuGet.Packaging" Version="7.9.0" />
     <PackageReference Include="xunit.v3" Version="4.0.0" />
