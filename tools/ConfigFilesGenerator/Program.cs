@@ -207,7 +207,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
 
         using var stream = package.PackageReader.GetStream(item);
         var metadataRef = MetadataReference.CreateFromStream(stream);
-        var allRefs = GetCompilationReferences(metadataRef);
+        var allRefs = GetCompilationReferences(metadataRef, Path.GetFileName(item));
 
         var compilation = CSharpCompilation.Create("temp", syntaxTrees: [], references: allRefs);
         var asm = compilation.GetTypeByMetadataName("Newtonsoft.Json.JsonConvert")!.ContainingAssembly;
@@ -240,7 +240,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
     Interlocked.Increment(ref writtenFiles);
 }
 
-static MetadataReference[] GetCompilationReferences(MetadataReference metadataReference)
+static MetadataReference[] GetCompilationReferences(MetadataReference metadataReference, string assemblyFileName)
 {
     var references = new List<MetadataReference>();
     var referencedAssemblyPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -248,6 +248,11 @@ static MetadataReference[] GetCompilationReferences(MetadataReference metadataRe
     {
         foreach (var assemblyPath in trustedPlatformAssemblies.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
+            // The tool may reference another version of the same assembly (e.g. Newtonsoft.Json is a dependency of NuGet.Protocol).
+            // Both assemblies would define the same types, so GetTypeByMetadataName would return null.
+            if (string.Equals(Path.GetFileName(assemblyPath), assemblyFileName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             if (referencedAssemblyPaths.Add(assemblyPath))
             {
                 references.Add(MetadataReference.CreateFromFile(assemblyPath));
