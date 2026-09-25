@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.Protocol.Core.Types;
@@ -356,7 +357,8 @@ async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages(
     var result = await DependencyScanner.ScanDirectoryAsync(rootFolder / "src", options: null);
     foreach (var item in result)
     {
-        if (item.Type is DependencyType.NuGet && item.Name is not null)
+        // Skip MSBuild expressions such as <PackageReference Update="@(PackageReference)" />
+        if (item.Type is DependencyType.NuGet && item.Name is not null && PackageIdValidator.IsValidPackageId(item.Name))
         {
             yield return (item.Name, item.Version);
         }

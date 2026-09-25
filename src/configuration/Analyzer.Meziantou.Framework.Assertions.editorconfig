@@ -226,3 +226,7 @@ dotnet_diagnostic.MFAS0055.severity = warning
 # Enabled: True, Severity: suggestion
 dotnet_diagnostic.MFAS0056.severity = suggestion
 
+# MFAS0057: Do not pass an awaitable delegate to an assertion that does not await it
+# Enabled: True, Severity: error
+dotnet_diagnostic.MFAS0057.severity = error
+
