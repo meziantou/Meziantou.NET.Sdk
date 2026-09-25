@@ -1054,11 +1054,6 @@ dotnet_diagnostic.MA0210.severity = suggestion
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0211.severity = none
 
-# MA0212: Use MemoryMarshal.GetReference instead of indexing at 0
-# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0212.md
-# Enabled: False, Severity: warning
-dotnet_diagnostic.MA0212.severity = none
-
 # MA0213: Simplify negated boolean expression
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0213.md
 # Enabled: False, Severity: suggestion
@@ -1193,4 +1188,19 @@ dotnet_diagnostic.MA0238.severity = warning
 # Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0239.md
 # Enabled: False, Severity: suggestion
 dotnet_diagnostic.MA0239.severity = suggestion
+
+# MA0240: Do not use banned syntax
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0240.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0240.severity = warning
+
+# MA0241: The banned syntax entry is not valid
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0241.md
+# Enabled: True, Severity: warning
+dotnet_diagnostic.MA0241.severity = warning
+
+# MA0242: Use a value factory to compute the value only when the key is not in the ConcurrentDictionary
+# Help link: https://github.com/meziantou/Meziantou.Analyzer/blob/main/docs/Rules/MA0242.md
+# Enabled: True, Severity: suggestion
+dotnet_diagnostic.MA0242.severity = suggestion
 

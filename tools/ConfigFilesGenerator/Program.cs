@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.Protocol.Core.Types;
@@ -207,7 +208,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
 
         using var stream = package.PackageReader.GetStream(item);
         var metadataRef = MetadataReference.CreateFromStream(stream);
-        var allRefs = GetCompilationReferences(metadataRef);
+        var allRefs = GetCompilationReferences(metadataRef, Path.GetFileName(item));
 
         var compilation = CSharpCompilation.Create("temp", syntaxTrees: [], references: allRefs);
         var asm = compilation.GetTypeByMetadataName("Newtonsoft.Json.JsonConvert")!.ContainingAssembly;
@@ -240,7 +241,7 @@ async Task GenerateBanSymbolsForNewtonsoftJson()
     Interlocked.Increment(ref writtenFiles);
 }
 
-static MetadataReference[] GetCompilationReferences(MetadataReference metadataReference)
+static MetadataReference[] GetCompilationReferences(MetadataReference metadataReference, string assemblyFileName)
 {
     var references = new List<MetadataReference>();
     var referencedAssemblyPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -248,6 +249,11 @@ static MetadataReference[] GetCompilationReferences(MetadataReference metadataRe
     {
         foreach (var assemblyPath in trustedPlatformAssemblies.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
+            // The tool may reference another version of the same assembly (e.g. Newtonsoft.Json is a dependency of NuGet.Protocol).
+            // Both assemblies would define the same types, so GetTypeByMetadataName would return null.
+            if (string.Equals(Path.GetFileName(assemblyPath), assemblyFileName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
             if (referencedAssemblyPaths.Add(assemblyPath))
             {
                 references.Add(MetadataReference.CreateFromFile(assemblyPath));
@@ -351,7 +357,8 @@ async IAsyncEnumerable<(string Id, string? Version)> GetReferencedNuGetPackages(
     var result = await DependencyScanner.ScanDirectoryAsync(rootFolder / "src", options: null);
     foreach (var item in result)
     {
-        if (item.Type is DependencyType.NuGet && item.Name is not null)
+        // Skip MSBuild expressions such as <PackageReference Update="@(PackageReference)" />
+        if (item.Type is DependencyType.NuGet && item.Name is not null && PackageIdValidator.IsValidPackageId(item.Name))
         {
             yield return (item.Name, item.Version);
         }
