@@ -187,22 +187,22 @@ dotnet_diagnostic.xUnit1035.severity = error
 # Enabled: True, Severity: error
 dotnet_diagnostic.xUnit1036.severity = error
 
-# xUnit1037: There are fewer theory data type arguments than required by the parameters of the test method
+# xUnit1037: There are fewer arguments than required by the parameters of the test method
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit1037
 # Enabled: True, Severity: error
 dotnet_diagnostic.xUnit1037.severity = error
 
-# xUnit1038: There are more theory data type arguments than allowed by the parameters of the test method
+# xUnit1038: There are more arguments than allowed by the parameters of the test method
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit1038
 # Enabled: True, Severity: error
 dotnet_diagnostic.xUnit1038.severity = error
 
-# xUnit1039: The type argument to theory data is not compatible with the type of the corresponding test method parameter
+# xUnit1039: The theory argument type is not compatible with the type of the corresponding test method parameter
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit1039
 # Enabled: True, Severity: error
 dotnet_diagnostic.xUnit1039.severity = error
 
-# xUnit1040: The type argument to theory data is nullable, while the type of the corresponding test method parameter is not
+# xUnit1040: The theory argument type is nullable, while the type of the corresponding test method parameter is not
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit1040
 # Enabled: True, Severity: warning
 dotnet_diagnostic.xUnit1040.severity = warning
