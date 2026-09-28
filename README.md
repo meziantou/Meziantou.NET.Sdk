@@ -177,6 +177,7 @@ The SDK also blocks selected NuGet packages by default:
 - `YamlDotNet` (use `Meziantou.Framework.Yaml`)
 - `CliWrap` (use `Meziantou.Framework.ProcessWrapper`)
 - `Testcontainers` (use `Meziantou.Framework.TemporaryContainers`)
+- `Markdig` (use `Meziantou.Framework.Markdown`)
 - `Meziantou.Xunit.ParallelTestFramework` (use the built-in parallelization of xunit.v3)
 - `Meziantou.Xunit.v3.ParallelTestFramework` (use the built-in parallelization of xunit.v3)
 
@@ -187,6 +188,7 @@ The SDK also blocks selected NuGet packages by default:
 | `AllowPackage_YamlDotNet` | unset (`false`) | Allows `YamlDotNet` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.Yaml`. |
 | `AllowPackage_CliWrap` | unset (`false`) | Allows `CliWrap` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.ProcessWrapper`. |
 | `AllowPackage_Testcontainers` | unset (`false`) | Allows `Testcontainers` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.TemporaryContainers`. |
+| `AllowPackage_Markdig` | unset (`false`) | Allows `Markdig` when set to `true`; otherwise the build fails and suggests `Meziantou.Framework.Markdown`. |
 | `AllowPackage_Meziantou_Xunit_ParallelTestFramework` | unset (`false`) | Allows `Meziantou.Xunit.ParallelTestFramework` when set to `true`; otherwise the build fails and suggests the built-in parallelization of xunit.v3. |
 | `AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework` | unset (`false`) | Allows `Meziantou.Xunit.v3.ParallelTestFramework` when set to `true`; otherwise the build fails and suggests the built-in parallelization of xunit.v3. |
 | `Disable_SponsorLink` | `true` | Removes SponsorLink and Moq analyzers when not set to `false`. |
