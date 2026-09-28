@@ -2,6 +2,12 @@
 
 - [![Meziantou.NET.Sdk on NuGet](https://img.shields.io/nuget/v/Meziantou.NET.Sdk.svg)](https://www.nuget.org/packages/Meziantou.NET.Sdk/)
 
+> [!WARNING]
+> This SDK is not meant to be consumed directly. It encodes my own conventions and preferences, and it
+> can change at any time without notice, including breaking changes in minor or patch versions. Instead,
+> fork the project and adapt it to create your own conventions. You can use this repository as a starting
+> point and a reference for the features a custom MSBuild SDK can provide.
+
 MSBuild SDK that helps standardize build and quality settings across repositories. It provides:
 - Opinionated defaults and naming conventions for .NET projects
 - Best practices for build, CI, and test workflows
