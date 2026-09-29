@@ -4,6 +4,11 @@ global_level = 0
 
 dotnet_diagnostic.CA2217.api_surface = all
 
+# CA2000: Dispose objects before losing scope
+# ValueStringBuilder returns its pooled buffer in ToString(); a using declaration would make it readonly, and it is
+# passed by reference to helper methods.
+dotnet_code_quality.CA2000.excluded_symbol_names = T:Meziantou.Framework.ValueStringBuilder
+
 # CA1000: Do not declare static members on generic types
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1000
 # Enabled: True, Severity: silent

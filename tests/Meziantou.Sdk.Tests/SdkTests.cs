@@ -1322,6 +1322,51 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task CA2000_NotReportedForValueStringBuilder()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Program.cs", """
+            _ = Sample.Build();
+            _ = Sample.Leak();
+
+            static class Sample
+            {
+                public static string Build()
+                {
+                    var sb = new Meziantou.Framework.ValueStringBuilder();
+                    return sb.ToString();
+                }
+
+                public static string Leak()
+                {
+                    var disposable = new OtherDisposable();
+                    return disposable.ToString();
+                }
+            }
+
+            sealed class OtherDisposable : System.IDisposable
+            {
+                public void Dispose() { }
+                public override string ToString() => "";
+            }
+
+            namespace Meziantou.Framework
+            {
+                sealed class ValueStringBuilder : System.IDisposable
+                {
+                    public void Dispose() { }
+                    public override string ToString() => "";
+                }
+            }
+            """);
+        var data = await project.BuildAndGetOutput(["--configuration", "Release"]);
+        var ca2000 = data.SarifFile.AllResults().Where(r => r.RuleId == "CA2000").ToArray();
+        Assert.Single(ca2000);
+        Assert.Contains("OtherDisposable", ca2000[0].Message.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task PdbShouldBeEmbedded_Dotnet_Build()
     {
         await using var project = CreateProjectBuilder();
