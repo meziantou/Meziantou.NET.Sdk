@@ -96,6 +96,18 @@
                                     Condition="@(RuntimeHostConfigurationOption->AnyHaveMetadataValue('Identity', 'System.Text.Json.Serialization.RespectRequiredConstructorParametersDefault')) != 'true'" />
   </ItemGroup>
 
+  <!-- Add the 'Meziantou.NET.Sdk.SharedHttpClient' class to the compilation. It exposes a shared 'HttpClient'
+       that retries the failed requests. Set 'IncludeSharedHttpClient' to 'true' to opt in.
+       The namespace is imported when implicit usings are enabled, so the class is usable without any using directive.
+       The items are evaluated after all the properties, so 'Language' is known even though it is set by the targets
+       imported after this file. -->
+  <ItemGroup Condition="'$(IncludeSharedHttpClient)' == 'true' AND '$(Language)' == 'C#'">
+    <Compile Include="$(MSBuildThisFileDirectory)../sources/SharedHttpClient.cs"
+             Link="Meziantou.NET.Sdk/SharedHttpClient.cs"
+             Visible="false" />
+    <Using Include="Meziantou.NET.Sdk" Condition="'$(ImplicitUsings)' == 'enable' OR '$(ImplicitUsings)' == 'true'" />
+  </ItemGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>Meziantou.Sdk.Name</_Parameter1>

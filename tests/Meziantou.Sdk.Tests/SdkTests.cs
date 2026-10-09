@@ -138,6 +138,62 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task SharedHttpClient_IsNotIncludedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain(data.GetMSBuildItems("Compile"), item => item.EndsWith("SharedHttpClient.cs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_CanBeIncluded()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("IncludeSharedHttpClient", "true")]);
+
+        // The class must be usable without any using directive, and must not report any diagnostic on CI
+        project.AddFile("Program.cs", """
+            Console.WriteLine(SharedHttpClient.Instance.GetType().FullName);
+            Console.WriteLine("SameInstance=" + ReferenceEquals(SharedHttpClient.Instance, Meziantou.NET.Sdk.SharedHttpClient.Instance));
+            """);
+        var data = await project.RunAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.HasWarning());
+        Assert.False(data.HasError());
+        Assert.True(data.OutputContains("System.Net.Http.HttpClient", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("SameInstance=True", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_SupportsNetStandard()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties:
+        [
+            ("IncludeSharedHttpClient", "true"),
+            ("TargetFrameworks", "net10.0;netstandard2.0"),
+            ("OutputType", "Library"),
+        ]);
+        project.AddFile("Helpers.cs", """
+            namespace Sample;
+
+            public static class Helpers
+            {
+                public static object Client => SharedHttpClient.Instance;
+            }
+            """);
+        var data = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"], environmentVariables: [.. project.GitHubEnvironmentVariables]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.HasError());
+    }
+
+    [Fact]
     public async Task JsonSerializationOptions_AreEnabledByDefault()
     {
         await using var project = CreateProjectBuilder();

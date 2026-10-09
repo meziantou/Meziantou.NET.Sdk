@@ -114,6 +114,7 @@ static string GetNuspecFiles(FullPath srcFolderPath, string sdkName)
 
     AddDirectoryFiles(files, srcFolderPath, "common");
     AddDirectoryFiles(files, srcFolderPath, "configuration");
+    AddDirectoryFiles(files, srcFolderPath, "sources");
 
     files.Add(("icon.png", "icon.png"));
     files.Add(("icon.svg", "icon.svg"));
