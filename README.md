@@ -145,6 +145,18 @@ A switch explicitly set by the project is left untouched.
 | --- | --- | --- |
 | `EnableDefaultJsonSerializationOptions` | `true` | Set to `false` to keep the default `System.Text.Json` behaviors. |
 
+## Shared HttpClient
+
+The SDK can add an internal `Meziantou.NET.Sdk.SharedHttpClient` class to C# projects. Its `Instance` property exposes a shared `HttpClient` that recycles the pooled connections every minute and retries the failed requests (network errors, timeouts, `408`, `429` and `5xx` responses) up to 5 times, honoring the `Retry-After` header. The namespace is imported when implicit usings are enabled:
+
+````csharp
+var content = await SharedHttpClient.Instance.GetStringAsync(uri, cancellationToken);
+````
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `IncludeSharedHttpClient` | `false` | Set to `true` to add the `SharedHttpClient` class to the compilation. |
+
 ## Package validation and auditing
 
 | Property | Default | Description |
