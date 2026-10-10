@@ -160,6 +160,11 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             Console.WriteLine(SharedHttpClient.Instance.GetType().FullName);
             Console.WriteLine("SameInstance=" + ReferenceEquals(SharedHttpClient.Instance, Meziantou.NET.Sdk.SharedHttpClient.Instance));
             Console.WriteLine("DistinctInstances=" + !ReferenceEquals(SharedHttpClient.Instance, SharedHttpClient.InstanceWithAutoRedirect));
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+
+            using var client = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false);
+            Console.WriteLine("NewInstance=" + !ReferenceEquals(client, SharedHttpClient.Instance));
+            Console.WriteLine("NewInstanceUserAgent=[" + client.DefaultRequestHeaders.UserAgent + "]");
             """);
         var data = await project.RunAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
 
@@ -168,6 +173,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.False(data.HasError());
         Assert.True(data.OutputContains("System.Net.Http.HttpClient", StringComparison.Ordinal));
         Assert.True(data.OutputContains("SameInstance=True", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("UserAgent=[Meziantou.TestProject/1.0.0.0]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NewInstance=True", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NewInstanceUserAgent=[Meziantou.TestProject/1.0.0.0]", StringComparison.Ordinal));
         Assert.True(data.OutputContains("DistinctInstances=True", StringComparison.Ordinal));
     }
 
@@ -232,6 +240,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             Console.WriteLine("InstanceStatusCode=" + (int)response.StatusCode);
             Console.WriteLine("InstanceContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "compressed")));
             Console.WriteLine("InstanceWithAutoRedirectContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "redirect")));
+
+            // The callback is invoked after the default configuration is applied, so it can override it
+            using var configuredClient = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false, handler => handler.AllowAutoRedirect = true);
+            Console.WriteLine("ConfiguredClientContent=" + await configuredClient.GetStringAsync(new Uri(baseUri, "redirect")));
             #if NET11_0_OR_GREATER
             Console.WriteLine("InstanceZstdContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "zstd")));
             Console.WriteLine("InstanceWithAutoRedirectZstdContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "zstd")));
@@ -243,6 +255,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("InstanceStatusCode=302", StringComparison.Ordinal));
         Assert.True(data.OutputContains("InstanceContent=sample content", StringComparison.Ordinal));
         Assert.True(data.OutputContains("InstanceWithAutoRedirectContent=sample content", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("ConfiguredClientContent=sample content", StringComparison.Ordinal));
 
         // Zstandard is only available on .NET 11+
         if (dotnetSdkVersion is not NetSdkVersion.Net10_0)
@@ -250,6 +263,55 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             Assert.True(data.OutputContains("InstanceZstdContent=sample content", StringComparison.Ordinal));
             Assert.True(data.OutputContains("InstanceWithAutoRedirectZstdContent=sample content", StringComparison.Ordinal));
         }
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_IsPartial()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties:
+        [
+            ("IncludeSharedHttpClient", "true"),
+            ("AssemblyName", "Sample App"),
+            ("Version", "1.2.3"),
+        ]);
+
+        // The characters of the assembly name that are not valid in a 'User-Agent' are replaced, and the version is the assembly version
+        project.AddFile("Program.cs", """
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+            Console.WriteLine("Custom=[" + SharedHttpClient.CustomMember + "]");
+            """);
+        project.AddFile("SharedHttpClient.Custom.cs", """
+            namespace Meziantou.NET.Sdk;
+
+            internal static partial class SharedHttpClient
+            {
+                public static string CustomMember => DefaultUserAgent;
+            }
+            """);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("UserAgent=[Sample_App/1.2.3.0]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("Custom=[Sample_App/1.2.3.0]", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_UserAgentCanBeSet()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties:
+        [
+            ("IncludeSharedHttpClient", "true"),
+            ("SharedHttpClientUserAgent", """Sample/1.0 (+https://example.com; "a" *)"""),
+        ]);
+        project.AddFile("Program.cs", """
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+            """);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("""UserAgent=[Sample/1.0 (+https://example.com; "a" *)]""", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -270,6 +332,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 public static object Client => SharedHttpClient.Instance;
 
                 public static object ClientWithAutoRedirect => SharedHttpClient.InstanceWithAutoRedirect;
+
+                // The handler is an 'HttpClientHandler' on .NET Standard, and a 'SocketsHttpHandler' on .NET
+                public static HttpClient CreateClient() => SharedHttpClient.CreateHttpClient(allowAutoRedirect: true, handler => handler.UseCookies = false);
             }
             """);
         var data = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"], environmentVariables: [.. project.GitHubEnvironmentVariables]);

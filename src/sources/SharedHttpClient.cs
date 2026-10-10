@@ -4,7 +4,7 @@
 
 namespace Meziantou.NET.Sdk;
 
-internal static class SharedHttpClient
+internal static partial class SharedHttpClient
 {
     private static readonly global::System.Lazy<global::System.Net.Http.HttpClient> LazyInstance = new(() => CreateHttpClient(allowAutoRedirect: false));
     private static readonly global::System.Lazy<global::System.Net.Http.HttpClient> LazyInstanceWithAutoRedirect = new(() => CreateHttpClient(allowAutoRedirect: true));
@@ -15,7 +15,15 @@ internal static class SharedHttpClient
     /// <summary>Gets a shared <see cref="global::System.Net.Http.HttpClient"/> that follows the redirection responses.</summary>
     public static global::System.Net.Http.HttpClient InstanceWithAutoRedirect => LazyInstanceWithAutoRedirect.Value;
 
-    private static global::System.Net.Http.HttpClient CreateHttpClient(bool allowAutoRedirect)
+    /// <summary>Creates a new <see cref="global::System.Net.Http.HttpClient"/> configured like the shared instances. The caller owns the returned instance.</summary>
+    /// <param name="allowAutoRedirect"><see langword="true"/> to follow the redirection responses, like <see cref="InstanceWithAutoRedirect"/>; <see langword="false"/> to return them, like <see cref="Instance"/>.</param>
+    /// <param name="configure">An optional callback to change the handler after the default configuration is applied, and before the <see cref="global::System.Net.Http.HttpClient"/> is created.</param>
+#if NETCOREAPP2_1_OR_GREATER
+    public static global::System.Net.Http.HttpClient CreateHttpClient(bool allowAutoRedirect, global::System.Action<global::System.Net.Http.SocketsHttpHandler>? configure = null)
+#else
+    // 'SocketsHttpHandler' is not available on this target framework
+    public static global::System.Net.Http.HttpClient CreateHttpClient(bool allowAutoRedirect, global::System.Action<global::System.Net.Http.HttpClientHandler>? configure = null)
+#endif
     {
 #if NETCOREAPP2_1_OR_GREATER
         var socketHandler = new global::System.Net.Http.SocketsHttpHandler()
@@ -38,7 +46,14 @@ internal static class SharedHttpClient
         };
 #endif
 
-        return new global::System.Net.Http.HttpClient(new HttpRetryMessageHandler(socketHandler), disposeHandler: true);
+        configure?.Invoke(socketHandler);
+
+        var httpClient = new global::System.Net.Http.HttpClient(new HttpRetryMessageHandler(socketHandler), disposeHandler: true);
+
+        // 'DefaultUserAgent' is generated at build time by Meziantou.NET.Sdk from the assembly name and version, or the 'SharedHttpClientUserAgent' property
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
+
+        return httpClient;
     }
 
     private sealed class HttpRetryMessageHandler : global::System.Net.Http.DelegatingHandler
