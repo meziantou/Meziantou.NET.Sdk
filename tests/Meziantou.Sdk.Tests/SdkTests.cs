@@ -240,6 +240,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             Console.WriteLine("InstanceStatusCode=" + (int)response.StatusCode);
             Console.WriteLine("InstanceContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "compressed")));
             Console.WriteLine("InstanceWithAutoRedirectContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "redirect")));
+
+            // The callback is invoked after the default configuration is applied, so it can override it
+            using var configuredClient = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false, handler => handler.AllowAutoRedirect = true);
+            Console.WriteLine("ConfiguredClientContent=" + await configuredClient.GetStringAsync(new Uri(baseUri, "redirect")));
             #if NET11_0_OR_GREATER
             Console.WriteLine("InstanceZstdContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "zstd")));
             Console.WriteLine("InstanceWithAutoRedirectZstdContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "zstd")));
@@ -251,6 +255,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("InstanceStatusCode=302", StringComparison.Ordinal));
         Assert.True(data.OutputContains("InstanceContent=sample content", StringComparison.Ordinal));
         Assert.True(data.OutputContains("InstanceWithAutoRedirectContent=sample content", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("ConfiguredClientContent=sample content", StringComparison.Ordinal));
 
         // Zstandard is only available on .NET 11+
         if (dotnetSdkVersion is not NetSdkVersion.Net10_0)
@@ -327,6 +332,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 public static object Client => SharedHttpClient.Instance;
 
                 public static object ClientWithAutoRedirect => SharedHttpClient.InstanceWithAutoRedirect;
+
+                // The handler is an 'HttpClientHandler' on .NET Standard, and a 'SocketsHttpHandler' on .NET
+                public static HttpClient CreateClient() => SharedHttpClient.CreateHttpClient(allowAutoRedirect: true, handler => handler.UseCookies = false);
             }
             """);
         var data = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"], environmentVariables: [.. project.GitHubEnvironmentVariables]);

@@ -160,7 +160,13 @@ The namespace is imported when implicit usings are enabled:
 var content = await SharedHttpClient.Instance.GetStringAsync(uri, cancellationToken);
 ````
 
-`SharedHttpClient.CreateHttpClient(allowAutoRedirect)` creates a new `HttpClient` with the same configuration, for instance to set a base address or default headers without changing the shared instances. The caller owns the returned instance.
+`SharedHttpClient.CreateHttpClient(allowAutoRedirect, configure)` creates a new `HttpClient` with the same configuration, for instance to set a base address or default headers without changing the shared instances. The caller owns the returned instance. The optional `configure` callback changes the handler after the default configuration is applied, and before the `HttpClient` is created:
+
+````csharp
+using var client = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false, handler => handler.UseCookies = false);
+````
+
+The handler is a `SocketsHttpHandler`, or an `HttpClientHandler` on the target frameworks where `SocketsHttpHandler` is not available, such as .NET Standard 2.0.
 
 The clients send a `User-Agent` header by default. Its value is generated at build time from the assembly name and the assembly version, such as `MyApp/1.0.0.0`. The characters of the assembly name that are not valid in a product token are replaced with `_`.
 
