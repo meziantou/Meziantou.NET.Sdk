@@ -173,9 +173,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.False(data.HasError());
         Assert.True(data.OutputContains("System.Net.Http.HttpClient", StringComparison.Ordinal));
         Assert.True(data.OutputContains("SameInstance=True", StringComparison.Ordinal));
-        Assert.True(data.OutputContains("UserAgent=[Meziantou.TestProject]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("UserAgent=[Meziantou.TestProject/1.0.0.0]", StringComparison.Ordinal));
         Assert.True(data.OutputContains("NewInstance=True", StringComparison.Ordinal));
-        Assert.True(data.OutputContains("NewInstanceUserAgent=[Meziantou.TestProject]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NewInstanceUserAgent=[Meziantou.TestProject/1.0.0.0]", StringComparison.Ordinal));
         Assert.True(data.OutputContains("DistinctInstances=True", StringComparison.Ordinal));
     }
 
@@ -268,9 +268,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         [
             ("IncludeSharedHttpClient", "true"),
             ("AssemblyName", "Sample App"),
+            ("Version", "1.2.3"),
         ]);
 
-        // The characters of the assembly name that are not valid in a 'User-Agent' are replaced
+        // The characters of the assembly name that are not valid in a 'User-Agent' are replaced, and the version is the assembly version
         project.AddFile("Program.cs", """
             Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
             Console.WriteLine("Custom=[" + SharedHttpClient.CustomMember + "]");
@@ -286,8 +287,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var data = await project.RunAndGetOutput();
 
         Assert.Equal(0, data.ExitCode);
-        Assert.True(data.OutputContains("UserAgent=[Sample_App]", StringComparison.Ordinal));
-        Assert.True(data.OutputContains("Custom=[Sample_App]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("UserAgent=[Sample_App/1.2.3.0]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("Custom=[Sample_App/1.2.3.0]", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -109,15 +109,18 @@
   </ItemGroup>
 
   <!-- Generate the part of 'Meziantou.NET.Sdk.SharedHttpClient' that contains the value of the default 'User-Agent' header.
-       The value is the assembly name, so the requests are identifiable by the servers. The characters that are not valid
-       in a product token are replaced, so the value is always a valid 'User-Agent'.
+       The value is the assembly name and the assembly version ('name/version'), so the requests are identifiable by the
+       servers. The characters that are not valid in a product token are replaced, so the value is always a valid 'User-Agent'.
+       'AssemblyVersion' is computed by the 'GetAssemblyVersion' target of the .NET SDK when the project does not set it.
        Set 'SharedHttpClientUserAgent' to use another value. This value is not sanitized, so it must be a valid 'User-Agent'. -->
   <Target Name="GenerateSharedHttpClientUserAgentSourceFile"
           BeforeTargets="BeforeCompile;CoreCompile"
+          DependsOnTargets="GetAssemblyVersion"
           Condition="'$(IncludeSharedHttpClient)' == 'true' AND '$(Language)' == 'C#'">
     <PropertyGroup>
       <_SharedHttpClientUserAgentSourceFile>$(IntermediateOutputPath)Meziantou.NET.Sdk.SharedHttpClient.g$(DefaultLanguageSourceExtension)</_SharedHttpClientUserAgentSourceFile>
       <_SharedHttpClientUserAgent>$(SharedHttpClientUserAgent)</_SharedHttpClientUserAgent>
+      <_SharedHttpClientUserAgent Condition="'$(_SharedHttpClientUserAgent)' == '' AND '$(AssemblyVersion)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(AssemblyName)', '[^A-Za-z0-9._-]', '_'))/$([System.Text.RegularExpressions.Regex]::Replace('$(AssemblyVersion)', '[^A-Za-z0-9._-]', '_'))</_SharedHttpClientUserAgent>
       <_SharedHttpClientUserAgent Condition="'$(_SharedHttpClientUserAgent)' == ''">$([System.Text.RegularExpressions.Regex]::Replace('$(AssemblyName)', '[^A-Za-z0-9._-]', '_'))</_SharedHttpClientUserAgent>
 
       <!-- The value is generated as a verbatim string literal, so only the quotes must be escaped. A regular string literal

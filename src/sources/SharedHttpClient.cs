@@ -42,7 +42,7 @@ internal static partial class SharedHttpClient
 
         var httpClient = new global::System.Net.Http.HttpClient(new HttpRetryMessageHandler(socketHandler), disposeHandler: true);
 
-        // 'DefaultUserAgent' is generated at build time by Meziantou.NET.Sdk from the assembly name or the 'SharedHttpClientUserAgent' property
+        // 'DefaultUserAgent' is generated at build time by Meziantou.NET.Sdk from the assembly name and version, or the 'SharedHttpClientUserAgent' property
         httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
 
         return httpClient;
