@@ -163,7 +163,13 @@ var content = await SharedHttpClient.Instance.GetStringAsync(uri, cancellationTo
 `SharedHttpClient.CreateHttpClient(allowAutoRedirect, configure)` creates a new `HttpClient` with the same configuration, for instance to set a base address or default headers without changing the shared instances. The caller owns the returned instance. The optional `configure` callback changes the handler after the default configuration is applied, and before the `HttpClient` is created:
 
 ````csharp
-using var client = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false, handler => handler.UseCookies = false);
+using var client = SharedHttpClient.CreateHttpClient(allowAutoRedirect: true, handler => handler.UseCookies = false);
+````
+
+`allowAutoRedirect` can be omitted. In this case, the client does not follow the redirection responses, like `SharedHttpClient.Instance`:
+
+````csharp
+using var client = SharedHttpClient.CreateHttpClient(handler => handler.UseCookies = false);
 ````
 
 The handler is a `SocketsHttpHandler`, or an `HttpClientHandler` on the target frameworks where `SocketsHttpHandler` is not available, such as .NET Standard 2.0.

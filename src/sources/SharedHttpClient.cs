@@ -15,6 +15,18 @@ internal static partial class SharedHttpClient
     /// <summary>Gets a shared <see cref="global::System.Net.Http.HttpClient"/> that follows the redirection responses.</summary>
     public static global::System.Net.Http.HttpClient InstanceWithAutoRedirect => LazyInstanceWithAutoRedirect.Value;
 
+    /// <summary>Creates a new <see cref="global::System.Net.Http.HttpClient"/> configured like <see cref="Instance"/>, so it does not follow the redirection responses. The caller owns the returned instance.</summary>
+    /// <param name="configure">An optional callback to change the handler after the default configuration is applied, and before the <see cref="global::System.Net.Http.HttpClient"/> is created.</param>
+#if NETCOREAPP2_1_OR_GREATER
+    public static global::System.Net.Http.HttpClient CreateHttpClient(global::System.Action<global::System.Net.Http.SocketsHttpHandler>? configure = null)
+#else
+    // 'SocketsHttpHandler' is not available on this target framework
+    public static global::System.Net.Http.HttpClient CreateHttpClient(global::System.Action<global::System.Net.Http.HttpClientHandler>? configure = null)
+#endif
+    {
+        return CreateHttpClient(allowAutoRedirect: false, configure);
+    }
+
     /// <summary>Creates a new <see cref="global::System.Net.Http.HttpClient"/> configured like the shared instances. The caller owns the returned instance.</summary>
     /// <param name="allowAutoRedirect"><see langword="true"/> to follow the redirection responses, like <see cref="InstanceWithAutoRedirect"/>; <see langword="false"/> to return them, like <see cref="Instance"/>.</param>
     /// <param name="configure">An optional callback to change the handler after the default configuration is applied, and before the <see cref="global::System.Net.Http.HttpClient"/> is created.</param>

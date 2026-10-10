@@ -244,6 +244,16 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             // The callback is invoked after the default configuration is applied, so it can override it
             using var configuredClient = SharedHttpClient.CreateHttpClient(allowAutoRedirect: false, handler => handler.AllowAutoRedirect = true);
             Console.WriteLine("ConfiguredClientContent=" + await configuredClient.GetStringAsync(new Uri(baseUri, "redirect")));
+
+            // The overloads without 'allowAutoRedirect' do not follow the redirection responses, like 'Instance'
+            using var defaultClient = SharedHttpClient.CreateHttpClient();
+            using var defaultClientResponse = await defaultClient.GetAsync(new Uri(baseUri, "redirect"));
+            Console.WriteLine("DefaultClientStatusCode=" + (int)defaultClientResponse.StatusCode);
+            using var noOpConfiguredClient = SharedHttpClient.CreateHttpClient(handler => { });
+            using var noOpConfiguredClientResponse = await noOpConfiguredClient.GetAsync(new Uri(baseUri, "redirect"));
+            Console.WriteLine("NoOpConfiguredClientStatusCode=" + (int)noOpConfiguredClientResponse.StatusCode);
+            using var redirectConfiguredClient = SharedHttpClient.CreateHttpClient(handler => handler.AllowAutoRedirect = true);
+            Console.WriteLine("RedirectConfiguredClientContent=" + await redirectConfiguredClient.GetStringAsync(new Uri(baseUri, "redirect")));
             #if NET11_0_OR_GREATER
             Console.WriteLine("InstanceZstdContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "zstd")));
             Console.WriteLine("InstanceWithAutoRedirectZstdContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "zstd")));
@@ -256,6 +266,9 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.True(data.OutputContains("InstanceContent=sample content", StringComparison.Ordinal));
         Assert.True(data.OutputContains("InstanceWithAutoRedirectContent=sample content", StringComparison.Ordinal));
         Assert.True(data.OutputContains("ConfiguredClientContent=sample content", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("DefaultClientStatusCode=302", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NoOpConfiguredClientStatusCode=302", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("RedirectConfiguredClientContent=sample content", StringComparison.Ordinal));
 
         // Zstandard is only available on .NET 11+
         if (dotnetSdkVersion is not NetSdkVersion.Net10_0)
@@ -335,6 +348,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
                 // The handler is an 'HttpClientHandler' on .NET Standard, and a 'SocketsHttpHandler' on .NET
                 public static HttpClient CreateClient() => SharedHttpClient.CreateHttpClient(allowAutoRedirect: true, handler => handler.UseCookies = false);
+
+                public static HttpClient CreateClientWithoutAutoRedirect() => SharedHttpClient.CreateHttpClient(handler => handler.UseCookies = false);
             }
             """);
         var data = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"], environmentVariables: [.. project.GitHubEnvironmentVariables]);
