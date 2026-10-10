@@ -5,11 +5,13 @@
 
 namespace Meziantou.NET.Sdk;
 
-internal static class SharedHttpClient
+internal static partial class SharedHttpClient
 {
+    /// <summary>Gets a shared <see cref="global::System.Net.Http.HttpClient"/> that retries the failed requests.</summary>
     public static global::System.Net.Http.HttpClient Instance { get; } = CreateHttpClient();
 
-    private static global::System.Net.Http.HttpClient CreateHttpClient()
+    /// <summary>Creates a new <see cref="global::System.Net.Http.HttpClient"/> configured like <see cref="Instance"/>. The caller owns the returned instance.</summary>
+    public static global::System.Net.Http.HttpClient CreateHttpClient()
     {
 #if NETCOREAPP2_1_OR_GREATER
         var socketHandler = new global::System.Net.Http.SocketsHttpHandler()
@@ -21,7 +23,12 @@ internal static class SharedHttpClient
         var socketHandler = new global::System.Net.Http.HttpClientHandler();
 #endif
 
-        return new global::System.Net.Http.HttpClient(new HttpRetryMessageHandler(socketHandler), disposeHandler: true);
+        var httpClient = new global::System.Net.Http.HttpClient(new HttpRetryMessageHandler(socketHandler), disposeHandler: true);
+
+        // 'DefaultUserAgent' is generated at build time by Meziantou.NET.Sdk from the assembly name or the 'SharedHttpClientUserAgent' property
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
+
+        return httpClient;
     }
 
     private sealed class HttpRetryMessageHandler : global::System.Net.Http.DelegatingHandler

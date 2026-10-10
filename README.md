@@ -153,9 +153,16 @@ The SDK can add an internal `Meziantou.NET.Sdk.SharedHttpClient` class to C# pro
 var content = await SharedHttpClient.Instance.GetStringAsync(uri, cancellationToken);
 ````
 
+`SharedHttpClient.CreateHttpClient()` creates a new `HttpClient` with the same configuration, for instance to set a base address or default headers without changing the shared instance. The caller owns the returned instance.
+
+The clients send a `User-Agent` header by default. Its value is generated at build time from the assembly name, where the characters that are not valid in a product token are replaced with `_`.
+
+The class is `partial`, so you can add your own members by declaring `internal static partial class SharedHttpClient` in the `Meziantou.NET.Sdk` namespace.
+
 | Property | Default | Description |
 | --- | --- | --- |
 | `IncludeSharedHttpClient` | `false` | Set to `true` to add the `SharedHttpClient` class to the compilation. |
+| `SharedHttpClientUserAgent` | `$(AssemblyName)` | Value of the default `User-Agent` header, such as `MyApp/1.0 (+https://example.com)`. It must be a valid `User-Agent` value. |
 
 ## Package validation and auditing
 

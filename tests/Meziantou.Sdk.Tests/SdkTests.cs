@@ -159,6 +159,11 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddFile("Program.cs", """
             Console.WriteLine(SharedHttpClient.Instance.GetType().FullName);
             Console.WriteLine("SameInstance=" + ReferenceEquals(SharedHttpClient.Instance, Meziantou.NET.Sdk.SharedHttpClient.Instance));
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+
+            using var client = SharedHttpClient.CreateHttpClient();
+            Console.WriteLine("NewInstance=" + !ReferenceEquals(client, SharedHttpClient.Instance));
+            Console.WriteLine("NewInstanceUserAgent=[" + client.DefaultRequestHeaders.UserAgent + "]");
             """);
         var data = await project.RunAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
 
@@ -167,6 +172,57 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.False(data.HasError());
         Assert.True(data.OutputContains("System.Net.Http.HttpClient", StringComparison.Ordinal));
         Assert.True(data.OutputContains("SameInstance=True", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("UserAgent=[Meziantou.TestProject]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NewInstance=True", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("NewInstanceUserAgent=[Meziantou.TestProject]", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_IsPartial()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties:
+        [
+            ("IncludeSharedHttpClient", "true"),
+            ("AssemblyName", "Sample App"),
+        ]);
+
+        // The characters of the assembly name that are not valid in a 'User-Agent' are replaced
+        project.AddFile("Program.cs", """
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+            Console.WriteLine("Custom=[" + SharedHttpClient.CustomMember + "]");
+            """);
+        project.AddFile("SharedHttpClient.Custom.cs", """
+            namespace Meziantou.NET.Sdk;
+
+            internal static partial class SharedHttpClient
+            {
+                public static string CustomMember => DefaultUserAgent;
+            }
+            """);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("UserAgent=[Sample_App]", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("Custom=[Sample_App]", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_UserAgentCanBeSet()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties:
+        [
+            ("IncludeSharedHttpClient", "true"),
+            ("SharedHttpClientUserAgent", """Sample/1.0 (+https://example.com; "a" *)"""),
+        ]);
+        project.AddFile("Program.cs", """
+            Console.WriteLine("UserAgent=[" + SharedHttpClient.Instance.DefaultRequestHeaders.UserAgent + "]");
+            """);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("""UserAgent=[Sample/1.0 (+https://example.com; "a" *)]""", StringComparison.Ordinal));
     }
 
     [Fact]
