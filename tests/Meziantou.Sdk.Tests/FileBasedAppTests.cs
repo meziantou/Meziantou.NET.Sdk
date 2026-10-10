@@ -105,4 +105,28 @@ public abstract class FileBasedAppTests(PackageFixture fixture, ITestOutputHelpe
         var files = data.GetBinLogFiles();
         Assert.Contains(files, f => f.EndsWith("Meziantou.NET.Sdk.SingleFileApp.editorconfig", StringComparison.Ordinal));
     }
+
+    // File-based apps set 'PublishAot' to 'true' by default, so they get the Native AOT flavor of xUnit.net v3
+    [Fact]
+    public async Task FileBasedApp_TestSdk_AddsXunitNativeAot()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddFile("Tests.cs", $$"""
+            #:sdk {{SdkTestName}}@{{fixture.Version}}
+            #:property SarifFileName={{ProjectBuilder.SarifFileName}}
+            public class SampleTests
+            {
+                [Fact]
+                public async Task Test1() => await Task.Delay(1, XunitCancellationToken);
+            }
+            """);
+
+        var data = await project.RunFileAndGetOutput("Tests.cs");
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("total: 1"));
+
+        var packageReferences = data.GetMSBuildItems("PackageReference");
+        Assert.Contains("xunit.v3.aot.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+    }
 }

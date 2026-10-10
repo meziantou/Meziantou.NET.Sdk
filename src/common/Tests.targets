@@ -35,8 +35,24 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-off')) != 'true' AND
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core')) != 'true' AND
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) != 'true' AND
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) != 'true'">
-    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.1" IsImplicitlyDefined="true" />
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot.mtp-v2')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot.mtp-off')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot.mtp-v2')) != 'true' AND
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot.mtp-off')) != 'true'">
+    <!-- The reflection-based packages cannot discover tests in a Native AOT application, so the Native AOT
+         packages are used when the project is published with Native AOT. They only support C# and .NET 9 or later.
+         'Language' is not set yet, as this file is imported before the targets of Microsoft.NET.Sdk. -->
+    <!-- https://xunit.net/docs/getting-started/v3/native-aot -->
+    <_DefaultTestFrameworkUsesNativeAot Include="true"
+                                        Condition="'$(PublishAot)' == 'true' AND
+                                                   '$(MSBuildProjectExtension)' == '.csproj' AND
+                                                   $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))" />
+
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.1" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' != 'true'" />
+    <PackageReference Include="xunit.v3.aot.mtp-v2" Version="4.0.1" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' == 'true'" />
 
     <!-- An item is used instead of a property as item lists cannot be referenced in a property condition outside of a target (MSB4099) -->
     <_DefaultTestFrameworkAdded Include="true" />
@@ -104,7 +120,7 @@
 
     <ItemGroup>
       <_XunitParallelizationCapableReference Include="@(ReferencePath)"
-                                             Condition="'%(ReferencePath.NuGetPackageId)' == 'xunit.v3.extensibility.core' AND
+                                             Condition="('%(ReferencePath.NuGetPackageId)' == 'xunit.v3.extensibility.core' OR '%(ReferencePath.NuGetPackageId)' == 'xunit.v3.extensibility.core.aot') AND
                                                         '%(ReferencePath.NuGetPackageVersion)' != '' AND
                                                         $([MSBuild]::VersionGreaterThanOrEquals('%(ReferencePath.NuGetPackageVersion)', '4.0.0'))" />
     </ItemGroup>
@@ -154,7 +170,13 @@
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-off')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core')) == 'true' OR
                         @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-v2')) == 'true' OR
-                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) == 'true'
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.mtp-off')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot.mtp-v2')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot.mtp-off')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot.mtp-v2')) == 'true' OR
+                        @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.core.aot.mtp-off')) == 'true'
                         )">
     <_XunitStaticHelpersEnabled Include="true" />
   </ItemGroup>
@@ -210,7 +232,9 @@
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit')) == 'true' OR
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3')) == 'true' OR
                             @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v1')) == 'true' OR
-                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true'
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.mtp-v2')) == 'true' OR
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot')) == 'true' OR
+                            @(PackageReference-&gt;AnyHaveMetadataValue('Identity', 'xunit.v3.aot.mtp-v2')) == 'true'
                             )">
     <Using Include="Xunit" />
   </ItemGroup>

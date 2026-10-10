@@ -282,6 +282,14 @@ already references `xunit` or `xunit.v3*`. Set `EnableDefaultTestFramework` to `
 control. Only Microsoft Testing Platform is supported, so the test framework must run on it: the SDK
 never adds `Microsoft.NET.Test.Sdk` and configures no VSTest setting.
 
+When the project sets `PublishAot` to `true`, the SDK adds the
+[Native AOT flavor of xUnit.net v3](https://xunit.net/docs/getting-started/v3/native-aot)
+(`xunit.v3.aot.mtp-v2`) instead, as the reflection-based packages cannot run tests in a Native AOT
+application. It discovers the tests with a source generator, so `dotnet test` still works and the
+published application runs the tests. It only supports C# projects targeting .NET 9 or later, so other
+projects keep the reflection-based package. Reference `xunit.v3.mtp-v2` in the project to keep it
+whatever the value of `PublishAot` is.
+
 The assertions come from
 [`Meziantou.Framework.Assertions`](https://www.nuget.org/packages/Meziantou.Framework.Assertions)
 instead of xUnit.net. The SDK adds the package and generates the
@@ -391,7 +399,7 @@ Set `EnableXunitEntryPointDisableWarnings` to `false` to not define it:
 
 | Property | Default | Description |
 | --- | --- | --- |
-| `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
+| `EnableDefaultTestFramework` | `true` | Adds `xunit.v3.mtp-v2` (`xunit.v3.aot.mtp-v2` when `PublishAot` is `true` in a C# project targeting .NET 9 or later) when no test framework is referenced, sets `OutputType` to `Exe` (required by xUnit.net v3) and `UseMicrosoftTestingPlatformRunner` to `true`. |
 | `EnableMeziantouAssertions` | Auto | Adds `Meziantou.Framework.Assertions` and aliases `Assert` to `Meziantou.Framework.Assertions.Assert`. Added when the SDK adds the default test framework and the project targets .NET 10 or later, when set to `true` whatever the referenced packages and the target framework are, and never when set to `false`. |
 | `EnableXunitFullParallelization` | Auto | Generates a source file with `[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.All, Algorithm = Xunit.Sdk.ParallelAlgorithm.Conservative)]` so every test runs in parallel, not just test collections. Generated when xUnit.net v3 4.0 or later is resolved, when set to `true` whatever the resolved references are, and never when set to `false`. |
 | `XunitParallelizationMode` | `All` | Sets the `Xunit.Sdk.ParallelMode` value used by the generated attribute: `None`, `Collections` or `All`. Setting it also generates the source file whatever the resolved references are. The file is not generated when `EnableXunitFullParallelization` is `false`. |

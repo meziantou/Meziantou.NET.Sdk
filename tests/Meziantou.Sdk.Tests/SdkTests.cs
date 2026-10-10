@@ -29,6 +29,10 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         new NuGetReference("xunit.v3.mtp-v2", "4.0.0"),
         new NuGetReference("xunit.runner.visualstudio", "4.0.0"),
     ];
+    private static readonly NuGetReference[] XUnit3AotMTP2References =
+    [
+        new NuGetReference("xunit.v3.aot.mtp-v2", "4.0.0"),
+    ];
     private static readonly NuGetReference[] CsWin32References =
     [
         new NuGetReference("Microsoft.Windows.CsWin32", "0.3.333"),
@@ -2026,6 +2030,153 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         var packageReferences = data.GetMSBuildItems("PackageReference");
         Assert.DoesNotContain("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
         Assert.DoesNotContain("Microsoft.NET.Test.Sdk", packageReferences, StringComparer.OrdinalIgnoreCase);
+    }
+
+    // The reflection-based packages cannot discover tests in a Native AOT application
+    [Fact]
+    public async Task MTP_DefaultTestFramework_PublishAot_AddsXunitNativeAot()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("PublishAot", "true")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public async Task Test1() => await Task.Delay(1, XunitCancellationToken);
+
+                [Theory]
+                [InlineData(1)]
+                [InlineData(2)]
+                public void Test2(int value) => Xunit.Assert.True(value > 0);
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+
+        var packageReferences = data.GetMSBuildItems("PackageReference");
+        Assert.Contains("xunit.v3.aot.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+
+        var compileItems = data.GetMSBuildItems("Compile");
+        Assert.Contains(compileItems, item => item.EndsWith("Meziantou.NET.Sdk.XunitParallelization.g.cs", StringComparison.Ordinal));
+        Assert.Contains(compileItems, item => item.EndsWith("Meziantou.NET.Sdk.XunitStaticHelpers.g.cs", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task MTP_DefaultTestFramework_PublishAot_PublishedApplicationRunsTests()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("PublishAot", "true")]
+            );
+
+        // The project is published using the Release configuration, so the code must not report any diagnostic
+        project.AddFile("SampleTests.cs", """
+            namespace Sample.Tests;
+
+            public class SampleTests(ITestOutputHelper testOutputHelper)
+            {
+                [Fact]
+                public async Task Test1() => await Task.Delay(1, XunitCancellationToken);
+
+                [Theory]
+                [InlineData(1)]
+                [InlineData(2)]
+                public void Test2(int value) => testOutputHelper.WriteLine("Value: {0}", value);
+            }
+            """);
+
+        var outputDirectory = project.RootFolder / "publish";
+        var data = await project.ExecuteDotnetCommandAndGetOutput("publish", ["--output", outputDirectory]);
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.False(data.HasWarning());
+
+        var executable = outputDirectory / (OperatingSystem.IsWindows() ? "Sample.Tests.exe" : "Sample.Tests");
+        var result = await ProcessWrapper.Create(executable)
+            .WithWorkingDirectory(outputDirectory)
+            .WithValidation(ProcessValidationMode.None)
+            .ExecuteBufferedAsync(TestContext.Current.CancellationToken);
+
+        testOutputHelper.WriteLine(result.Output.ToString());
+        Assert.True(result.ExitCode.IsSuccess);
+        Assert.Contains(result.Output, line => line.Text.Contains("total: 3", StringComparison.Ordinal));
+    }
+
+    // The Native AOT packages only support .NET 9 and later
+    [Fact]
+    public async Task MTP_DefaultTestFramework_PublishAot_UnsupportedTargetFramework_AddsXunit()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            properties: [("PublishAot", "true"), ("TargetFramework", "net8.0")]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public void Test1()
+                {
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+
+        var packageReferences = data.GetMSBuildItems("PackageReference");
+        Assert.Contains("xunit.v3.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("xunit.v3.aot.mtp-v2", packageReferences, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task MTP_DefaultTestFramework_NotAddedWhenANativeAotTestFrameworkIsReferenced()
+    {
+        await using var project = CreateProjectBuilder(SdkTestName);
+        project.AddCsprojFile(
+            filename: "Sample.Tests.csproj",
+            nuGetPackages: [.. XUnit3AotMTP2References]
+            );
+
+        project.AddFile("Program.cs", """
+            public class Tests
+            {
+                [Fact]
+                public async Task Test1() => await Task.Delay(1, XunitCancellationToken);
+            }
+            """);
+
+        project.AddFile("global.json", """
+            {
+                "test": {
+                    "runner": "Microsoft.Testing.Platform"
+                }
+            }
+            """);
+
+        var data = await project.TestAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("xunit.v3.mtp-v2", data.GetMSBuildItems("PackageReference"), StringComparer.OrdinalIgnoreCase);
+        Assert.Contains(data.GetMSBuildItems("Compile"), item => item.EndsWith("Meziantou.NET.Sdk.XunitParallelization.g.cs", StringComparison.Ordinal));
     }
 
     [Fact]
