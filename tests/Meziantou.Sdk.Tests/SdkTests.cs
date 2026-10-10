@@ -159,6 +159,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         project.AddFile("Program.cs", """
             Console.WriteLine(SharedHttpClient.Instance.GetType().FullName);
             Console.WriteLine("SameInstance=" + ReferenceEquals(SharedHttpClient.Instance, Meziantou.NET.Sdk.SharedHttpClient.Instance));
+            Console.WriteLine("DistinctInstances=" + !ReferenceEquals(SharedHttpClient.Instance, SharedHttpClient.InstanceWithAutoRedirect));
             """);
         var data = await project.RunAndGetOutput(environmentVariables: [.. project.GitHubEnvironmentVariables]);
 
@@ -167,6 +168,88 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.False(data.HasError());
         Assert.True(data.OutputContains("System.Net.Http.HttpClient", StringComparison.Ordinal));
         Assert.True(data.OutputContains("SameInstance=True", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("DistinctInstances=True", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task SharedHttpClient_HandlesRedirectionAndDecompression()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("IncludeSharedHttpClient", "true")]);
+        project.AddFile("Program.cs", """
+            using System.IO.Compression;
+            using System.Net;
+            using System.Net.Sockets;
+            using System.Text;
+
+            using var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var baseUri = new Uri("http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/");
+            _ = Task.Run(async () =>
+            {
+                while (true)
+                {
+                    using var client = await listener.AcceptTcpClientAsync();
+                    using var stream = client.GetStream();
+                    using var reader = new StreamReader(stream, Encoding.ASCII, leaveOpen: true);
+                    var requestLine = await reader.ReadLineAsync() ?? "";
+                    while (!string.IsNullOrEmpty(await reader.ReadLineAsync()))
+                    {
+                    }
+
+                    if (requestLine.Contains("/redirect", StringComparison.Ordinal))
+                    {
+                        await stream.WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 302 Found\r\nLocation: /compressed\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"));
+                    }
+            #if NET11_0_OR_GREATER
+                    else if (requestLine.Contains("/zstd", StringComparison.Ordinal))
+                    {
+                        using var body = new MemoryStream();
+                        using (var zstd = new ZstandardStream(body, CompressionLevel.Optimal, leaveOpen: true))
+                        {
+                            zstd.Write("sample content"u8);
+                        }
+
+                        await stream.WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Encoding: zstd\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n"));
+                        await stream.WriteAsync(body.ToArray());
+                    }
+            #endif
+                    else
+                    {
+                        using var body = new MemoryStream();
+                        using (var gzip = new GZipStream(body, CompressionLevel.Optimal, leaveOpen: true))
+                        {
+                            gzip.Write("sample content"u8);
+                        }
+
+                        await stream.WriteAsync(Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n"));
+                        await stream.WriteAsync(body.ToArray());
+                    }
+                }
+            });
+
+            using var response = await SharedHttpClient.Instance.GetAsync(new Uri(baseUri, "redirect"));
+            Console.WriteLine("InstanceStatusCode=" + (int)response.StatusCode);
+            Console.WriteLine("InstanceContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "compressed")));
+            Console.WriteLine("InstanceWithAutoRedirectContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "redirect")));
+            #if NET11_0_OR_GREATER
+            Console.WriteLine("InstanceZstdContent=" + await SharedHttpClient.Instance.GetStringAsync(new Uri(baseUri, "zstd")));
+            Console.WriteLine("InstanceWithAutoRedirectZstdContent=" + await SharedHttpClient.InstanceWithAutoRedirect.GetStringAsync(new Uri(baseUri, "zstd")));
+            #endif
+            """);
+        var data = await project.RunAndGetOutput();
+
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(data.OutputContains("InstanceStatusCode=302", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("InstanceContent=sample content", StringComparison.Ordinal));
+        Assert.True(data.OutputContains("InstanceWithAutoRedirectContent=sample content", StringComparison.Ordinal));
+
+        // Zstandard is only available on .NET 11+
+        if (dotnetSdkVersion is not NetSdkVersion.Net10_0)
+        {
+            Assert.True(data.OutputContains("InstanceZstdContent=sample content", StringComparison.Ordinal));
+            Assert.True(data.OutputContains("InstanceWithAutoRedirectZstdContent=sample content", StringComparison.Ordinal));
+        }
     }
 
     [Fact]
@@ -185,6 +268,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
             public static class Helpers
             {
                 public static object Client => SharedHttpClient.Instance;
+
+                public static object ClientWithAutoRedirect => SharedHttpClient.InstanceWithAutoRedirect;
             }
             """);
         var data = await project.BuildAndGetOutput(["-p:TargetFramework=netstandard2.0"], environmentVariables: [.. project.GitHubEnvironmentVariables]);

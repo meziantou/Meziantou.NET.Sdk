@@ -147,7 +147,14 @@ A switch explicitly set by the project is left untouched.
 
 ## Shared HttpClient
 
-The SDK can add an internal `Meziantou.NET.Sdk.SharedHttpClient` class to C# projects. Its `Instance` property exposes a shared `HttpClient` that recycles the pooled connections every minute and retries the failed requests (network errors, timeouts, `408`, `429` and `5xx` responses) up to 5 times, honoring the `Retry-After` header. The namespace is imported when implicit usings are enabled:
+The SDK can add an internal `Meziantou.NET.Sdk.SharedHttpClient` class to C# projects. It exposes shared `HttpClient` instances that recycle the pooled connections every minute, decompress the responses automatically, and retry the failed requests (network errors, timeouts, `408`, `429` and `5xx` responses) up to 5 times, honoring the `Retry-After` header:
+
+| Member | Description |
+| --- | --- |
+| `SharedHttpClient.Instance` | Does not follow the redirection responses. |
+| `SharedHttpClient.InstanceWithAutoRedirect` | Follows the redirection responses. |
+
+The namespace is imported when implicit usings are enabled:
 
 ````csharp
 var content = await SharedHttpClient.Instance.GetStringAsync(uri, cancellationToken);
