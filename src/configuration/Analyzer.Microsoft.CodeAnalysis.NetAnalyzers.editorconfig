@@ -1188,6 +1188,11 @@ dotnet_diagnostic.CA2265.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.CA2266.severity = warning
 
+# CA2267: Quote whitespace in file-based program directive values
+# Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2267
+# Enabled: True, Severity: warning
+dotnet_diagnostic.CA2267.severity = warning
+
 # CA2300: Do not use insecure deserializer BinaryFormatter
 # Help link: https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2300
 # Enabled: False, Severity: warning
