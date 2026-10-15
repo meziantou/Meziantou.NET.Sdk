@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <MeziantouPolyfill_InferMinimumTargetFramework>true</MeziantouPolyfill_InferMinimumTargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
