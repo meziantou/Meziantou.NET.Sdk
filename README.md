@@ -127,7 +127,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | `AccelerateBuildsInVisualStudio` | `true` | Enables faster builds in Visual Studio. |
 | `IlcGenerateMstatFile` | `true` | Generates the `.mstat` file when publishing a Native AOT app, to investigate the app size (e.g. using [sizoscope](https://github.com/MichalStrehovsky/sizoscope)). |
 | `IlcGenerateDgmlFile` | `true` | Generates the `.dgml` dependency graph when publishing a Native AOT app, to investigate why code is included. |
-| `UseOptimizedPublish` | `false` when `PublishAot` and `GenerateDocumentationFile` are `true` | Runs the full build when publishing a Native AOT app, as the .NET 11 optimized publish fails to copy the XML documentation file ([dotnet/sdk#56618](https://github.com/dotnet/sdk/issues/56618)). |
+| `PublishDocumentationFiles` | `false` when `PublishAot` is `true` | Doesn't publish the XML documentation files of a Native AOT app, as they are only useful for libraries. |
 
 ## JSON serialization
 

@@ -104,6 +104,41 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task DocumentationFiles_PublishedByDefault()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("GenerateDocumentationFile", "true");
+        data.AssertMSBuildPropertyValue("PublishDocumentationFile", "true");
+        data.AssertMSBuildPropertyValue("PublishReferencesDocumentationFiles", "true");
+    }
+
+    [Fact]
+    public async Task DocumentationFiles_NotPublishedWhenPublishAot()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("PublishAot", "true")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("GenerateDocumentationFile", "true");
+        data.AssertMSBuildPropertyValue("PublishDocumentationFiles", "false");
+        data.AssertMSBuildPropertyValue("PublishDocumentationFile", expectedValue: null);
+        data.AssertMSBuildPropertyValue("PublishReferencesDocumentationFiles", expectedValue: null);
+    }
+
+    [Fact]
+    public async Task DocumentationFiles_CanBePublishedWhenPublishAot()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("PublishAot", "true"), ("PublishDocumentationFiles", "true")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+        var data = await project.BuildAndGetOutput();
+        data.AssertMSBuildPropertyValue("PublishDocumentationFile", "true");
+        data.AssertMSBuildPropertyValue("PublishReferencesDocumentationFiles", "true");
+    }
+
+    [Fact]
     public async Task ValidateDefaultProperties_Test()
     {
         await using var project = CreateProjectBuilder(SdkTestName);
@@ -2186,6 +2221,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
 
         Assert.Equal(0, data.ExitCode);
         Assert.False(data.HasWarning());
+        Assert.False(File.Exists(outputDirectory / "Sample.Tests.xml"));
 
         var executable = outputDirectory / (OperatingSystem.IsWindows() ? "Sample.Tests.exe" : "Sample.Tests");
         var result = await ProcessWrapper.Create(executable)
