@@ -13,6 +13,13 @@
 		<NoWarn Condition="'$(DisableDocumentationWarnings)' != 'false'">$(NoWarn);CS1573;CS1591</NoWarn>
 	</PropertyGroup>
 
+	<!-- The .NET 11 SDK only compiles the project when publishing with Native AOT, so the XML documentation file is
+	     never copied to the output directory, and the publish fails with MSB3030 (https://github.com/dotnet/sdk/issues/56618).
+	     Fall back to the full build until the SDK is fixed. Set 'UseOptimizedPublish' to 'true' to opt in anyway. -->
+	<PropertyGroup>
+		<UseOptimizedPublish Condition="'$(UseOptimizedPublish)' == '' AND '$(PublishAot)' == 'true' AND '$(GenerateDocumentationFile)' == 'true'">false</UseOptimizedPublish>
+	</PropertyGroup>
+
   <!-- Opt in to the updated memory safety rules (https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unsafe-evolution).
        Under those rules 'unsafe' on a member makes it caller-unsafe: the obligation to audit the memory safety
        propagates to the callers, which must invoke the member from an 'unsafe' context.
