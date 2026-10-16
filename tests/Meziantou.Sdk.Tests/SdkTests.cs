@@ -1169,6 +1169,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData(TestPackages.CliWrap, "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
     [InlineData(TestPackages.Testcontainers, "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
     [InlineData(TestPackages.Markdig, "'Meziantou.Framework.Markdown'", "AllowPackage_Markdig")]
+    [InlineData(TestPackages.SixLaborsImageSharp, "'Meziantou.Framework.Imaging'", "AllowPackage_SixLabors_ImageSharp")]
     [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
     [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
     public async Task BannedPackageReference_DirectReference_IsReported(string packageName, string suggestion, string allowProperty)
@@ -1189,6 +1190,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData(TestPackages.CliWrap, "'Meziantou.Framework.ProcessWrapper'", "AllowPackage_CliWrap")]
     [InlineData(TestPackages.Testcontainers, "'Meziantou.Framework.TemporaryContainers'", "AllowPackage_Testcontainers")]
     [InlineData(TestPackages.Markdig, "'Meziantou.Framework.Markdown'", "AllowPackage_Markdig")]
+    [InlineData(TestPackages.SixLaborsImageSharp, "'Meziantou.Framework.Imaging'", "AllowPackage_SixLabors_ImageSharp")]
     [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
     [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "the built-in parallelization of xunit.v3", "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
     public async Task BannedPackageReference_TransitiveReference_IsReported(string packageName, string suggestion, string allowProperty)
@@ -1223,6 +1225,7 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     [InlineData(TestPackages.CliWrap, "AllowPackage_CliWrap")]
     [InlineData(TestPackages.Testcontainers, "AllowPackage_Testcontainers")]
     [InlineData(TestPackages.Markdig, "AllowPackage_Markdig")]
+    [InlineData(TestPackages.SixLaborsImageSharp, "AllowPackage_SixLabors_ImageSharp")]
     [InlineData(TestPackages.MeziantouXunitParallelTestFramework, "AllowPackage_Meziantou_Xunit_ParallelTestFramework")]
     [InlineData(TestPackages.MeziantouXunitV3ParallelTestFramework, "AllowPackage_Meziantou_Xunit_v3_ParallelTestFramework")]
     public async Task BannedPackageReference_CanBeAllowedPerPackage(string packageName, string allowProperty)
