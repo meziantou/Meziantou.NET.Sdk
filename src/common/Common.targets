@@ -13,6 +13,13 @@
 		<NoWarn Condition="'$(DisableDocumentationWarnings)' != 'false'">$(NoWarn);CS1573;CS1591</NoWarn>
 	</PropertyGroup>
 
+	<!-- XML documentation files are only useful for libraries, not for a Native AOT application, so they are not published.
+	     This also avoids MSB3030 with the .NET 11 optimized publish, which doesn't copy the XML documentation file to the
+	     output directory (https://github.com/dotnet/sdk/issues/56618). -->
+	<PropertyGroup>
+		<PublishDocumentationFiles Condition="'$(PublishDocumentationFiles)' == '' AND '$(PublishAot)' == 'true'">false</PublishDocumentationFiles>
+	</PropertyGroup>
+
   <!-- Opt in to the updated memory safety rules (https://learn.microsoft.com/dotnet/csharp/language-reference/proposals/unsafe-evolution).
        Under those rules 'unsafe' on a member makes it caller-unsafe: the obligation to audit the memory safety
        propagates to the callers, which must invoke the member from an 'unsafe' context.
