@@ -44,10 +44,12 @@ internal static class TestPackages
     public const string Testcontainers = "Testcontainers";
     public const string Markdig = "Markdig";
     public const string SixLaborsImageSharp = "SixLabors.ImageSharp";
+    public const string AngleSharp = "AngleSharp";
+    public const string AngleSharpCss = "AngleSharp.Css";
     public const string MeziantouXunitParallelTestFramework = "Meziantou.Xunit.ParallelTestFramework";
     public const string MeziantouXunitV3ParallelTestFramework = "Meziantou.Xunit.v3.ParallelTestFramework";
 
-    private static string[] BannedPackages => [YamlDotNet, CliWrap, Testcontainers, Markdig, SixLaborsImageSharp, MeziantouXunitParallelTestFramework, MeziantouXunitV3ParallelTestFramework];
+    private static string[] BannedPackages => [YamlDotNet, CliWrap, Testcontainers, Markdig, SixLaborsImageSharp, AngleSharp, AngleSharpCss, MeziantouXunitParallelTestFramework, MeziantouXunitV3ParallelTestFramework];
 
     private static string[] LibraryPackages => [Library, MicrosoftLibrary, MeziantouLibrary, SystemLibrary, XunitLibrary, .. BannedPackages];
 
