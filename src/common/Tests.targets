@@ -51,8 +51,8 @@
                                                    '$(MSBuildProjectExtension)' == '.csproj' AND
                                                    $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))" />
 
-    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.1" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' != 'true'" />
-    <PackageReference Include="xunit.v3.aot.mtp-v2" Version="4.0.1" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' == 'true'" />
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.2" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' != 'true'" />
+    <PackageReference Include="xunit.v3.aot.mtp-v2" Version="4.0.2" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' == 'true'" />
 
     <!-- An item is used instead of a property as item lists cannot be referenced in a property condition outside of a target (MSB4099) -->
     <_DefaultTestFrameworkAdded Include="true" />
@@ -77,13 +77,13 @@
 
   <!-- MTP is the only supported test platform, so the extensions are always added -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.4.1" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.4.1" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.4.1" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.4.1" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.4.1" IsImplicitlyDefined="true" />
-    <PackageReference Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.4.1" IsImplicitlyDefined="true" Condition="'$(EnableGitHubActionsReport)' != 'false'" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CrashDump" Version="2.5.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" Version="2.5.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HotReload" Version="2.5.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.Retry" Version="2.5.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.1" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Testing.Extensions.GitHubActionsReport" Version="2.5.1" IsImplicitlyDefined="true" Condition="'$(EnableGitHubActionsReport)' != 'false'" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(EnableDefaultTestSettings)' != 'false'">
