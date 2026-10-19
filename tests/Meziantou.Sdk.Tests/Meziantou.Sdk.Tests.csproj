@@ -16,11 +16,11 @@
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="3.0.11" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="3.1.6" />
     <PackageReference Include="Microsoft.Deployment.DotNet.Releases" Version="1.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.246" />
     <PackageReference Include="NuGet.Packaging" Version="7.9.0" />
-    <PackageReference Include="xunit.v3" Version="4.0.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
+    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

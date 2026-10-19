@@ -352,6 +352,21 @@ dotnet_diagnostic.xUnit1068.severity = error
 # Enabled: True, Severity: warning
 dotnet_diagnostic.xUnit1069.severity = warning
 
+# xUnit1070: Cultured test methods cannot have null cultures
+# Help link: https://xunit.net/xunit.analyzers/rules/xUnit1070
+# Enabled: True, Severity: error
+dotnet_diagnostic.xUnit1070.severity = error
+
+# xUnit1071: Cultured test methods should not have duplicate cultures
+# Help link: https://xunit.net/xunit.analyzers/rules/xUnit1071
+# Enabled: True, Severity: warning
+dotnet_diagnostic.xUnit1071.severity = warning
+
+# xUnit1072: Test methods from referenced assemblies are not supported in Native AOT
+# Help link: https://xunit.net/xunit.analyzers/rules/xUnit1072
+# Enabled: True, Severity: warning
+dotnet_diagnostic.xUnit1072.severity = warning
+
 # xUnit2000: Constants and literals should be the expected argument
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit2000
 # Enabled: True, Severity: warning

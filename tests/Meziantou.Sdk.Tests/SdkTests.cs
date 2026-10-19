@@ -1177,6 +1177,17 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task DefaultEditorConfig_MA0243_IsReportedAsWarning()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("Sample.cs", "class Sample { public const string Value = \"a​b\"; }");
+
+        var data = await project.BuildAndGetOutput(["--configuration", "Debug"]);
+        Assert.True(data.HasWarning("MA0243"));
+    }
+
+    [Fact]
     public async Task NuGetAuditIsReportedAsErrorOnGitHubActions()
     {
         await using var project = CreateProjectBuilder();
