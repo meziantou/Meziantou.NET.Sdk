@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Meziantou.Framework" Version="6.0.14" />
+    <PackageReference Include="Meziantou.Framework.Assertions" Version="2.0.12" />
     <PackageReference Include="Meziantou.Framework.ProcessWrapper" Version="2.0.8" />
     <PackageReference Include="Meziantou.Framework.TemporaryDirectory" Version="3.0.12" />
     <PackageReference Include="Meziantou.Framework.Threading" Version="3.1.7" />
@@ -19,7 +20,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.246" />
     <PackageReference Include="NuGet.Packaging" Version="7.9.0" />
-    <PackageReference Include="xunit.v3" Version="4.0.2" />
+    <PackageReference Include="xunit.v3.core.mtp-v2" Version="4.0.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -28,6 +29,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Meziantou.Framework.Assertions" />
   </ItemGroup>
 
 </Project>

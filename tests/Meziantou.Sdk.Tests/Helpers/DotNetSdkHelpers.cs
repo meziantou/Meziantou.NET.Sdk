@@ -52,7 +52,9 @@ public static class DotNetSdkHelpers
                 return finalDotnetPath;
             }
 
-            var tempFolder = FullPath.GetTempPath() / "dotnet" / Guid.NewGuid().ToString("N");
+            // Extract next to the final folder so the final move stays on the same volume.
+            // Directory.Move fails across volumes, e.g. when /tmp is a tmpfs mount (Ubuntu 26.04).
+            var tempFolder = finalFolderPath.Parent / ("tmp-" + Guid.NewGuid().ToString("N"));
             TestContext.Current.TestOutputHelper?.WriteLine($"Downloading .NET SDK {sdkVersion} from '{file.Address}' to '{tempFolder}' (RuntimeIdentifier: {runtimeIdentifier}; ProductVersion: {product.ProductVersion}; ReleaseVersion: {releaseSdk.Release.Version}; SDKVersion: {releaseSdk.Sdk.Version})");
             Directory.CreateDirectory(tempFolder);
 
@@ -128,18 +130,14 @@ public static class DotNetSdkHelpers
 
             try
             {
-                finalFolderPath.CreateParentDirectory();
                 Directory.Move(tempFolder, finalFolderPath);
             }
-            catch
+            catch (IOException) when (File.Exists(finalDotnetPath))
             {
-                if (Directory.Exists(tempFolder))
-                {
-                    Directory.Delete(tempFolder, recursive: true);
-                }
+                // Another process installed the same SDK concurrently
+                Directory.Delete(tempFolder, recursive: true);
             }
 
-            Assert.True(File.Exists(finalDotnetPath));
             Values[version] = finalDotnetPath;
             return finalDotnetPath;
         }
