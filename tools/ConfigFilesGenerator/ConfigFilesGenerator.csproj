@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Meziantou.Framework.DependencyScanning" Version="3.0.24" />
-    <PackageReference Include="Meziantou.Framework.FullPath" Version="3.0.11" />
-    <PackageReference Include="Meziantou.Framework.ProcessWrapper" Version="2.0.7" />
+    <PackageReference Include="Meziantou.Framework.DependencyScanning" Version="3.0.25" />
+    <PackageReference Include="Meziantou.Framework.FullPath" Version="3.0.12" />
+    <PackageReference Include="Meziantou.Framework.ProcessWrapper" Version="2.0.8" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.13" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0">
       <PrivateAssets>all</PrivateAssets>
