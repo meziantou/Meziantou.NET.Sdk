@@ -250,6 +250,17 @@ The SDK also blocks selected NuGet packages by default:
 | `ContainerImageTagsIncludeLatest` | `true` | Appends `latest` tag on main. |
 | `ContainerImageTags` | Computed | Uses build number on main and `0.0.1-preview.$(GITHUB_SHA)` elsewhere when unset. |
 
+## Versioning on GitHub Actions
+
+When running on GitHub Actions, the SDK computes the `Version` property:
+
+- When building a tag that is a valid SemVer version (optionally prefixed by `v`), the version is the tag name, such as `v1.2.3` → `1.2.3`.
+- Otherwise, when not building the `main` branch, `-build-$(GITHUB_SHA)` is appended to the version, such as `1.0.0-build-0123456789abcdef`.
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `EnableGitHubBuildVersionSuffix` | `true` | Set to `false` to keep the version unchanged when not building the `main` branch. |
+
 ## Packaging metadata
 
 | Property | Default | Description |
