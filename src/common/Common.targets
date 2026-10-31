@@ -63,6 +63,8 @@
 		<ContainerImageTags Condition="'$(ContainerImageTags)' == '' AND '$(_IsGitHubMain)' != 'true' AND '$(GITHUB_SHA)' != ''">0.0.1-preview.$(GITHUB_SHA)</ContainerImageTags>
 	</PropertyGroup>
 
+	<!-- On GitHub Actions, use the version from the git tag when building a tag, or append '-build-$(GITHUB_SHA)' when not on main.
+	     Set 'EnableGitHubBuildVersionSuffix' to 'false' to keep the version unchanged when not on main. -->
 	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true'">
 		<_IsGitHubMain Condition="'$(_IsGitHubMain)' == '' AND ('$(GITHUB_REF_NAME)' == 'main' OR '$(GITHUB_REF)' == 'refs/heads/main')">true</_IsGitHubMain>
 		<_GitHubTagName Condition="'$(GITHUB_REF_TYPE)' == 'tag'">$(GITHUB_REF_NAME)</_GitHubTagName>
@@ -72,7 +74,7 @@
 		<_GitHubBaseVersion Condition="'$(Version)' != ''">$(Version)</_GitHubBaseVersion>
 		<_GitHubBaseVersion Condition="'$(_GitHubBaseVersion)' == '' AND '$(VersionPrefix)' != ''">$(VersionPrefix)</_GitHubBaseVersion>
 		<Version Condition="'$(_GitHubTagVersionIsValid)' == 'true'">$(_GitHubTagVersion)</Version>
-		<Version Condition="'$(_GitHubTagVersionIsValid)' != 'true' AND '$(_IsGitHubMain)' != 'true' AND '$(GITHUB_SHA)' != '' AND '$(_GitHubBaseVersion)' != ''">$(_GitHubBaseVersion)-build-$(GITHUB_SHA)</Version>
+		<Version Condition="'$(_GitHubTagVersionIsValid)' != 'true' AND '$(_IsGitHubMain)' != 'true' AND '$(EnableGitHubBuildVersionSuffix)' != 'false' AND '$(GITHUB_SHA)' != '' AND '$(_GitHubBaseVersion)' != ''">$(_GitHubBaseVersion)-build-$(GITHUB_SHA)</Version>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">

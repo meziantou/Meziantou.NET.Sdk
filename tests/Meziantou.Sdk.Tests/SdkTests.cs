@@ -3390,6 +3390,58 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task GitHubVersion_NonMainBranch_UsesBuildSuffix()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "1.0.0")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_NAME", "feature/test"),
+            ("GITHUB_SHA", "2222222222222222"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "1.0.0-build-2222222222222222");
+    }
+
+    [Fact]
+    public async Task GitHubVersion_NonMainBranch_BuildSuffixDisabled_UsesBaseVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "1.0.0"), ("EnableGitHubBuildVersionSuffix", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_NAME", "feature/test"),
+            ("GITHUB_SHA", "2222222222222222"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "1.0.0");
+    }
+
+    [Fact]
+    public async Task GitHubVersion_TagWithBuildSuffixDisabled_UsesTagVersion()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Version", "9.9.9"), ("EnableGitHubBuildVersionSuffix", "false")]);
+        project.AddFile("Program.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput(environmentVariables:
+        [
+            .. project.GitHubEnvironmentVariables,
+            ("GITHUB_REF_TYPE", "tag"),
+            ("GITHUB_REF_NAME", "v2.3.4"),
+            ("GITHUB_SHA", "0123456789abcdef"),
+        ]);
+
+        data.AssertMSBuildPropertyValue("Version", "2.3.4");
+    }
+
+    [Fact]
     public async Task GitHubVersion_MainBranch_UsesBaseVersion()
     {
         await using var project = CreateProjectBuilder();
