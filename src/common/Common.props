@@ -10,12 +10,13 @@
     <IsTestProject Condition="'$(MeziantouSdkName)' == 'Meziantou.NET.Sdk.Test'">true</IsTestProject>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == ''">$(NETCoreAppMaximumVersion)</_DefaultNetCoreAppVersion>
-    <_DefaultNetCoreAppVersion Condition="'$(_DefaultNetCoreAppVersion)' == '' AND '$(NETCoreSdkVersion)' != ''">$([System.Text.RegularExpressions.Regex]::Replace('$(NETCoreSdkVersion)', '^(\d+)\.(\d+).*$', '$1.$2'))</_DefaultNetCoreAppVersion>
-    <_ProjectDeclaresTargetFramework Condition="Exists('$(MSBuildProjectFullPath)')">$([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)')), 'TargetFrameworks?'))</_ProjectDeclaresTargetFramework>
-    <TargetFramework Condition="'$(TargetFramework)' == '' AND '$(TargetFrameworks)' == '' AND '$(_ProjectDeclaresTargetFramework)' != 'True' AND '$(_DefaultNetCoreAppVersion)' != ''">net$(_DefaultNetCoreAppVersion)</TargetFramework>
+  <!-- The default target framework must be computed after Directory.Build.props is imported, so values set there
+       (e.g. TargetFrameworks) are taken into account. Common.props is usually imported before Directory.Build.props
+       (CustomBeforeDirectoryBuildProps), so defer it using CustomAfterDirectoryBuildProps. -->
+  <PropertyGroup Condition="'$(MicrosoftCommonPropsHasBeenImported)' != 'true'">
+    <CustomAfterDirectoryBuildProps>$(CustomAfterDirectoryBuildProps);$(MSBuildThisFileDirectory)DefaultTargetFramework.props</CustomAfterDirectoryBuildProps>
   </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)DefaultTargetFramework.props" Condition="'$(MicrosoftCommonPropsHasBeenImported)' == 'true'" />
 
   <PropertyGroup>
     <MeziantouPolyfill_InferMinimumTargetFramework>true</MeziantouPolyfill_InferMinimumTargetFramework>
