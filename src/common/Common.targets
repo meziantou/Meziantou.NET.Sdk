@@ -45,6 +45,22 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Opt in to runtime async (https://learn.microsoft.com/dotnet/core/whats-new/dotnet-11/runtime#runtime-async).
+       The runtime suspends and resumes async methods instead of the compiler-generated state machines.
+
+       The feature is only enabled for projects that target .NET 11 or later. Older .NET Core frameworks expose
+       preview-only async helpers, so the build would fail (SYSLIB5007, CA2252); other frameworks ignore the feature.
+       The target framework is resolved after this file is imported, so the compiler feature is added by a target.
+       Set 'MeziantouRuntimeAsync' (or 'UseRuntimeAsync') to 'false' to opt out, or 'MeziantouRuntimeAsync' to 'true'
+       to opt in explicitly. A 'runtime-async' value already set in 'Features' is kept as is. -->
+  <Target Name="ConfigureRuntimeAsync" BeforeTargets="CoreCompile;XamlPreCompile" Condition="'$(Language)' == 'C#'">
+    <PropertyGroup>
+      <MeziantouRuntimeAsync Condition="'$(MeziantouRuntimeAsync)' == '' AND '$(UseRuntimeAsync)' == 'false'">false</MeziantouRuntimeAsync>
+      <MeziantouRuntimeAsync Condition="'$(MeziantouRuntimeAsync)' == '' AND '$(TargetFramework)' != '' AND $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">true</MeziantouRuntimeAsync>
+      <Features Condition="'$(MeziantouRuntimeAsync)' == 'true' AND !$(Features.Contains('runtime-async'))">$(Features);runtime-async=on</Features>
+    </PropertyGroup>
+  </Target>
+
 	<PropertyGroup Condition="'$(_IsGitHubActions)' == 'true' AND '$(UsingMicrosoftNETSdkWeb)' == 'true'">
 		<EnableSdkContainerSupport Condition="'$(EnableSdkContainerSupport)' == ''">true</EnableSdkContainerSupport>
 		<ContainerRegistry Condition="'$(ContainerRegistry)' == ''">ghcr.io</ContainerRegistry>

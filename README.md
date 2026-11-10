@@ -121,6 +121,7 @@ Set these properties in your project file or a directory-level props file. Unles
 | `AllowUnsafeBlocks` | `true` | Allows `unsafe` code blocks. |
 | `LangVersion` | `latest` | Uses the latest C# language version. |
 | `MeziantouUpdatedMemorySafetyRules` | `true` when `LangVersion` is `preview` and the project doesn't reference `Microsoft.Windows.CsWin32` | Adds the `updated-memory-safety-rules` compiler feature, so `unsafe` members propagate the audit obligation to their callers. |
+| `MeziantouRuntimeAsync` | `true` when targeting .NET 11 or later, unless `UseRuntimeAsync` is `false` | Adds the `runtime-async=on` compiler feature, so async methods use runtime async instead of compiler-generated state machines. |
 | `MSBuildTreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats MSBuild warnings as errors. |
 | `TreatWarningsAsErrors` | `true` on CI, Release, or AI agent runtime | Treats compiler warnings as errors. |
 | `EnforceCodeStyleInBuild` | `true` on CI or Release | Enforces analyzer code style during builds. |
