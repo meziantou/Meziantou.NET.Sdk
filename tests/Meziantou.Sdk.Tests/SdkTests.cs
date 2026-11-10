@@ -3635,6 +3635,37 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.Fail("Attribute not found");
     }
 
+    [Fact]
+    public async Task TargetFrameworksInDirectoryBuildProps_MultiTargets()
+    {
+        var netTargetFramework = dotnetSdkVersion switch
+        {
+            NetSdkVersion.Net10_0 => "net10.0",
+            NetSdkVersion.Net11_0 => "net11.0",
+            _ => throw new NotSupportedException(),
+        };
+
+        await using var project = CreateProjectBuilder();
+        project.AddDirectoryBuildPropsFile($"""
+            <PropertyGroup>
+                <TargetFrameworks>{netTargetFramework};netstandard2.0</TargetFrameworks>
+            </PropertyGroup>
+            """);
+        project.AddCsprojFile(filename: "Sample.csproj", properties: [("OutputType", "Library")]);
+        project.AddFile("Sample.cs", """
+            namespace Sample;
+
+            public static class SampleClass
+            {
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.True(File.Exists(project.RootFolder / "bin" / "Debug" / netTargetFramework / "Sample.dll"));
+        Assert.True(File.Exists(project.RootFolder / "bin" / "Debug" / "netstandard2.0" / "Sample.dll"));
+    }
+
     private static string[] GetNpmStampFiles(FullPath projectFolder)
     {
         var nodeModules = projectFolder / "node_modules";

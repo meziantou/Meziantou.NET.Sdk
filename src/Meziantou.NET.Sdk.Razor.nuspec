@@ -16,6 +16,7 @@
     <file src="common/Common.props" target="common/Common.props" />
     <file src="common/Common.targets" target="common/Common.targets" />
     <file src="common/ContinuousIntegrationBuild.props" target="common/ContinuousIntegrationBuild.props" />
+    <file src="common/DefaultTargetFramework.props" target="common/DefaultTargetFramework.props" />
     <file src="common/Npm.targets" target="common/Npm.targets" />
     <file src="common/Tests.targets" target="common/Tests.targets" />
     <file src="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" target="configuration/Analyzer.Devlooped.SponsorLink.editorconfig" />
