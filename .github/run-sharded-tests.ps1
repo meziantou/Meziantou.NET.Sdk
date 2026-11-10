@@ -31,23 +31,15 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Discover tests at method granularity (theories are not pre-enumerated).
-$listOutput = dotnet test $Project --no-build --list-tests --pre-enumerate-theories off | Out-String
+# The JSON format lists each test in 'testContainers[].tests[]'. xUnit.net leaves 'typeName' and
+# 'methodName' empty, so 'displayName' (the fully-qualified method name) identifies the test.
+$listOutput = dotnet test $Project --no-build --pre-enumerate-theories off --list-tests json | Out-String
 if ($LASTEXITCODE -ne 0) {
     Write-Host $listOutput
     throw "Test discovery failed with exit code $LASTEXITCODE."
 }
 
-# Test names are fully-qualified method names: no whitespace and at least one dot.
-# This excludes every other line printed by the platform (banners, the
-# "Discovered N tests." summary, build output, ...).
-$tests = foreach ($line in ($listOutput -split "`r?`n")) {
-    $trimmed = $line.Trim()
-    if ($trimmed -and -not ($trimmed -match '\s') -and $trimmed.Contains('.')) {
-        $trimmed
-    }
-}
-
-$tests = $tests | Sort-Object -CaseSensitive -Unique
+$tests = ($listOutput | ConvertFrom-Json).testContainers.tests.displayName | Sort-Object -CaseSensitive -Unique
 if ($tests.Count -eq 0) {
     throw "No tests were discovered."
 }

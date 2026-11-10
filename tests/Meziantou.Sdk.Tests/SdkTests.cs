@@ -622,6 +622,83 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
     }
 
     [Fact]
+    public async Task RuntimeAsync_EnabledWhenTargetingNet11OrLater()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile();
+        project.AddFile("sample.cs", """
+            await Task.Yield();
+            Console.WriteLine("done");
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        if (dotnetSdkVersion is NetSdkVersion.Net10_0)
+        {
+            Assert.DoesNotContain("runtime-async", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Contains("runtime-async=on", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+        }
+
+        var runData = await project.RunAndGetOutput();
+        Assert.Equal(0, runData.ExitCode);
+        Assert.True(runData.OutputContains("done", StringComparison.Ordinal));
+    }
+
+    // .NET 10 exposes preview-only async helpers, so enabling the feature would fail the build (SYSLIB5007, CA2252)
+    [Theory]
+    [InlineData("net10.0")]
+    [InlineData("netstandard2.0")]
+    public async Task RuntimeAsync_NotEnabledWhenTargetingOlderFrameworks(string targetFramework)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("OutputType", "Library"), ("TargetFramework", targetFramework)]);
+        project.AddFile("sample.cs", """
+            public static class Sample
+            {
+                public static async System.Threading.Tasks.Task<int> GetValueAsync()
+                {
+                    await System.Threading.Tasks.Task.Yield();
+                    return 1;
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("runtime-async", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("MeziantouRuntimeAsync")]
+    [InlineData("UseRuntimeAsync")]
+    public async Task RuntimeAsync_CanOptOut(string propertyName)
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [(propertyName, "false")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.DoesNotContain("runtime-async", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RuntimeAsync_KeepsExplicitFeatureValue()
+    {
+        await using var project = CreateProjectBuilder();
+        project.AddCsprojFile(properties: [("Features", "$(Features);runtime-async=off")]);
+        project.AddFile("sample.cs", "Console.WriteLine();");
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        Assert.Contains("runtime-async=off", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-async=on", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task StrictModeEnabled()
     {
         await using var project = CreateProjectBuilder();
