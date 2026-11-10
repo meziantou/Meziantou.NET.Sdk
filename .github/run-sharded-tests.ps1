@@ -31,7 +31,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Discover tests at method granularity (theories are not pre-enumerated).
-$listOutput = dotnet test $Project --no-build --list-tests --pre-enumerate-theories off | Out-String
+# '--list-tests' must stay last: since .NET 11 it accepts an optional format ('text' or 'json'),
+# so the argument that follows it would be parsed as the format.
+$listOutput = dotnet test $Project --no-build --pre-enumerate-theories off --list-tests | Out-String
 if ($LASTEXITCODE -ne 0) {
     Write-Host $listOutput
     throw "Test discovery failed with exit code $LASTEXITCODE."
