@@ -671,6 +671,28 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
         Assert.DoesNotContain("runtime-async", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task RuntimeAsync_NotEnabledForBlazorWebAssembly()
+    {
+        await using var project = CreateProjectBuilder(SdkBlazorWebAssemblyName);
+        project.AddCsprojFile(rootSdk: "Microsoft.NET.Sdk.BlazorWebAssembly", properties: [("OutputType", "Library"), ("ImplicitUsings", "disable")]);
+        project.AddFile("sample.cs", """
+            public static class Sample
+            {
+                public static async System.Threading.Tasks.Task<int> GetValueAsync()
+                {
+                    await System.Threading.Tasks.Task.Yield();
+                    return 1;
+                }
+            }
+            """);
+
+        var data = await project.BuildAndGetOutput();
+        Assert.Equal(0, data.ExitCode);
+        data.AssertMSBuildPropertyValue("MeziantouRuntimeAsync", "false");
+        Assert.DoesNotContain("runtime-async", data.GetCompilerCommandLineArguments(), StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("MeziantouRuntimeAsync")]
     [InlineData("UseRuntimeAsync")]

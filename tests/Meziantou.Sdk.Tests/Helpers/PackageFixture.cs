@@ -13,6 +13,7 @@ public sealed class PackageFixture : IAsyncLifetime
     public const string SdkName = "Meziantou.NET.Sdk";
     public const string SdkWebName = "Meziantou.NET.Sdk.Web";
     public const string SdkTestName = "Meziantou.NET.Sdk.Test";
+    public const string SdkBlazorWebAssemblyName = "Meziantou.NET.Sdk.BlazorWebAssembly";
 
     private readonly TemporaryDirectory _packageDirectory = TemporaryDirectory.Create();
 
