@@ -3673,7 +3673,8 @@ public abstract class SdkTests(PackageFixture fixture, ITestOutputHelper testOut
                 <TargetFrameworks>{netTargetFramework};netstandard2.0</TargetFrameworks>
             </PropertyGroup>
             """);
-        project.AddCsprojFile(filename: "Sample.csproj", properties: [("OutputType", "Library")]);
+        // Inner builds run in parallel, so each target framework needs its own error log to avoid writing the same file concurrently
+        project.AddCsprojFile(filename: "Sample.csproj", properties: [("OutputType", "Library"), ("ErrorLog", "BuildOutput.$(TargetFramework).sarif,version=2.1")]);
         project.AddFile("Sample.cs", """
             namespace Sample;
 
