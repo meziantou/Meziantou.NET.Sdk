@@ -50,12 +50,14 @@
 
        The feature is only enabled for projects that target .NET 11 or later. Older .NET Core frameworks expose
        preview-only async helpers, so the build would fail (SYSLIB5007, CA2252); other frameworks ignore the feature.
+       It is not enabled for WebAssembly projects (Blazor WebAssembly, browser-wasm) as the WebAssembly runtime doesn't support it.
        The target framework is resolved after this file is imported, so the compiler feature is added by a target.
        Set 'MeziantouRuntimeAsync' (or 'UseRuntimeAsync') to 'false' to opt out, or 'MeziantouRuntimeAsync' to 'true'
        to opt in explicitly. A 'runtime-async' value already set in 'Features' is kept as is. -->
   <Target Name="ConfigureRuntimeAsync" BeforeTargets="CoreCompile;XamlPreCompile" Condition="'$(Language)' == 'C#'">
     <PropertyGroup>
       <MeziantouRuntimeAsync Condition="'$(MeziantouRuntimeAsync)' == '' AND '$(UseRuntimeAsync)' == 'false'">false</MeziantouRuntimeAsync>
+      <MeziantouRuntimeAsync Condition="'$(MeziantouRuntimeAsync)' == '' AND '$(RuntimeIdentifier)' == 'browser-wasm'">false</MeziantouRuntimeAsync>
       <MeziantouRuntimeAsync Condition="'$(MeziantouRuntimeAsync)' == '' AND '$(TargetFramework)' != '' AND $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net11.0'))">true</MeziantouRuntimeAsync>
       <Features Condition="'$(MeziantouRuntimeAsync)' == 'true' AND !$(Features.Contains('runtime-async'))">$(Features);runtime-async=on</Features>
     </PropertyGroup>
