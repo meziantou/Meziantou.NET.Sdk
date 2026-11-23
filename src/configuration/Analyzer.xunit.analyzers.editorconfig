@@ -367,6 +367,11 @@ dotnet_diagnostic.xUnit1071.severity = warning
 # Enabled: True, Severity: warning
 dotnet_diagnostic.xUnit1072.severity = warning
 
+# xUnit1073: Collection definition is never used
+# Help link: https://xunit.net/xunit.analyzers/rules/xUnit1073
+# Enabled: True, Severity: warning
+dotnet_diagnostic.xUnit1073.severity = warning
+
 # xUnit2000: Constants and literals should be the expected argument
 # Help link: https://xunit.net/xunit.analyzers/rules/xUnit2000
 # Enabled: True, Severity: warning
