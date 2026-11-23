@@ -51,8 +51,8 @@
                                                    '$(MSBuildProjectExtension)' == '.csproj' AND
                                                    $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))" />
 
-    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.2" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' != 'true'" />
-    <PackageReference Include="xunit.v3.aot.mtp-v2" Version="4.0.2" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' == 'true'" />
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.3" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' != 'true'" />
+    <PackageReference Include="xunit.v3.aot.mtp-v2" Version="4.0.3" IsImplicitlyDefined="true" Condition="'@(_DefaultTestFrameworkUsesNativeAot)' == 'true'" />
 
     <!-- An item is used instead of a property as item lists cannot be referenced in a property condition outside of a target (MSB4099) -->
     <_DefaultTestFrameworkAdded Include="true" />
